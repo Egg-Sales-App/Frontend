@@ -1,7 +1,9 @@
 import React from 'react'
 import { LineChart, BarChart3, PieChart, DollarSign,CreditCard,SquareX,HandCoins,BrickWall,Warehouse, Users,ClipboardList } from "lucide-react";
 
-
+import chickenFeed from '../../assets/chicken_feed.png';
+import broilers from '../../assets/broilers.jpeg';
+import day_old_chicks from '../../assets/day_old_chicks.jpg';
 
 import Navbar from '../../components/Navbar'
 import Sidebar from '../../components/Sidebar'
@@ -258,6 +260,7 @@ const Dashboard = () => {
   
      <SalesSummary/>
             
+      {/*  Low quantity stock */}
 
             
      <section className="w-full h-[360px] bg-white rounded-lg shadow-md p-4">
@@ -266,6 +269,83 @@ const Dashboard = () => {
      <button className='btn bg-white text-blue-500'>see all</button>
      </div>
 
+           {/*chicken feed*/}
+
+       <section className="w-full h-[75px] bg-white shadow rounded-lg flex items-center gap-3 p-2 ">
+      {/* Image */}
+      <div className="w-[60px] h-[70px] rounded-md overflow-hidden flex-shrink-0">
+        <img
+          src={chickenFeed}
+          alt="Chicken Feed"
+          className="w-full h-full object-cover"
+        />
+      </div>
+
+      {/* Text Info */}
+      <div className="flex flex-col justify-center flex-grow">
+        <span className="text-[16px] font-semibold text-gray-800">Chicken Feed</span>
+        <span className="text-[14px] text-gray-500">Remaining Quantity : 10 Packet</span>
+      </div>
+
+      {/* Status Tag */}
+      <div className="flex-shrink-0">
+        <div className="bg-[#FEECEB] text-[#AA3028] text-xs font-medium px-2 py-1 rounded-full">
+          Low
+        </div>
+      </div>
+    </section>
+      
+      {/*broilers*/}
+     <section className="w-full h-[75px] bg-white shadow rounded-lg flex items-center gap-3 p-2 mt-6">
+      {/* Image */}
+      <div className="w-[60px] h-[70px] rounded-md overflow-hidden flex-shrink-0">
+        <img
+          src={broilers}
+          alt="broilers"
+          className="w-full h-full object-cover"
+        />
+      </div>
+
+      {/* Text Info */}
+      <div className="flex flex-col justify-center flex-grow">
+        <span className="text-[16px] font-semibold text-gray-800">Broilers</span>
+        <span className="text-[14px] text-gray-500">Remaining Quantity : 15 Packet</span>
+      </div>
+
+      {/* Status Tag */}
+      <div className="flex-shrink-0">
+        <div className="bg-[#FEECEB] text-[#AA3028] text-xs font-medium px-2 py-1 rounded-full">
+          Low
+        </div>
+      </div>
+    </section>
+
+    {/*Day old chicks*/}
+     <section className="w-full h-[75px] bg-white shadow rounded-lg flex items-center gap-3 p-2 mt-6">
+      {/* Image */}
+      <div className="w-[60px] h-[70px] rounded-md overflow-hidden flex-shrink-0">
+        <img
+          src={day_old_chicks}
+          alt="day old chick"
+          className="w-full h-full object-cover"
+        />
+      </div>
+
+      {/* Text Info */}
+      <div className="flex flex-col justify-center flex-grow">
+        <span className="text-[16px] font-semibold text-gray-800">Day old chicks</span>
+        <span className="text-[14px] text-gray-500">Remaining Quantity : 15 Packet</span>
+      </div>
+
+      {/* Status Tag */}
+      <div className="flex-shrink-0">
+        <div className="bg-[#FEECEB] text-[#AA3028] text-xs font-medium px-2 py-1 rounded-full">
+          Low
+        </div>
+      </div>
+    </section>
+
+   
       </section>
   
 
