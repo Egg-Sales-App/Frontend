@@ -186,6 +186,52 @@ const Dashboard = () => {
                 <span>Sales</span>
               </div>
             </section>
+
+                          {/* top selling stock */}
+
+     <section className="w-full h-[360px] bg-white rounded-lg shadow-md p-4">
+      <div className='flex justify-between items-center'>
+     <h2 className="text-xl font-semibold text-gray-800 mb-4">Top Selling Stock</h2>
+     <button className='btn bg-white text-blue-500'>see all</button>
+     </div>
+           <div className="overflow-x-auto">
+                    <table className="min-w-full text-left text-sm text-gray-700 border-separate border-spacing-y-7">
+                        <thead>
+            <tr className="border-b border-gray-200 ">
+              <th className="py-2 px-4 font-medium text-left text-gray-600">Name</th>
+              <th className="py-2 px-4 font-medium text-left text-gray-600">Sold Quantity</th>
+              <th className="py-2 px-4 font-medium text-left text-gray-600">Remaining Quantity</th>
+              <th className="py-2 px-4 font-medium text-left text-gray-600">Price</th>
+            </tr>
+          </thead>
+            <tbody>
+            <tr className="border-b border-gray-100 hover:bg-gray-50 ">
+              <td className="py-3 px-4">Day old chicks</td>
+              <td className="py-3 px-4">30</td>
+              <td className="py-3 px-4">12</td>
+              <td className="py-3 px-4">GHS 100</td>
+            </tr>
+            <tr className="border-b border-gray-100 hover:bg-gray-50">
+              <td className="py-3 px-4">Briolers</td>
+              <td className="py-3 px-4">21</td>
+              <td className="py-3 px-4">15</td>
+              <td className="py-3 px-4">GHS 207</td>
+            </tr>
+            <tr className="border-b border-gray-100 hover:bg-gray-50 ">
+              <td className="py-3 px-4">Dewormers</td>
+              <td className="py-3 px-4">19</td>
+              <td className="py-3 px-4">17</td>
+              <td className="py-3 px-4">GHS 105</td>
+            </tr>
+          </tbody>
+                                </table>
+
+
+            </div>
+
+     </section>
+
+
           </div>
   
           {/* Right Column: Inventory Summary, Product Summary, Sales Summary*/}
