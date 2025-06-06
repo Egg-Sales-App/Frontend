@@ -6,13 +6,14 @@ import Inventory from "./pages/admin/Inventory";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/admin/Dashboard";
+import Employee from "./pages/admin/Employee";
 
 
 function App() {
 
   return (
     <>
-    <Dashboard/>
+    <Employee/>
     </>
       
           
