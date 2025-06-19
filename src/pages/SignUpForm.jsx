@@ -86,7 +86,7 @@ const SignupForm = () => {
           {/* Create Account */}
           <p className="text-center text-sm text-gray-600 mt-6">
             Already have an account?{" "}
-            <Link to="/"
+            <Link to="/signup"
               className="text-blue-500 hover:underline">
               Log in
             </Link>
