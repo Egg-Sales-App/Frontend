@@ -14,6 +14,7 @@ import Sales from "./pages/admin/Sales";
 import ManageStore from "./pages/admin/ManageStore";
 import Supplier from "./pages/admin/Supplier";
 import Reports from "./pages/admin/Reports";
+import ApiTestPage from "./pages/ApiTestPage";
 
 function App() {
   return (
@@ -22,6 +23,11 @@ function App() {
         <AuthProvider>
           <Router>
             <Routes>
+              {/* Add this route for development */}
+              {import.meta.env.MODE === "development" && (
+                <Route path="/api-test" element={<ApiTestPage />} />
+              )}
+
               <Route path="/signup" element={<SignupForm />} />
               <Route path="/login" element={<LoginForm />} />
               <Route
