@@ -1,20 +1,14 @@
-import React from 'react'
-import Navbar from '../../components/Navbar'
-import Sidebar from '../../components/Sidebar'
+import React from "react";
+import AdminLayout from "../../components/layout/AdminLayout";
 
 const Sales = () => {
   return (
-  <div className="flex min-h-screen  pt-[64px]">
-           {/* Sidebar on the left */}
-      <Sidebar />
-  
-      {/* Main content area on the right */}
-      <div className="ml-[200px] flex-1 flex flex-col min-h-screen ">        {/* Navbar */}
-        <Navbar />
+    <AdminLayout title="Sales">
+      <div className="bg-white rounded-lg shadow p-6">
+        <h2>Sales Content Coming Soon...</h2>
+      </div>
+    </AdminLayout>
+  );
+};
 
-        </div>
-          </div>  )
-}
-
-
-export default Sales
+export default Sales;

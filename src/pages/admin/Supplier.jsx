@@ -1,20 +1,20 @@
-import React from 'react'
-import Navbar from '../../components/Navbar'
-import Sidebar from '../../components/Sidebar'
+import React from "react";
+import AdminLayout from "../../components/layout/AdminLayout";
 
 const Supplier = () => {
   return (
-  <div className="flex min-h-screen  pt-[64px]">
-           {/* Sidebar on the left */}
-      <Sidebar />
-  
-      {/* Main content area on the right */}
-      <div className="ml-[200px] flex-1 flex flex-col min-h-screen ">        {/* Navbar */}
-        <Navbar />
-
+    <AdminLayout title="Suppliers">
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold">Supplier Management</h2>
+          <button className="btn btn-primary">Add Supplier</button>
         </div>
-          </div>  )
-}
+        <p className="text-gray-600">
+          Supplier management features coming soon...
+        </p>
+      </div>
+    </AdminLayout>
+  );
+};
 
-
-export default Supplier
+export default Supplier;
