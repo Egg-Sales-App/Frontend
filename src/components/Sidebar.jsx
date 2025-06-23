@@ -1,7 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 
-
 import {
   LayoutDashboard,
   Boxes,
@@ -15,7 +14,7 @@ import {
 } from "lucide-react";
 
 const Sidebar = () => {
-   const menuItems = [
+  const menuItems = [
     { icon: <LayoutDashboard size={18} />, label: "Dashboard", path: "/" },
     { icon: <Boxes size={18} />, label: "Inventory", path: "/inventory" },
     { icon: <FileText size={18} />, label: "Reports", path: "/reports" },
@@ -29,10 +28,9 @@ const Sidebar = () => {
     { icon: <LogOut size={18} />, label: "Logout", path: "/login" },
   ];
 
-
   return (
-<aside className="fixed top-0 left-0 z-20 w-[200px] h-screen bg-white p-6 pt-10 rounded-tr-lg rounded-br-lg shadow flex flex-col justify-between">
-{/* Logo */}
+    <aside className="fixed top-0 left-0 z-20 w-[200px] h-screen bg-white p-6 pt-10 shadow flex flex-col justify-between">
+      {/* Logo */}
       <div>
         <div className="flex justify-center mb-8">
           <div className="bg-[#f4faf8] px-6 py-3 rounded-md text-[#496961] font-black font-[Lato] text-lg text-center hover:text-blue-600 ">
@@ -42,15 +40,13 @@ const Sidebar = () => {
 
         {/* Menu Items */}
         <ul className="space-y-2 text-sm font-medium">
-
           {menuItems.map((item, index) => (
-        <li key={index}>
-
-           <Link
+            <li key={index}>
+              <Link
                 to={item.path}
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition"
-              > 
-                  {item.icon}
+              >
+                {item.icon}
                 <span>{item.label}</span>
               </Link>
             </li>
@@ -61,7 +57,7 @@ const Sidebar = () => {
       {/* Footer Items */}
       <ul className="space-y-2 text-sm font-medium mt-6">
         {footerItems.map((item, index) => (
-         <li key={index}>
+          <li key={index}>
             <Link
               to={item.path}
               className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition"
