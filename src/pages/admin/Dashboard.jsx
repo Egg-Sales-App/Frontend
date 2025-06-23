@@ -1,11 +1,13 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import MetricCard from "../../components/ui/MetricCard";
 import StockCard from "../../components/ui/StockCard";
 import SalesSummary from "../../components/SalesSummary";
 import { useApi } from "../../hooks/useApi";
 import { inventoryService } from "../../services/inventoryService";
-import { SALES_OVERVIEW_DATA, LOW_STOCK_ITEMS } from "../../constants/mockData";
+import { salesService } from "../../services/salesService";
+import { reportsService } from "../../services/reportsService";
+import { useToast } from "../../components/ui/ToastContext";
 import {
   BarChart3,
   LineChart,
@@ -21,126 +23,117 @@ import {
 } from "lucide-react";
 
 const Dashboard = () => {
-  // API calls for real data
-  const { data: lowStockData, loading: lowStockLoading } = useApi(
-    inventoryService.getLowStockItems
-  );
+  const { error: showError } = useToast();
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const salesMetrics = useMemo(
-    () => [
+  // Fetch dashboard data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch all dashboard data in parallel
+        const [summary, lowStock, topSelling, salesChart] =
+          await Promise.allSettled([
+            reportsService.getDashboardSummary(),
+            inventoryService.getLowStockItems(),
+            inventoryService.getTopSellingProducts(5),
+            salesService.getSalesChartData("30d"),
+          ]);
+
+        setDashboardData({
+          summary: summary.status === "fulfilled" ? summary.value : null,
+          lowStock: lowStock.status === "fulfilled" ? lowStock.value : [],
+          topSelling: topSelling.status === "fulfilled" ? topSelling.value : [],
+          salesChart: salesChart.status === "fulfilled" ? salesChart.value : [],
+        });
+
+        // Show errors for failed requests
+        if (summary.status === "rejected") {
+          showError("Failed to load dashboard summary");
+        }
+      } catch (error) {
+        showError("Failed to load dashboard data");
+        console.error("Dashboard data fetch error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [showError]);
+
+  // Sales metrics with real data
+  const salesMetrics = useMemo(() => {
+    const summary = dashboardData?.summary;
+    if (!summary) return [];
+
+    return [
       {
         icon: <BarChart3 />,
-        value: `GHS ${SALES_OVERVIEW_DATA.sales}`,
-        label: "Sales",
+        value: `GHS ${summary.sales?.total || 0}`,
+        label: "Total Sales",
         bgColor: "bg-blue-100",
         iconColor: "text-blue-500",
       },
       {
         icon: <LineChart />,
-        value: `GHS ${SALES_OVERVIEW_DATA.revenue}`,
+        value: `GHS ${summary.revenue?.total || 0}`,
         label: "Revenue",
         bgColor: "bg-green-100",
         iconColor: "text-green-500",
       },
       {
         icon: <PieChart />,
-        value: `GHS ${SALES_OVERVIEW_DATA.profit}`,
+        value: `GHS ${summary.profit?.total || 0}`,
         label: "Profit",
         bgColor: "bg-purple-100",
         iconColor: "text-purple-500",
       },
       {
         icon: <DollarSign />,
-        value: `GHS ${SALES_OVERVIEW_DATA.cost}`,
-        label: "Cost",
+        value: `GHS ${summary.expenses?.total || 0}`,
+        label: "Expenses",
         bgColor: "bg-orange-100",
         iconColor: "text-orange-500",
       },
-    ],
-    []
-  );
+    ];
+  }, [dashboardData]);
 
-  const purchaseMetrics = useMemo(
-    () => [
+  // Inventory metrics
+  const inventoryMetrics = useMemo(() => {
+    const summary = dashboardData?.summary;
+    if (!summary) return [];
+
+    return [
       {
-        icon: <CreditCard />,
-        value: "GHS 832",
-        label: "Purchase",
-        bgColor: "bg-blue-100",
-        iconColor: "text-blue-500",
-      },
-      {
-        icon: <DollarSign />,
-        value: "GHS 1,300",
-        label: "Cost",
-        bgColor: "bg-indigo-100",
-        iconColor: "text-green-500",
-      },
-      {
-        icon: <SquareX />,
-        value: "GHS 868",
-        label: "Cancel",
+        icon: <BrickWall />,
+        value: summary.inventory?.totalItems || "0",
+        label: "Total Products",
         bgColor: "bg-orange-100",
         iconColor: "text-orange-500",
       },
       {
-        icon: <HandCoins />,
-        value: "GHS 1,432",
-        label: "Return",
-        bgColor: "bg-green-100",
-        iconColor: "text-green-500",
+        icon: <Warehouse />,
+        value: summary.inventory?.lowStockCount || "0",
+        label: "Low Stock Items",
+        bgColor: "bg-red-100",
+        iconColor: "text-red-500",
       },
-    ],
-    []
-  );
+    ];
+  }, [dashboardData]);
 
-  const inventoryMetrics = [
-    {
-      icon: <BrickWall />,
-      value: "868",
-      label: "Quantity in hand",
-      bgColor: "bg-orange-100",
-      iconColor: "text-orange-500",
-    },
-    {
-      icon: <Warehouse />,
-      value: "200",
-      label: "To be received",
-      bgColor: "bg-purple-100",
-      iconColor: "text-purple-500",
-    },
-  ];
-
-  const productMetrics = [
-    {
-      icon: <Users />,
-      value: "13",
-      label: "Number of suppliers",
-      bgColor: "bg-blue-100",
-      iconColor: "text-blue-500",
-    },
-    {
-      icon: <ClipboardList />,
-      value: "21",
-      label: "Number of categories",
-      bgColor: "bg-yellow-100",
-      iconColor: "text-yellow-500",
-    },
-  ];
-
-  const topSellingProducts = [
-    {
-      name: "Day old chicks",
-      soldQuantity: 30,
-      remainingQuantity: 12,
-      price: 100,
-    },
-    { name: "Broilers", soldQuantity: 21, remainingQuantity: 15, price: 207 },
-    { name: "Dewormers", soldQuantity: 19, remainingQuantity: 17, price: 105 },
-  ];
-
-  // Use real data if available, fallback to mock data
-  const displayLowStockItems = lowStockData || LOW_STOCK_ITEMS;
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="flex justify-center items-center h-64">
+          <div className="loading loading-spinner loading-lg"></div>
+          <span className="ml-4">Loading dashboard...</span>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
@@ -159,72 +152,65 @@ const Dashboard = () => {
             </div>
           </section>
 
-          {/* Purchase Overview */}
+          {/* Sales Chart */}
           <section className="bg-white rounded-lg p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              Purchase Overview
+              Sales Trend
             </h2>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {purchaseMetrics.map((metric, index) => (
-                <MetricCard key={index} {...metric} />
-              ))}
-            </div>
-          </section>
-
-          {/* Sales & Purchase Chart */}
-          <section className="bg-white rounded-lg p-6 shadow-sm">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-800">
-                Sales & Purchase
-              </h2>
-              <div className="flex gap-2">
-                <button className="btn btn-sm btn-outline">Weekly</button>
-                <button className="btn btn-sm btn-primary">Daily</button>
+            {dashboardData?.salesChart ? (
+              <SalesSummary data={dashboardData.salesChart} />
+            ) : (
+              <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
+                <p className="text-gray-500">No sales data available</p>
               </div>
-            </div>
-            <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
-              <p className="text-gray-500">Chart Component Coming Soon</p>
-            </div>
+            )}
           </section>
 
-          {/* Top Selling Stock */}
+          {/* Top Selling Products */}
           <section className="bg-white rounded-lg p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold text-gray-800">
-                Top Selling Stock
+                Top Selling Products
               </h2>
               <button className="btn btn-sm btn-outline">See all</button>
             </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2 font-medium text-gray-600">
-                      Name
-                    </th>
-                    <th className="text-left py-2 font-medium text-gray-600">
-                      Sold Quantity
-                    </th>
-                    <th className="text-left py-2 font-medium text-gray-600">
-                      Remaining
-                    </th>
-                    <th className="text-left py-2 font-medium text-gray-600">
-                      Price
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topSellingProducts.map((product, index) => (
-                    <tr key={index} className="border-b hover:bg-gray-50">
-                      <td className="py-3">{product.name}</td>
-                      <td className="py-3">{product.soldQuantity}</td>
-                      <td className="py-3">{product.remainingQuantity}</td>
-                      <td className="py-3">GHS {product.price}</td>
+
+            {dashboardData?.topSelling?.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2 font-medium text-gray-600">
+                        Product
+                      </th>
+                      <th className="text-left py-2 font-medium text-gray-600">
+                        Sold
+                      </th>
+                      <th className="text-left py-2 font-medium text-gray-600">
+                        Stock
+                      </th>
+                      <th className="text-left py-2 font-medium text-gray-600">
+                        Revenue
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {dashboardData.topSelling.map((product, index) => (
+                      <tr key={index} className="border-b hover:bg-gray-50">
+                        <td className="py-3">{product.name}</td>
+                        <td className="py-3">{product.soldQuantity}</td>
+                        <td className="py-3">{product.currentStock}</td>
+                        <td className="py-3">GHS {product.revenue}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-8">
+                No sales data available
+              </p>
+            )}
           </section>
         </div>
 
@@ -237,49 +223,38 @@ const Dashboard = () => {
             </h2>
             <div className="grid grid-cols-2 gap-4">
               {inventoryMetrics.map((metric, index) => (
-                <div key={index} className="text-center">
-                  <MetricCard {...metric} />
-                </div>
+                <MetricCard key={index} {...metric} />
               ))}
             </div>
           </section>
 
-          {/* Product Summary */}
-          <section className="bg-white rounded-lg p-6 shadow-sm">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              Product Summary
-            </h2>
-            <div className="grid grid-cols-2 gap-4">
-              {productMetrics.map((metric, index) => (
-                <div key={index} className="text-center">
-                  <MetricCard {...metric} />
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Sales Summary Chart */}
-          <SalesSummary />
-
-          {/* Low Quantity Stock */}
+          {/* Low Stock Items */}
           <section className="bg-white rounded-lg p-6 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold text-gray-800">
-                Low Quantity Stock
+                Low Stock Alert
               </h2>
               <button className="btn btn-sm btn-outline">See all</button>
             </div>
 
-            {lowStockLoading ? (
-              <div className="flex justify-center py-8">
-                <div className="loading loading-spinner"></div>
-              </div>
-            ) : (
+            {dashboardData?.lowStock?.length > 0 ? (
               <div className="space-y-4">
-                {displayLowStockItems.map((item, index) => (
-                  <StockCard key={index} {...item} />
+                {dashboardData.lowStock.slice(0, 5).map((item, index) => (
+                  <StockCard
+                    key={index}
+                    name={item.name}
+                    image={item.image || "/assets/default-product.png"}
+                    remainingQuantity={`${item.quantity} ${
+                      item.unit || "units"
+                    }`}
+                    status="Low"
+                  />
                 ))}
               </div>
+            ) : (
+              <p className="text-gray-500 text-center py-8">
+                All products are well stocked!
+              </p>
             )}
           </section>
         </div>
