@@ -33,57 +33,64 @@ function App() {
               <Route
                 path="/"
                 element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
+                  <Dashboard />
+                  // <ProtectedRoute>
+                  //   <Dashboard />
+                  // </ProtectedRoute>
                 }
               />
               <Route
                 path="/inventory"
                 element={
-                  <ProtectedRoute>
-                    <Inventory />
-                  </ProtectedRoute>
+                  <Inventory />
+                  // <ProtectedRoute>
+                  //   <Inventory />
+                  // </ProtectedRoute>
                 }
               />
               <Route
                 path="/reports"
                 element={
-                  <ProtectedRoute>
-                    <Reports />
-                  </ProtectedRoute>
+                  <Reports />
+                  // <ProtectedRoute>
+                  //   <Reports />
+                  // </ProtectedRoute>
                 }
               />
               <Route
                 path="/suppliers"
                 element={
-                  <ProtectedRoute>
-                    <Supplier />
-                  </ProtectedRoute>
+                  <Supplier />
+                  // <ProtectedRoute>
+                  //   <Supplier />
+                  // </ProtectedRoute>
                 }
               />
               <Route
                 path="/sales"
                 element={
-                  <ProtectedRoute>
-                    <Sales />
-                  </ProtectedRoute>
+                  <Sales />
+                  // <ProtectedRoute>
+                  //   <Sales />
+                  // </ProtectedRoute>
                 }
               />
               <Route
                 path="/manage-store"
                 element={
-                  <ProtectedRoute>
-                    <ManageStore />
-                  </ProtectedRoute>
+                  <ManageStore />
+                  // <ProtectedRoute>
+                  //   <ManageStore />
+                  // </ProtectedRoute>
                 }
               />
               <Route
                 path="/employees"
                 element={
-                  <ProtectedRoute>
-                    <Employee />
-                  </ProtectedRoute>
+                  <Employee />
+                  // <ProtectedRoute>
+                  //   <Employee />
+                  // </ProtectedRoute>
                 }
               />
             </Routes>
