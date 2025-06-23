@@ -152,6 +152,18 @@ const Dashboard = () => {
             </div>
           </section>
 
+          {/* Purchase Overview */}
+          <section className="bg-white rounded-lg p-6 shadow-sm">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Purchase Overview
+            </h2>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {salesMetrics.map((metric, index) => (
+                <MetricCard key={index} {...metric} />
+              ))}
+            </div>
+          </section>
+
           {/* Sales Chart */}
           <section className="bg-white rounded-lg p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
@@ -220,6 +232,30 @@ const Dashboard = () => {
           <section className="bg-white rounded-lg p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
               Inventory Summary
+            </h2>
+            <div className="grid grid-cols-2 gap-4">
+              {inventoryMetrics.map((metric, index) => (
+                <MetricCard key={index} {...metric} />
+              ))}
+            </div>
+          </section>
+
+          {/* Product Summary */}
+          <section className="bg-white rounded-lg p-6 shadow-sm">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Product Summary
+            </h2>
+            <div className="grid grid-cols-2 gap-4">
+              {inventoryMetrics.map((metric, index) => (
+                <MetricCard key={index} {...metric} />
+              ))}
+            </div>
+          </section>
+
+          {/* Sales Summary */}
+          <section className="bg-white rounded-lg p-6 shadow-sm">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Sales Summary
             </h2>
             <div className="grid grid-cols-2 gap-4">
               {inventoryMetrics.map((metric, index) => (
