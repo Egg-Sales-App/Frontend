@@ -311,8 +311,8 @@ const Inventory = () => {
   };
 
   const ProductCard = ({ product }) => (
-    <div className="w-full max-w-sm bg-white rounded-xl shadow-lg p-6 flex flex-col items-center justify-between transition-transform hover:scale-105">
-      <div className="w-32 h-32 mb-4 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+    <div className="w-full max-w-sm bg-white rounded-xl shadow-lg px-3 pb-3 flex flex-col items-center justify-between transition-transform hover:scale-105 overflow-visible mt-8">
+      <div className="w-32 h-32 mb-4 rounded-full overflow-hidden bg-transparent flex items-center justify-center -mt-10">
         <img
           src={product.img}
           alt={product.name}
@@ -381,13 +381,13 @@ const Inventory = () => {
     return (
       <div
         onClick={() => handleFilterClick(filterType)}
-        className={`text-center p-4 rounded-lg cursor-pointer transition-all duration-200 ${
+        className={`text-center p-2 rounded-lg cursor-pointer transition-all duration-200 ${
           isActive
             ? "bg-blue-500 text-white shadow-lg transform scale-105"
             : "bg-white hover:bg-blue-50 hover:border-blue-200 border border-gray-200"
         }`}
       >
-        <div className="flex items-center justify-center mb-2">
+        <div className="flex items-center justify-center">
           <span className="text-lg mr-2">{icon}</span>
           <h3
             className={`text-sm font-medium ${
@@ -415,7 +415,7 @@ const Inventory = () => {
 
   if (loading) {
     return (
-      <AdminLayout title="Inventory">
+      <AdminLayout>
         <div className="flex justify-center items-center h-64">
           <div className="loading loading-spinner text-primary loading-lg"></div>
         </div>
@@ -438,9 +438,9 @@ const Inventory = () => {
   return (
     <AdminLayout>
       {/* Header */}
-      <div className="sticky top-15 bg-gray-50/80 backdrop-blur-sm border-b border-gray-200/50 z-10 py-4 px-4 mb-3 flex justify-between items-center">
+      <div className="sticky top-15 bg-gray-50/80 backdrop-blur-sm border-b border-gray-200/50 z-10 py-2 px-2 mb-2 flex justify-between items-center">
         {/* Category Filter */}
-        <div className=" mb-">
+        <div>
           <h3 className="text-lg font-semibold mb-1 text-gray-600">
             Categories
           </h3>
@@ -497,7 +497,7 @@ const Inventory = () => {
       </dialog>
 
       {/* Overview Stats */}
-      <div className="mb-6 p-3 rounded-lg bg-gray-50 shadow-sm">
+      <div className="mb-3 p-3 rounded-lg bg-gray-50 shadow-sm">
         <div className="flex justify-between items-center">
           {/* <h2 className="text-xl text-black font-semibold">
             {currentCategoryData.name} - {getFilterDisplayName()}
