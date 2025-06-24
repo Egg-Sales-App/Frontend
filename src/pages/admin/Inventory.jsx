@@ -438,9 +438,9 @@ const Inventory = () => {
   return (
     <AdminLayout>
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="sticky top-15 bg-gray-50/80 backdrop-blur-sm border-b border-gray-200/50 z-10 py-4 px-4 mb-3 flex justify-between items-center">
         {/* Category Filter */}
-        <div className="mb-2">
+        <div className=" mb-">
           <h3 className="text-lg font-semibold mb-1 text-gray-600">
             Categories
           </h3>
