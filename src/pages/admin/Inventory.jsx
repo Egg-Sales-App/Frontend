@@ -4,39 +4,41 @@ import { inventoryService } from "../../services/inventoryService";
 import HybridFeedImage from "../../assets/hybridfeed.png";
 import HalfDozenEggsImage from "../../assets/eggcrate.png";
 import DayOldChicksImage from "../../assets/dayoldchicks.png";
+import AddProduct from "../../components/ui/AddProduct";
 
 const Inventory = () => {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedFilter, setSelectedFilter] = useState("all"); // New state for filter
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Enhanced mock data with categories
+  // Enhanced mock data with categories and sales data
   const mockInventoryData = {
     categories: [
       {
         id: 1,
         name: "Feed & Nutrition",
-        totalProducts: 15,
-        totalValue: 25000,
-        lastWeekSales: 3,
-        lowStockItems: 2,
+        totalProducts: 3,
+        totalValue: 2575,
+        lastWeekSales: 8,
+        lowStockItems: 1,
       },
       {
         id: 2,
         name: "Day Old Chick",
-        totalProducts: 25,
-        totalValue: 35000,
-        lastWeekSales: 8,
-        lowStockItems: 0,
+        totalProducts: 3,
+        totalValue: 9040,
+        lastWeekSales: 15,
+        lowStockItems: 1,
       },
       {
         id: 3,
         name: "Equipment",
-        totalProducts: 12,
-        totalValue: 18000,
-        lastWeekSales: 2,
+        totalProducts: 3,
+        totalValue: 4255,
+        lastWeekSales: 3,
         lowStockItems: 1,
       },
     ],
@@ -53,6 +55,8 @@ const Inventory = () => {
         cost: 120,
         sku: "HF-001",
         description: "Premium quality hybrid feed for optimal nutrition",
+        weeklySales: 5,
+        isTopSelling: true,
       },
       {
         id: 2,
@@ -65,6 +69,8 @@ const Inventory = () => {
         cost: 140,
         sku: "SF-001",
         description: "Specially formulated for young chicks",
+        weeklySales: 12,
+        isTopSelling: true,
       },
       {
         id: 3,
@@ -77,44 +83,8 @@ const Inventory = () => {
         cost: 130,
         sku: "LF-001",
         description: "High calcium feed for laying hens",
-      },
-
-      //  Category
-      {
-        id: 4,
-        name: "Half Dozen Eggs",
-        category: "",
-        categoryId: 2,
-        stock: 7,
-        img: HalfDozenEggsImage,
-        price: 30,
-        cost: 20,
-        sku: "EG-006",
-        description: "Fresh farm eggs - 6 pieces",
-      },
-      {
-        id: 5,
-        name: "Dozen Eggs",
-        category: "",
-        categoryId: 2,
-        stock: 15,
-        img: HalfDozenEggsImage,
-        price: 55,
-        cost: 35,
-        sku: "EG-012",
-        description: "Fresh farm eggs - 12 pieces",
-      },
-      {
-        id: 6,
-        name: "Farm Fresh Milk",
-        category: "",
-        categoryId: 2,
-        stock: 3,
-        img: HalfDozenEggsImage,
-        price: 45,
-        cost: 30,
-        sku: "MK-001",
-        description: "Fresh dairy milk - 1 liter",
+        weeklySales: 3,
+        isTopSelling: false,
       },
 
       // Day Old Chick Category
@@ -129,6 +99,8 @@ const Inventory = () => {
         cost: 3,
         sku: "CH-001",
         description: "Healthy day-old chicks",
+        weeklySales: 20,
+        isTopSelling: true,
       },
       {
         id: 8,
@@ -141,6 +113,8 @@ const Inventory = () => {
         cost: 180,
         sku: "BR-001",
         description: "Ready-to-sell broiler chickens",
+        weeklySales: 8,
+        isTopSelling: true,
       },
       {
         id: 9,
@@ -153,6 +127,8 @@ const Inventory = () => {
         cost: 220,
         sku: "LH-001",
         description: "Productive laying hens",
+        weeklySales: 4,
+        isTopSelling: false,
       },
 
       // Equipment Category
@@ -167,6 +143,8 @@ const Inventory = () => {
         cost: 50,
         sku: "FD-001",
         description: "Automatic chicken feeders",
+        weeklySales: 6,
+        isTopSelling: true,
       },
       {
         id: 11,
@@ -179,6 +157,8 @@ const Inventory = () => {
         cost: 60,
         sku: "WD-001",
         description: "Gravity-fed water dispensers",
+        weeklySales: 4,
+        isTopSelling: false,
       },
       {
         id: 12,
@@ -191,6 +171,8 @@ const Inventory = () => {
         cost: 1200,
         sku: "IN-001",
         description: "Automatic egg incubators",
+        weeklySales: 1,
+        isTopSelling: false,
       },
     ],
   };
@@ -214,17 +196,47 @@ const Inventory = () => {
     fetchProducts();
   }, []);
 
-  // Filter products by category
+  // Filter products by category and additional filters
   useEffect(() => {
-    if (selectedCategory === "all") {
-      setFilteredProducts(products);
-    } else {
-      const filtered = products.filter(
+    let baseProducts = products;
+
+    // First filter by category
+    if (selectedCategory !== "all") {
+      baseProducts = products.filter(
         (product) => product.category === selectedCategory
       );
-      setFilteredProducts(filtered);
     }
-  }, [selectedCategory, products]);
+
+    // Then apply additional filters
+    let finalProducts = baseProducts;
+
+    switch (selectedFilter) {
+      case "all":
+        finalProducts = baseProducts;
+        break;
+      case "total-products":
+        finalProducts = baseProducts; // Show all products in category
+        break;
+      case "total-value":
+        // Sort by highest value (price * stock)
+        finalProducts = [...baseProducts].sort(
+          (a, b) => b.price * b.stock - a.price * a.stock
+        );
+        break;
+      case "top-selling":
+        // Show top selling products
+        finalProducts = baseProducts.filter((product) => product.isTopSelling);
+        break;
+      case "low-stock":
+        // Show low stock items
+        finalProducts = baseProducts.filter((product) => product.stock < 10);
+        break;
+      default:
+        finalProducts = baseProducts;
+    }
+
+    setFilteredProducts(finalProducts);
+  }, [selectedCategory, selectedFilter, products]);
 
   // Get current category data for overview
   const getCurrentCategoryData = () => {
@@ -237,21 +249,65 @@ const Inventory = () => {
           0
         ),
         lastWeekSales: products.reduce(
-          (sum, product) => sum + Math.floor(Math.random() * 10),
+          (sum, product) => sum + (product.weeklySales || 0),
           0
         ),
         lowStockItems: products.filter((product) => product.stock < 10).length,
+        topSellingItems: products.filter((product) => product.isTopSelling)
+          .length,
       };
     } else {
       const categoryData = mockInventoryData.categories.find(
         (cat) => cat.name === selectedCategory
       );
-      return categoryData || {};
+
+      // Calculate real-time data for selected category
+      const categoryProducts = products.filter(
+        (p) => p.category === selectedCategory
+      );
+
+      return {
+        ...categoryData,
+        totalProducts: categoryProducts.length,
+        totalValue: categoryProducts.reduce(
+          (sum, p) => sum + p.price * p.stock,
+          0
+        ),
+        lastWeekSales: categoryProducts.reduce(
+          (sum, p) => sum + (p.weeklySales || 0),
+          0
+        ),
+        lowStockItems: categoryProducts.filter((p) => p.stock < 10).length,
+        topSellingItems: categoryProducts.filter((p) => p.isTopSelling).length,
+      };
     }
   };
 
   const handleCategoryClick = (categoryName) => {
     setSelectedCategory(categoryName);
+    setSelectedFilter("all"); // Reset filter when changing category
+  };
+
+  const handleFilterClick = (filterType) => {
+    setSelectedFilter(filterType);
+  };
+
+  // Get filter name for display
+  const getFilterDisplayName = () => {
+    switch (selectedFilter) {
+      case "all":
+        return "All Products";
+      case "total-products":
+        return "All Products";
+      case "total-value":
+        return "Highest Value Products";
+      case "top-selling":
+        return "Top Selling Products";
+      case "low-stock":
+        return "Low Stock Items";
+      default:
+        return "All Products";
+    }
   };
 
   const ProductCard = ({ product }) => (
@@ -275,19 +331,31 @@ const Inventory = () => {
           {product.name}
         </h3>
         <p className="text-xs text-gray-500 mb-1">{product.sku}</p>
-        <p
-          className={`text-sm mb-2 ${
-            product.stock < 10 ? "text-red-600" : "text-green-600"
-          }`}
-        >
-          {product.stock} In-stock
-        </p>
+        <div className="flex gap-2 items-center justify-center mb-2">
+          <p
+            className={`text-sm ${
+              product.stock < 10 ? "text-red-600" : "text-green-600"
+            }`}
+          >
+            {product.stock} In-stock
+          </p>
+          {product.isTopSelling && (
+            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+              🔥 Top Seller
+            </span>
+          )}
+        </div>
         {product.price && (
           <p className="text-blue-600 font-medium">GHS {product.price}</p>
         )}
+        {product.weeklySales && (
+          <p className="text-xs text-gray-500">
+            {product.weeklySales} sold this week
+          </p>
+        )}
       </div>
       <div className="flex gap-2 mt-4">
-        <button className="btn btn-sm btn-outline">Edit</button>
+        <button className="btn btn-sm btn-outline text-gray-500">Edit</button>
         <button className="btn btn-sm btn-primary">View</button>
       </div>
     </div>
@@ -306,11 +374,50 @@ const Inventory = () => {
     </button>
   );
 
+  // Filter Card Component
+  const FilterCard = ({ title, value, subtitle, filterType, icon }) => {
+    const isActive = selectedFilter === filterType;
+
+    return (
+      <div
+        onClick={() => handleFilterClick(filterType)}
+        className={`text-center p-4 rounded-lg cursor-pointer transition-all duration-200 ${
+          isActive
+            ? "bg-blue-500 text-white shadow-lg transform scale-105"
+            : "bg-white hover:bg-blue-50 hover:border-blue-200 border border-gray-200"
+        }`}
+      >
+        <div className="flex items-center justify-center mb-2">
+          <span className="text-lg mr-2">{icon}</span>
+          <h3
+            className={`text-sm font-medium ${
+              isActive ? "text-white" : "text-blue-500"
+            }`}
+          >
+            {title}
+          </h3>
+        </div>
+        <p
+          className={`text-2xl font-bold ${
+            isActive ? "text-white" : "text-gray-800"
+          }`}
+        >
+          {value}
+        </p>
+        <p
+          className={`text-xs ${isActive ? "text-blue-100" : "text-gray-500"}`}
+        >
+          {subtitle}
+        </p>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <AdminLayout title="Inventory">
         <div className="flex justify-center items-center h-64">
-          <div className="loading loading-spinner loading-lg"></div>
+          <div className="loading loading-spinner text-primary loading-lg"></div>
         </div>
       </AdminLayout>
     );
@@ -331,10 +438,10 @@ const Inventory = () => {
   return (
     <AdminLayout>
       {/* Header */}
-      <div className="flex justify-between items-center mb-3">
+      <div className="flex justify-between items-center">
         {/* Category Filter */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-3 text-gray-600">
+        <div className="mb-2">
+          <h3 className="text-lg font-semibold mb-1 text-gray-600">
             Categories
           </h3>
           <div className="flex flex-wrap gap-3">
@@ -358,69 +465,108 @@ const Inventory = () => {
             ))}
           </div>
         </div>
+        {/* Add buttons */}
         <div className="flex gap-3">
-          <button className="btn btn-outline text-gray-500">Add Product</button>
+          <button
+            className="btn btn-outline text-gray-500"
+            onClick={() =>
+              document.getElementById("add_product_modal").showModal()
+            }
+          >
+            Add Product
+          </button>
           <button className="btn btn-primary">Add Category</button>
         </div>
       </div>
 
+      {/* Add Product Modal */}
+      <dialog id="add_product_modal" className="modal text-black">
+        <div className="modal-box bg-white max-w-lg">
+          <form method="dialog">
+            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+              ✕
+            </button>
+          </form>
+          <h3 className="text-2xl mb-4">New Product</h3>
+          {/* AddProduct component will go here */}
+          <AddProduct />
+        </div>
+        <form method="dialog" className="modal-backdrop">
+          <button>close</button>
+        </form>
+      </dialog>
+
       {/* Overview Stats */}
-      <div className="mb-6 p-6 rounded-lg bg-white shadow-sm">
-        <h2 className="text-xl text-black font-semibold mb-4">
-          {currentCategoryData.name} Overview
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="text-center">
-            <h3 className="text-blue-500 text-sm font-medium mb-2">
-              Total Products
-            </h3>
-            <p className="text-2xl font-bold text-gray-800">
-              {currentCategoryData.totalProducts}
-            </p>
-            <p className="text-gray-500 text-xs">Active items</p>
-          </div>
-
-          <div className="text-center">
-            <h3 className="text-blue-500 text-sm font-medium mb-2">
-              Total Value
-            </h3>
-            <p className="text-2xl font-bold text-gray-800">
-              GHS{" "}
-              {currentCategoryData.totalValue?.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </p>
-            <p className="text-gray-500 text-xs">Inventory worth</p>
-          </div>
-
-          <div className="text-center">
-            <h3 className="text-blue-500 text-sm font-medium mb-2">
-              Weekly Sales
-            </h3>
-            <p className="text-2xl font-bold text-gray-800">
-              {currentCategoryData.lastWeekSales}
-            </p>
-            <p className="text-gray-500 text-xs">Last 7 days</p>
-          </div>
-
-          <div className="text-center">
-            <h3 className="text-blue-500 text-sm font-medium mb-2">
-              Low Stock
-            </h3>
-            <p
-              className={`text-2xl font-bold ${
-                currentCategoryData.lowStockItems > 0
-                  ? "text-red-600"
-                  : "text-green-600"
-              }`}
+      <div className="mb-6 p-3 rounded-lg bg-gray-50 shadow-sm">
+        <div className="flex justify-between items-center">
+          {/* <h2 className="text-xl text-black font-semibold">
+            {currentCategoryData.name} - {getFilterDisplayName()}
+          </h2> */}
+          {selectedFilter !== "all" && (
+            <button
+              onClick={() => setSelectedFilter("all")}
+              className="text-sm text-blue-600 hover:text-blue-800"
             >
-              {currentCategoryData.lowStockItems}
-            </p>
-            <p className="text-gray-500 text-xs">Items below 10</p>
-          </div>
+              Clear Filter ✕
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <FilterCard
+            title="Total Products"
+            value={currentCategoryData.totalProducts}
+            subtitle="Active items"
+            filterType="total-products"
+            icon="📦"
+          />
+
+          <FilterCard
+            title="Total Value"
+            value={`GHS ${currentCategoryData.totalValue?.toLocaleString(
+              undefined,
+              {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+              }
+            )}`}
+            subtitle="Inventory worth"
+            filterType="total-value"
+            icon="💰"
+          />
+
+          <FilterCard
+            title="Top Selling"
+            value={currentCategoryData.topSellingItems || 0}
+            subtitle="Best performers"
+            filterType="top-selling"
+            icon="🔥"
+          />
+
+          <FilterCard
+            title="Low Stock"
+            value={currentCategoryData.lowStockItems}
+            subtitle="Items below 10"
+            filterType="low-stock"
+            icon="⚠️"
+          />
         </div>
       </div>
+
+      {/* Active Filter Indicator */}
+      {selectedFilter !== "all" && (
+        <div className="mb-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
+          <p className="text-sm text-blue-800">
+            Showing {getFilterDisplayName()}{" "}
+            <span
+              onClick={() => setSelectedFilter("all")}
+              className="text-blue-600 cursor-pointer underline"
+            >
+              (Change)
+            </span>
+          </p>
+        </div>
+      )}
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
