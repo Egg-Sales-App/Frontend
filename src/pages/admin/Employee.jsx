@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 const Employee = () => {
+    const [loading, setLoading] = useState(true);
+
   const [employees] = useState([
     {
       id: 1,
@@ -41,6 +43,14 @@ const Employee = () => {
     },
   ]);
 
+  useEffect(() => {
+  const timer = setTimeout(() => {
+    setLoading(false);
+  }, 1000); // adjust delay as needed
+
+  return () => clearTimeout(timer); // Cleanup
+}, []);
+
   const handleEdit = (employeeId) => {
     console.log("Edit employee:", employeeId);
     // Add edit functionality
@@ -53,6 +63,10 @@ const Employee = () => {
 
   return (
     <AdminLayout title="Employee Management">
+      {loading ? (
+        <div className="p-6 text-center text-gray-500">Loading employees data...</div>
+      ) : (
+        <>
       <div className="mb-6 flex justify-between items-center">
         <div>
           <h2 className="text-xl font-semibold">
@@ -60,7 +74,7 @@ const Employee = () => {
           </h2>
           <p className="text-gray-600">Manage your team members</p>
         </div>
-        <button className="btn btn-primary">Add Employee</button>
+        <button className="btn btn-secondary">Add Employee</button>
       </div>
 
       <div className="bg-white shadow-lg rounded-lg overflow-hidden">
@@ -141,6 +155,9 @@ const Employee = () => {
             No employees found. Add your first employee to get started.
           </p>
         </div>
+      )}
+              </>
+
       )}
     </AdminLayout>
   );

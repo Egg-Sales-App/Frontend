@@ -1,12 +1,67 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import AdminLayout from "../../components/layout/AdminLayout";
+import SalesDashboard from "../../components/ui/SalesDashboard";
 
 const Sales = () => {
+  const [loading, setLoading] = useState(true);
+  
+
+  useEffect(() => {
+    // Simulate data fetching
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1500); // 1.5 seconds delay
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <AdminLayout title="Sales">
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2>Sales Content Coming Soon...</h2>
-      </div>
+      {loading ? (
+        <div className="p-6 text-center text-gray-500">Loading sales data...</div>
+      ) : (
+        <>
+          <section className="w-full p-6 bg-white rounded-lg shadow-md">
+            <h2 className="text-xl font-medium text-gray-800 mb-4">Overall Sales</h2>
+
+            <div className="flex flex-wrap gap-4">
+              {/* Total Sales */}
+              <div className="w-full sm:w-[250px] p-4 bg-blue-50 rounded-md shadow-sm">
+                <h3 className="text-blue-600 text-base font-semibold mb-2">Total Sales</h3>
+                <p className="text-gray-700 text-lg font-semibold">37</p>
+                <p className="text-sm text-gray-500 mt-2">Last 7 days</p>
+              </div>
+
+              {/* Total Received */}
+              <div className="w-full sm:w-[250px] p-4 bg-orange-50 rounded-md shadow-sm ml-7">
+                <h3 className="text-orange-600 text-base font-semibold mb-2">Total Received</h3>
+                <div className="flex justify-between text-gray-700 font-semibold">
+                  <span>32</span>
+                  <span>GHS 30,368</span>
+                </div>
+                <div className="flex justify-between text-sm text-gray-500 mt-2">
+                  <span>Last 7 days</span>
+                  <span>Revenue</span>
+                </div>
+              </div>
+
+              {/* Total Returned */}
+              <div className="w-full sm:w-[250px] p-4 bg-purple-50 rounded-md shadow-sm ml-7">
+                <h3 className="text-purple-600 text-base font-semibold mb-2">Total Returned</h3>
+                <div className="flex justify-between text-gray-700 font-semibold">
+                  <span>5</span>
+                  <span>GHS 80</span>
+                </div>
+                <div className="flex justify-between text-sm text-gray-500 mt-2">
+                  <span>Last 7 days</span>
+                  <span>Cost</span>
+                </div>
+              </div>
+            </div>
+          </section>
+          <SalesDashboard/>
+        </>
+      )}
     </AdminLayout>
   );
 };
