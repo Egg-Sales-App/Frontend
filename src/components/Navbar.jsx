@@ -1,12 +1,14 @@
 import { Bell } from "lucide-react";
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { useSidebar } from "../context/SidebarContext";
 
-const Navbar = ({ sidebarCollapsed, onSidebarToggle }) => {
+const Navbar = () => {
+  const { isCollapsed } = useSidebar();
+
   return (
     <div
       className={`fixed top-0 right-0 z-20 navbar shadow-sm px-4 h-[64px] bg-white transition-all duration-300 ease-in-out ${
-        sidebarCollapsed ? "w-[calc(100%-64px)]" : "w-[calc(100%-208px)]"
+        isCollapsed ? "w-[calc(100%-64px)]" : "w-[calc(100%-208px)]"
       }`}
     >
       <div className="flex items-center justify-between w-full max-w-screen-xl mx-auto">
