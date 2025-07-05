@@ -2,14 +2,18 @@ import { Bell } from "lucide-react";
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 
-const Navbar = () => {
+const Navbar = ({ sidebarCollapsed, onSidebarToggle }) => {
   return (
-    <div className="fixed top-0 right-0 z-20 navbar shadow-sm px-4 h-[64px] w-[calc(100%-200px)] bg-white">
+    <div
+      className={`fixed top-0 right-0 z-20 navbar shadow-sm px-4 h-[64px] bg-white transition-all duration-300 ease-in-out ${
+        sidebarCollapsed ? "w-[calc(100%-64px)]" : "w-[calc(100%-208px)]"
+      }`}
+    >
       <div className="flex items-center justify-between w-full max-w-screen-xl mx-auto">
         {/* Left - Search Bar */}
-        <div className="relative  flex-1 flex justify-left">
+        <div className="relative flex-1 flex justify-left">
           <div className="flex w-full max-w-md">
-            <div className=" w-full  bg-gray-50">
+            <div className="w-full bg-gray-50">
               {/* Search Input */}
               <label className="input w-full bg-gray-200 text-gray-950">
                 <svg
