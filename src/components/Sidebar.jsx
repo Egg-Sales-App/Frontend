@@ -125,11 +125,15 @@ const Sidebar = ({
             {/* Toggle Button */}
             <button
               onClick={toggleSidebar}
-              className={`p-2 rounded-lg hover:bg-gray-100 transition-colors ${
+              className={`p-1 rounded-lg bg-gray-300 hover:bg-blue-500 transition-colors ${
                 collapsed ? "mx-auto" : ""
               }`}
             >
-              {collapsed ? <Menu size={20} /> : <X size={20} />}
+              {collapsed ? (
+                <Menu size={18} color="black" />
+              ) : (
+                <X size={18} color="black" />
+              )}
             </button>
           </div>
 
