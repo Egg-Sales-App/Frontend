@@ -69,7 +69,7 @@ const Sales = () => {
               </div>
             </div>
           </section>
-          <section className="w-full p-3 mb-5 bg-white rounded-lg shadow-md">
+          <section className="w-full mb-5 rounded-lg shadow-md">
             <SalesDashboard className="w-full" />
           </section>
         </>
