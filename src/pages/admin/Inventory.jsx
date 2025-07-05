@@ -418,6 +418,7 @@ const Inventory = () => {
       <AdminLayout>
         <div className="flex justify-center items-center h-64">
           <div className="loading loading-spinner text-primary loading-lg"></div>
+          <span className="ml-4 text-blue-400">Loading inventory...</span>
         </div>
       </AdminLayout>
     );
