@@ -15,87 +15,90 @@ import ManageStore from "./pages/admin/ManageStore";
 import Supplier from "./pages/admin/Supplier";
 import Reports from "./pages/admin/Reports";
 import ApiTestPage from "./pages/ApiTestPage";
+import { SidebarProvider } from "./context/SidebarContext";
 
 function App() {
   return (
     <ErrorBoundary>
       <ToastProvider>
         <AuthProvider>
-          <Router>
-            <Routes>
-              {/* Add this route for development */}
-              {import.meta.env.MODE === "development" && (
-                <Route path="/api-test" element={<ApiTestPage />} />
-              )}
+          <SidebarProvider>
+            <Router>
+              <Routes>
+                {/* Add this route for development */}
+                {import.meta.env.MODE === "development" && (
+                  <Route path="/api-test" element={<ApiTestPage />} />
+                )}
 
-              <Route path="/signup" element={<SignupForm />} />
-              <Route path="/login" element={<LoginForm />} />
-              <Route
-                path="/"
-                element={
-                  <Dashboard />
-                  // <ProtectedRoute>
-                  //   <Dashboard />
-                  // </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/inventory"
-                element={
-                  <Inventory />
-                  // <ProtectedRoute>
-                  //   <Inventory />
-                  // </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/reports"
-                element={
-                  <Reports />
-                  // <ProtectedRoute>
-                  //   <Reports />
-                  // </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/suppliers"
-                element={
-                  <Supplier />
-                  // <ProtectedRoute>
-                  //   <Supplier />
-                  // </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/sales"
-                element={
-                  <Sales />
-                  // <ProtectedRoute>
-                  //   <Sales />
-                  // </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/manage-store"
-                element={
-                  <ManageStore />
-                  // <ProtectedRoute>
-                  //   <ManageStore />
-                  // </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/employees"
-                element={
-                  <Employee />
-                  // <ProtectedRoute>
-                  //   <Employee />
-                  // </ProtectedRoute>
-                }
-              />
-            </Routes>
-            <ToastContainer />
-          </Router>
+                <Route path="/signup" element={<SignupForm />} />
+                <Route path="/login" element={<LoginForm />} />
+                <Route
+                  path="/"
+                  element={
+                    <Dashboard />
+                    // <ProtectedRoute>
+                    //   <Dashboard />
+                    // </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/inventory"
+                  element={
+                    <Inventory />
+                    // <ProtectedRoute>
+                    //   <Inventory />
+                    // </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/reports"
+                  element={
+                    <Reports />
+                    // <ProtectedRoute>
+                    //   <Reports />
+                    // </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/suppliers"
+                  element={
+                    <Supplier />
+                    // <ProtectedRoute>
+                    //   <Supplier />
+                    // </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/sales"
+                  element={
+                    <Sales />
+                    // <ProtectedRoute>
+                    //   <Sales />
+                    // </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/manage-store"
+                  element={
+                    <ManageStore />
+                    // <ProtectedRoute>
+                    //   <ManageStore />
+                    // </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/employees"
+                  element={
+                    <Employee />
+                    // <ProtectedRoute>
+                    //   <Employee />
+                    // </ProtectedRoute>
+                  }
+                />
+              </Routes>
+              <ToastContainer />
+            </Router>
+          </SidebarProvider>
         </AuthProvider>
       </ToastProvider>
     </ErrorBoundary>
