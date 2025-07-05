@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useSidebar } from "../context/SidebarContext";
 
 import {
   LayoutDashboard,
@@ -15,14 +16,9 @@ import {
   X,
 } from "lucide-react";
 
-const Sidebar = ({
-  onToggle,
-  isCollapsed: propIsCollapsed,
-  isMobile: propIsMobile,
-}) => {
+const Sidebar = () => {
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const { isCollapsed, isMobile, toggleSidebar } = useSidebar();
 
   const menuItems = [
     { icon: <LayoutDashboard size={18} />, label: "Dashboard", path: "/" },
@@ -39,29 +35,6 @@ const Sidebar = ({
     { icon: <LogOut size={18} />, label: "Logout", path: "/login" },
   ];
 
-  // Use props if provided, otherwise use local state
-  const collapsed =
-    propIsCollapsed !== undefined ? propIsCollapsed : isCollapsed;
-  const mobile = propIsMobile !== undefined ? propIsMobile : isMobile;
-
-  // Check screen size on mount and resize (only if no props provided)
-  useEffect(() => {
-    if (propIsCollapsed === undefined || propIsMobile === undefined) {
-      const checkScreenSize = () => {
-        const mobileCheck = window.innerWidth < 768;
-        setIsMobile(mobileCheck);
-        if (mobileCheck) {
-          setIsCollapsed(true);
-        }
-      };
-
-      checkScreenSize();
-      window.addEventListener("resize", checkScreenSize);
-
-      return () => window.removeEventListener("resize", checkScreenSize);
-    }
-  }, [propIsCollapsed, propIsMobile]);
-
   // Function to check if current path is active
   const isActive = (path) => {
     if (path === "/") {
@@ -73,33 +46,22 @@ const Sidebar = ({
   // Function to get link classes based on active state
   const getLinkClasses = (path) => {
     const baseClasses = `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors duration-200 ${
-      collapsed ? "justify-center" : ""
+      isCollapsed ? "justify-center" : ""
     }`;
 
     if (isActive(path)) {
       return `${baseClasses} bg-blue-50 text-blue-500 font-semibold ${
-        !collapsed ? "border-r-2 border-blue-500" : ""
+        !isCollapsed ? "border-r-2 border-blue-500" : ""
       }`;
     }
 
     return `${baseClasses} text-gray-700 hover:bg-gray-100 hover:text-blue-600`;
   };
 
-  // Toggle sidebar collapse
-  const toggleSidebar = () => {
-    const newCollapsed = !collapsed;
-    setIsCollapsed(newCollapsed);
-
-    // Notify parent component if callback provided
-    if (onToggle) {
-      onToggle(newCollapsed);
-    }
-  };
-
   return (
     <>
       {/* Mobile Overlay */}
-      {mobile && !collapsed && (
+      {isMobile && !isCollapsed && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-10 md:hidden"
           onClick={toggleSidebar}
@@ -109,14 +71,14 @@ const Sidebar = ({
       {/* Sidebar */}
       <aside
         className={`fixed top-0 left-0 z-20 h-screen bg-white shadow-lg flex flex-col justify-between transition-all duration-300 ease-in-out ${
-          collapsed ? "w-16" : "w-52"
-        } ${mobile && collapsed ? "-translate-x-full" : "translate-x-0"}`}
+          isCollapsed ? "w-16" : "w-52"
+        } ${isMobile && isCollapsed ? "-translate-x-full" : "translate-x-0"}`}
       >
         {/* Header */}
         <div className="p-4">
           {/* Logo and Toggle Button */}
           <div className="flex items-center justify-between mb-8">
-            {!collapsed && (
+            {!isCollapsed && (
               <div className="bg-[#f4faf8] px-3 py-2 rounded-md text-[#496961] font-black font-[Lato] text-base text-center hover:text-blue-600">
                 LOGO
               </div>
@@ -126,10 +88,10 @@ const Sidebar = ({
             <button
               onClick={toggleSidebar}
               className={`p-1 rounded-lg bg-gray-300 hover:bg-blue-500 transition-colors ${
-                collapsed ? "mx-auto" : ""
+                isCollapsed ? "mx-auto" : ""
               }`}
             >
-              {collapsed ? (
+              {isCollapsed ? (
                 <Menu size={18} color="black" />
               ) : (
                 <X size={18} color="black" />
@@ -144,12 +106,12 @@ const Sidebar = ({
                 <Link
                   to={item.path}
                   className={getLinkClasses(item.path)}
-                  title={collapsed ? item.label : ""}
+                  title={isCollapsed ? item.label : ""}
                 >
                   <span className={isActive(item.path) ? "text-blue-500" : ""}>
                     {item.icon}
                   </span>
-                  {!collapsed && <span>{item.label}</span>}
+                  {!isCollapsed && <span>{item.label}</span>}
                 </Link>
               </li>
             ))}
@@ -164,12 +126,12 @@ const Sidebar = ({
                 <Link
                   to={item.path}
                   className={getLinkClasses(item.path)}
-                  title={collapsed ? item.label : ""}
+                  title={isCollapsed ? item.label : ""}
                 >
                   <span className={isActive(item.path) ? "text-blue-500" : ""}>
                     {item.icon}
                   </span>
-                  {!collapsed && <span>{item.label}</span>}
+                  {!isCollapsed && <span>{item.label}</span>}
                 </Link>
               </li>
             ))}
@@ -178,7 +140,7 @@ const Sidebar = ({
       </aside>
 
       {/* Mobile Toggle Button (when sidebar is hidden) */}
-      {mobile && collapsed && (
+      {isMobile && isCollapsed && (
         <button
           onClick={toggleSidebar}
           className="fixed top-4 left-4 z-30 p-2 bg-white rounded-lg shadow-md hover:bg-gray-100 transition-colors md:hidden"
