@@ -23,7 +23,7 @@ const Sales = () => {
         </div>
       ) : (
         <>
-          <section className="w-full p-6 bg-white rounded-lg shadow-md">
+          <section className="w-full p-3 mb-5 bg-white rounded-lg shadow-md">
             <h2 className="text-xl font-medium text-gray-800 mb-4">
               Overall Sales
             </h2>
@@ -69,7 +69,9 @@ const Sales = () => {
               </div>
             </div>
           </section>
-          <SalesDashboard />
+          <section className="w-full p-3 mb-5 bg-white rounded-lg shadow-md">
+            <SalesDashboard className="w-full" />
+          </section>
         </>
       )}
     </AdminLayout>
