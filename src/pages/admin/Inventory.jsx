@@ -356,7 +356,7 @@ const Inventory = () => {
       </div>
       <div className="flex gap-2 mt-4">
         <button className="btn btn-sm btn-outline text-gray-500">Edit</button>
-        <button className="btn btn-sm btn-primary">View</button>
+        <button className="btn btn-sm bg-green-500 hover:bg-green-600 text-white">View</button>
       </div>
     </div>
   );
@@ -476,7 +476,7 @@ const Inventory = () => {
           >
             Add Product
           </button>
-          <button className="btn btn-primary">Add Category</button>
+          <button className="btn bg-blue-500 text-gray-100 hover:bg-blue-600 font-medium">Add Category</button>
         </div>
       </div>
 

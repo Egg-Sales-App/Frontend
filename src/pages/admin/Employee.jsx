@@ -74,7 +74,9 @@ const Employee = () => {
           </h2>
           <p className="text-gray-600">Manage your team members</p>
         </div>
-        <button className="btn btn-secondary">Add Employee</button>
+        <button className="btn bg-blue-500 text-white  font-medium hover:bg-blue-600">Add Employee</button>
+                      
+
       </div>
 
       <div className="bg-white shadow-lg rounded-lg overflow-hidden">
