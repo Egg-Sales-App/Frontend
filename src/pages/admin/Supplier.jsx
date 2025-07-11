@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import AdminLayout from "../../components/layout/AdminLayout";
 
 // Form Component
 const NewSupplier = ({ onCancel }) => {
@@ -72,7 +71,7 @@ const  Supplier = () => {
   const [isAddingSupplier, setIsAddingSupplier] = useState(false);
 
   return (
-    <AdminLayout title="Suppliers">
+    <>
       <section className="p-6 bg-white rounded-lg shadow-md">
         {!isAddingSupplier ? (
           <>
@@ -118,7 +117,7 @@ const  Supplier = () => {
           <NewSupplier onCancel={() => setIsAddingSupplier(false)} />
         )}
       </section>
-    </AdminLayout>
+    </>
   );
 }
 

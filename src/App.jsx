@@ -60,8 +60,11 @@ function App() {
                   <Route path="employees" element={<Employee />} />
                 </Route>
 
+                {/* POS Base Redirect */}
+               <Route path="/pos" element={<Navigate to="/pos/equipment/dashboard" replace />} />
+
                 {/* POS - Equipment Store */}
-                <Route path="/pos/equipment" element={<POSLayout />}>
+                <Route path="/pos/equipment"  element={<POSLayout />}>
                   <Route path="dashboard" element={<POSDashboard />} />
                   <Route path="inventory" element={<POSInventory />} />
                   <Route path="sales" element={<POSSales />} />

@@ -1,6 +1,6 @@
 import React from "react";
 import Navbar from "../Navbar";
-import Sidebar from "../Sidebar";
+import PosSidebar from "../ui/PosSidebar";
 import { useSidebar } from "../../context/SidebarContext";
 import { Outlet } from "react-router-dom";
 
@@ -10,7 +10,7 @@ const POSLayout = () => {
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <Sidebar />
+      <PosSidebar />
 
       {/* Main Content Area */}
       <div
