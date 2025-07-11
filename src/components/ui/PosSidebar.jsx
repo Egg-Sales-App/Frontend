@@ -17,10 +17,10 @@ const PosSidebar = () => {
   const { isCollapsed, isMobile, toggleSidebar } = useSidebar();
 
   const menuItems = [
-    { icon: <LayoutDashboard size={18} />, label: "Dashboard", path: "/pos/dashboard" },
-    { icon: <Boxes size={18} />, label: "Inventory", path: "/pos/inventory" },
-    { icon: <FileText size={18} />, label: "Reports", path: "/pos/reports" },
-    { icon: <ShoppingCart size={18} />, label: "Sales", path: "/pos/sales" },
+    { icon: <LayoutDashboard size={18} />, label: "Dashboard", path: "/pos/equipment/dashboard" },
+    { icon: <Boxes size={18} />, label: "Inventory", path: "/pos/equipment/inventory" },
+    { icon: <FileText size={18} />, label: "Reports", path: "/pos/equipment/reports"  },
+    { icon: <ShoppingCart size={18} />, label: "Sales", path: "/pos/equipment/sales" },
   ];
 
   const footerItems = [

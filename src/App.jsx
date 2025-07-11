@@ -22,6 +22,7 @@ import POSSales from "./pages/pos/equipments-store/Sales";
 import POSInventory from "./pages/pos/equipments-store/Inventory";
 import POSReports from "./pages/pos/equipments-store/Reports";
 import POSDashboard from "./pages/pos/equipments-store/Dashboard";
+import StoreSelector from "./pages/StoreSelector"; // ✅ ADD THIS
 import { Navigate } from "react-router-dom";
 
 
@@ -61,7 +62,7 @@ function App() {
                 </Route>
 
                 {/* POS Base Redirect */}
-               <Route path="/pos" element={<Navigate to="/pos/equipment/dashboard" replace />} />
+                 <Route path="/pos" element={<StoreSelector />} />
 
                 {/* POS - Equipment Store */}
                 <Route path="/pos/equipment"  element={<POSLayout />}>
