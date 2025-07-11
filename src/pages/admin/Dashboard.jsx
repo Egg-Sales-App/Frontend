@@ -140,7 +140,7 @@ const Dashboard = () => {
   }
 
   return (
-    <AdminLayout>
+    <>
       <div className="flex flex-col lg:flex-row gap-6 min-h-screen">
         {/* Left Column - Adjusts based on screen size */}
         <div className="flex flex-col gap-6 w-full lg:w-[60%]">
@@ -586,7 +586,7 @@ const Dashboard = () => {
           </section>
         </div>
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

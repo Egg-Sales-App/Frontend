@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import AdminLayout from "../../components/layout/AdminLayout";
 import NewStoreForm from "../../components/ui/NewStoreForm";
 
 // ✅ Import images from src/assets
@@ -37,7 +36,7 @@ const ManageStore = () => {
   };
 
   return (
-    <AdminLayout title="Manage Store">
+    <>
       <div className="relative p-6 bg-white rounded-lg shadow-md min-h-[705px]">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-xl font-medium text-gray-800">Manage Store</h1>
@@ -89,7 +88,7 @@ const ManageStore = () => {
           </div>
         )}
       </div>
-    </AdminLayout>
+    </>
   );
 };
 

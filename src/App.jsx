@@ -16,85 +16,66 @@ import Supplier from "./pages/admin/Supplier";
 import Reports from "./pages/admin/Reports";
 import ApiTestPage from "./pages/ApiTestPage";
 import { SidebarProvider } from "./context/SidebarContext";
+import AdminLayout from "./components/layout/AdminLayout";
+import POSLayout from "./components/layout/POSLayout";
+import POSSales from "./pages/pos/equipments-store/Sales";
+import POSInventory from "./pages/pos/equipments-store/Inventory";
+import POSReports from "./pages/pos/equipments-store/Reports";
+import POSDashboard from "./pages/pos/equipments-store/Dashboard";
+import { Navigate } from "react-router-dom";
+
+
+
 
 function App() {
-  return (
+   return (
     <ErrorBoundary>
       <ToastProvider>
         <AuthProvider>
           <SidebarProvider>
             <Router>
               <Routes>
-                {/* Add this route for development */}
+
+                {/* Dev-only route */}
                 {import.meta.env.MODE === "development" && (
                   <Route path="/api-test" element={<ApiTestPage />} />
                 )}
 
+                {/* Public Routes */}
                 <Route path="/signup" element={<SignupForm />} />
                 <Route path="/login" element={<LoginForm />} />
-                <Route
-                  path="/"
-                  element={
-                    <Dashboard />
-                    // <ProtectedRoute>
-                    //   <Dashboard />
-                    // </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/inventory"
-                  element={
-                    <Inventory />
-                    // <ProtectedRoute>
-                    //   <Inventory />
-                    // </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/reports"
-                  element={
-                    <Reports />
-                    // <ProtectedRoute>
-                    //   <Reports />
-                    // </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/suppliers"
-                  element={
-                    <Supplier />
-                    // <ProtectedRoute>
-                    //   <Supplier />
-                    // </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/sales"
-                  element={
-                    <Sales />
-                    // <ProtectedRoute>
-                    //   <Sales />
-                    // </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/manage-store"
-                  element={
-                    <ManageStore />
-                    // <ProtectedRoute>
-                    //   <ManageStore />
-                    // </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/employees"
-                  element={
-                    <Employee />
-                    // <ProtectedRoute>
-                    //   <Employee />
-                    // </ProtectedRoute>
-                  }
-                />
+                              
+                {/* Default Route */}
+                <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
+
+
+                {/* Admin Routes */}
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="inventory" element={<Inventory />} />
+                  <Route path="reports" element={<Reports />} />
+                  <Route path="suppliers" element={<Supplier />} />
+                  <Route path="sales" element={<Sales />} />
+                  <Route path="manage-store" element={<ManageStore />} />
+                  <Route path="employees" element={<Employee />} />
+                </Route>
+
+                {/* POS - Equipment Store */}
+                <Route path="/pos/equipment" element={<POSLayout />}>
+                  <Route path="dashboard" element={<POSDashboard />} />
+                  <Route path="inventory" element={<POSInventory />} />
+                  <Route path="sales" element={<POSSales />} />
+                  <Route path="reports" element={<POSReports />} />
+                </Route>
+
+                {/* POS - Feeds and Eggs Store */}
+                <Route path="/pos/feeds" element={<POSLayout />}>
+                  <Route path="dashboard" element={<POSDashboard />} />
+                  <Route path="inventory" element={<POSInventory />} />
+                  <Route path="sales" element={<POSSales />} />
+                  <Route path="reports" element={<POSReports />} />
+                </Route>
+
               </Routes>
               <ToastContainer />
             </Router>

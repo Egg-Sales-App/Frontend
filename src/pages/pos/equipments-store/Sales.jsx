@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import SalesDashboard from "../../components/ui/SalesDashboard";
+import SalesDashboard from "../../../components/ui/SalesDashboard";
 
 const Sales = () => {
   const [loading, setLoading] = useState(true);

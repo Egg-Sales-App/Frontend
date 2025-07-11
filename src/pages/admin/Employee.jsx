@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import AdminLayout from "../../components/layout/AdminLayout";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 const Employee = () => {
@@ -62,7 +61,7 @@ const Employee = () => {
   };
 
   return (
-    <AdminLayout title="Employee Management">
+    <>
       {loading ? (
         <div className="p-6 text-center text-gray-500">Loading employees data...</div>
       ) : (
@@ -161,7 +160,7 @@ const Employee = () => {
               </>
 
       )}
-    </AdminLayout>
+    </>
   );
 };
 

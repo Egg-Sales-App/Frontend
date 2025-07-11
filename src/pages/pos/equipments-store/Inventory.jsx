@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { inventoryService } from "../../services/inventoryService";
-import HybridFeedImage from "../../assets/hybridfeed.png";
-import HalfDozenEggsImage from "../../assets/eggcrate.png";
-import DayOldChicksImage from "../../assets/dayoldchicks.png";
-import AddProduct from "../../components/ui/AddProduct";
+import { inventoryService } from "../../../services/inventoryService";
+import HybridFeedImage from "../../../assets/hybridfeed.png";
+import HalfDozenEggsImage from "../../../assets/eggcrate.png";
+import DayOldChicksImage from "../../../assets/dayoldchicks.png";
+import AddProduct from "../../../components/ui/AddProduct";
 
 const Inventory = () => {
   const [products, setProducts] = useState([]);

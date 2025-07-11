@@ -2,8 +2,9 @@ import React from "react";
 import Navbar from "../Navbar";
 import Sidebar from "../Sidebar";
 import { useSidebar } from "../../context/SidebarContext";
+import { Outlet } from "react-router-dom";
 
-const AdminLayout = ({ children }) => {
+const AdminLayout = () => {
   const { isCollapsed, isMobile } = useSidebar();
 
   return (
@@ -20,9 +21,11 @@ const AdminLayout = ({ children }) => {
         {/* Top Navbar */}
         <Navbar />
 
-        {/* Main Content - Add proper top margin to avoid overlap */}
+        {/* Main Content */}
         <main className="flex-1 p-4 md:p-6 bg-gray-100 mt-16">
-          <div className="max-w-full mx-auto">{children}</div>
+          <div className="max-w-full mx-auto">
+            <Outlet /> {/* Renders the matched admin page (Dashboard, Inventory, etc.) */}
+          </div>
         </main>
       </div>
     </div>
