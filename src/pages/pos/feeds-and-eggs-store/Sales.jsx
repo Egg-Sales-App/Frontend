@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import POSLayout from "../../../components/layout/POSLayout";
 import SalesDashboard from "../../../components/ui/SalesDashboard";
 
 const Sales = () => {
@@ -15,7 +14,7 @@ const Sales = () => {
   }, []);
 
   return (
-    <POSLayout title="Sales">
+    <>
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <div className="loading loading-spinner text-primary loading-lg"></div>
@@ -74,7 +73,7 @@ const Sales = () => {
           </section>
         </>
       )}
-    </POSLayout>
+    </>
   );
 };
 

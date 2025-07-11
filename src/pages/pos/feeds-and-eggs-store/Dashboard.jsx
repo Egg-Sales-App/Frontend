@@ -1,5 +1,4 @@
 import React, { useMemo, useEffect, useState } from "react";
-import POSLayout from "../../../components/layout/POSLayout";
 import SalesSummary from "../../../components/SalesSummary";
 import { useApi } from "../../../hooks/useApi";
 import { inventoryService } from "../../../services/inventoryService";
@@ -128,17 +127,17 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <POSLayout>
+      <>
         <div className="flex justify-center items-center h-64">
           <div className="loading loading-spinner text-primary loading-lg"></div>
           <span className="ml-4 text-blue-400">Loading dashboard...</span>
         </div>
-      </POSLayout>
+      </>
     );
   }
 
   return (
-    <POSLayout>
+    <>
       <div className="flex flex-col lg:flex-row gap-6 min-h-screen">
         {/* Left Column - Adjusts based on screen size */}
         <div className="flex flex-col gap-6 w-full lg:w-[60%]">
@@ -584,7 +583,7 @@ const Dashboard = () => {
           </section>
         </div>
       </div>
-    </POSLayout>
+    </>
   );
 };
 

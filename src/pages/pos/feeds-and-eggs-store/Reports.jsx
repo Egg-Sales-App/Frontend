@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import POSLayout from "../../../components/layout/POSLayout";
 import ProfitRevenueCard from "../../../components/ui/ProfitRevenueCard";
 import BestSellingProductCard from "../../../components/ui/BestSellingProductCard";
 
@@ -33,7 +32,7 @@ const Reports = () => {
   }, []);
 
   return (
-    <POSLayout title="Reports">
+    <>
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <div className="loading loading-spinner text-primary loading-lg"></div>
@@ -196,7 +195,7 @@ const Reports = () => {
           </div>
         </>
       )}
-    </POSLayout>
+    </>
   );
 };
 

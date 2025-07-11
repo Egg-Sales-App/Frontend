@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import POSLayout from "../../../components/layout/POSLayout";
 import { inventoryService } from "../../../services/inventoryService";
 import HybridFeedImage from "../../../assets/hybridfeed.png";
 import HalfDozenEggsImage from "../../../assets/eggcrate.png";
@@ -415,29 +414,29 @@ const Inventory = () => {
 
   if (loading) {
     return (
-      <POSLayout>
+      <>
         <div className="flex justify-center items-center h-64">
           <div className="loading loading-spinner text-primary loading-lg"></div>
           <span className="ml-4 text-blue-400">Loading inventory...</span>
         </div>
-      </POSLayout>
+      </>
     );
   }
 
   if (error) {
     return (
-      <POSLayout title="Inventory">
+      <>
         <div className="alert alert-error">
           <span>Error loading products: {error}</span>
         </div>
-      </POSLayout>
+      </>
     );
   }
 
   const currentCategoryData = getCurrentCategoryData();
 
   return (
-    <POSLayout>
+    <>
       {/* Header */}
       <div className="sticky top-15 bg-gray-50/80 backdrop-blur-sm border-b border-gray-200/50 z-10 py-2 px-2 mb-2 flex justify-between items-center">
         {/* Category Filter */}
@@ -606,7 +605,7 @@ const Inventory = () => {
           </div>
         </div>
       )}
-    </POSLayout>
+    </>
   );
 };
 
