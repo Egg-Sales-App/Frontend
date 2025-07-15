@@ -4,6 +4,8 @@ import HybridFeedImage from "../../../assets/hybridfeed.png";
 import HalfDozenEggsImage from "../../../assets/eggcrate.png";
 import DayOldChicksImage from "../../../assets/dayoldchicks.png";
 import AddProduct from "../../../components/ui/AddProduct";
+import { ShoppingCartIcon } from "@heroicons/react/24/outline"; // or solid if you prefer
+import CheckoutCard from "../../../components/ui/CheckoutCard";
 
 const Inventory = () => {
   const [products, setProducts] = useState([]);
@@ -12,6 +14,23 @@ const Inventory = () => {
   const [selectedFilter, setSelectedFilter] = useState("all"); // New state for filter
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [cartItems, setCartItems] = useState([]);
+  const [showCheckout, setShowCheckout] = useState(false);
+
+
+  const handleCheckout = () => {
+  setShowCheckout(true);
+  console.log("Checkout clicked!");
+};
+
+const handleAddToCart = (product) => {
+  // Check if already in cart
+  const exists = cartItems.find((item) => item.id === product.id);
+  if (!exists) {
+    setCartItems((prev) => [...prev, product]);
+  }
+};
+
 
   // Enhanced mock data with categories and sales data
   const mockInventoryData = {
@@ -354,9 +373,15 @@ const Inventory = () => {
         )}
       </div>
       <div className="flex gap-2 mt-4">
-        <button className="btn btn-sm btn-outline text-gray-500">Edit</button>
-        <button className="btn btn-sm bg-green-500 hover:bg-green-600 text-white">View</button>
-      </div>
+  <button
+  onClick={() => handleAddToCart(product)}
+  className="btn btn-sm bg-green-500 hover:bg-green-600 text-white"
+>
+  Add to cart
+</button>
+
+</div>
+
     </div>
   );
 
@@ -441,9 +466,7 @@ const Inventory = () => {
       <div className="sticky top-15 bg-gray-50/80 backdrop-blur-sm border-b border-gray-200/50 z-10 py-2 px-2 mb-2 flex justify-between items-center">
         {/* Category Filter */}
         <div>
-          <h3 className="text-lg font-semibold mb-1 text-gray-600">
-            Categories
-          </h3>
+          
           <div className="flex flex-wrap gap-3">
             <button
               onClick={() => handleCategoryClick("all")}
@@ -453,30 +476,19 @@ const Inventory = () => {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              All Products ({products.length})
+              All Equipments ({products.length})
             </button>
-            {mockInventoryData.categories.map((category) => (
-              <CategoryButton
-                key={category.id}
-                category={category}
-                isActive={selectedCategory === category.name}
-                onClick={handleCategoryClick}
-              />
-            ))}
+           
           </div>
         </div>
-        {/* Add buttons */}
-        <div className="flex gap-3">
-          <button
-            className="btn btn-outline text-gray-500"
-            onClick={() =>
-              document.getElementById("add_product_modal").showModal()
-            }
-          >
-            Add Product
-          </button>
-          <button className="btn bg-blue-500 text-gray-100 hover:bg-blue-600 font-medium">Add Category</button>
-        </div>
+          {/* Checkout Button with Cart Icon */}
+  <button
+    onClick={handleCheckout} // define this function or link to your checkout route
+    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+  >
+    <ShoppingCartIcon className="h-5 w-5" />
+    Checkout
+  </button>
       </div>
 
       {/* Add Product Modal */}
@@ -605,6 +617,10 @@ const Inventory = () => {
           </div>
         </div>
       )}
+      {showCheckout && (
+  <CheckoutCard items={cartItems} onClose={() => setShowCheckout(false)} />
+)}
+
     </>
   );
 };
