@@ -105,6 +105,23 @@ const SignupForm = () => {
           >
             {isSubmitting ? "Creating account..." : "Get started"}
           </button>
+
+           {/* Google Sign-In Button */}
+  <button
+    type="button"
+    onClick={() => console.log("Handle Google Sign-In")}
+  className="w-full h-10 mt-4 border border-gray-300 flex items-center justify-center gap-2 rounded-md bg-white hover:bg-gray-100 active:scale-[0.98] transition duration-150 ease-in-out shadow-sm cursor-pointer"
+  >
+    <img
+      src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+      alt="Google Logo"
+      className="h-5 w-5"
+    />
+    <span className="text-sm text-gray-700 font-medium">
+      Sign up with Google
+    </span>
+  </button>
+
         </form>
 
         <p className="text-center text-sm text-gray-600 mt-6">
