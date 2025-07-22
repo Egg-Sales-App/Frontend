@@ -29,6 +29,7 @@ import POSFeedsReports from "./pages/pos/feeds-and-eggs-store/Reports";
 import POSFeedsDashboard from "./pages/pos/feeds-and-eggs-store/Dashboard";
 import StoreSelector from "./pages/StoreSelector"; // ✅ ADD THIS
 import { Navigate } from "react-router-dom";
+import SupplierDetails from "./pages/admin/SupplierDetails"; // ✅ ADD THIS
 
 
 
@@ -84,6 +85,9 @@ function App() {
                   <Route path="sales" element={<POSFeedsSales />} />
                   <Route path="reports" element={<POSFeedsReports />} />
                 </Route>
+
+                <Route path="/admin/suppliers/:supplierId" element={<SupplierDetails />} />
+
 
               </Routes>
               <ToastContainer />
