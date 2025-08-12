@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   LineChart,
   Line,
@@ -9,31 +9,93 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-
-const data = [
-  { month: "Jan", ordered: 400, delivered: 240 },
-  { month: "Feb", ordered: 700, delivered: 500 },
-  { month: "Mar", ordered: 600, delivered: 350 },
-  { month: "Apr", ordered: 800, delivered: 630 },
-  { month: "May", ordered: 950, delivered: 870 },
-  { month: "Jun", ordered: 980, delivered: 900 },
-  { month: "Jul", ordered: 870, delivered: 820 },
-  { month: "Aug", ordered: 760, delivered: 700 },
-];
+import { salesService } from "../services/salesService";
+import { useToast } from "./ui/ToastContext";
+import EmptyState from "./ui/EmptyState";
+import LoadingSpinner from "./ui/LoadingSpinner";
 
 const SalesSummary = () => {
+  const [salesData, setSalesData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { error: showError } = useToast();
+
+  useEffect(() => {
+    const fetchSalesData = async () => {
+      try {
+        setLoading(true);
+        // Try to get monthly sales data from the backend
+        const response = await salesService.getSalesChartData("12m");
+
+        if (response && Array.isArray(response)) {
+          setSalesData(response);
+        } else {
+          // If no data available, show message
+          setSalesData([]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch sales summary data:", error);
+        showError?.("Failed to load sales summary data");
+        setSalesData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSalesData();
+  }, [showError]);
+
+  if (loading) {
+    return (
+      <section className="w-full h-[360px] bg-white rounded-lg shadow-md p-4">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          Sales Summary
+        </h2>
+        <LoadingSpinner
+          size="lg"
+          message="Loading sales data..."
+          className="h-64"
+        />
+      </section>
+    );
+  }
+
+  if (!salesData || salesData.length === 0) {
+    return (
+      <section className="w-full h-[360px] bg-white rounded-lg shadow-md p-4">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          Sales Summary
+        </h2>
+        <EmptyState type="SALES_OVERVIEW" className="h-64" />
+      </section>
+    );
+  }
+
   return (
     <section className="w-full h-[360px] bg-white rounded-lg shadow-md p-4">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">Sales Summary</h2>
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">
+        Sales Summary
+      </h2>
       <ResponsiveContainer width="100%" height={250}>
-        <LineChart data={data}>
+        <LineChart data={salesData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="month" />
-          <YAxis domain={[0, 1000]} />
+          <YAxis />
           <Tooltip />
           <Legend />
-          <Line type="monotone" dataKey="ordered" stroke="#8884d8" />
-          <Line type="monotone" dataKey="delivered" stroke="#82ca9d" />
+          <Line
+            type="monotone"
+            dataKey="ordered"
+            stroke="#8884d8"
+            name="Orders"
+            strokeWidth={2}
+          />
+          <Line
+            type="monotone"
+            dataKey="delivered"
+            stroke="#82ca9d"
+            name="Delivered"
+            strokeWidth={2}
+          />
         </LineChart>
       </ResponsiveContainer>
     </section>

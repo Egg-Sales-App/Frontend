@@ -14,12 +14,17 @@ const Navbar = () => {
   const handleLogout = async () => {
     try {
       console.log("🚪 User initiated logout from navbar");
-      await logout();
-      showToast("Logged out successfully", "success");
-      navigate("/login");
+      const result = await logout();
+
+      // Show success toast with message from backend/service
+      showToast(result.message || "Logged out successfully", "success");
+      console.log("🎉 Logout successful, redirecting to login...");
+
+      // Redirect to login page
+      navigate("/login", { replace: true });
     } catch (error) {
       console.error("❌ Logout failed:", error);
-      showToast("Logout failed. Please try again.", "error");
+      showToast(error.message || "Logout failed. Please try again.", "error");
     }
   };
 

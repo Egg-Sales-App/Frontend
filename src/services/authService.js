@@ -94,37 +94,25 @@ export const authService = {
       console.log("📝 Attempting user registration:", {
         username: userData.username || userData.email,
         email: userData.email,
-        firstName: userData.firstName || userData.name?.split(" ")[0] || "",
-        lastName:
-          userData.lastName ||
-          userData.name?.split(" ").slice(1).join(" ") ||
-          "",
         hasPassword: !!userData.password,
+        isSupplier: userData.isSupplier || false,
       });
 
       const registrationData = {
         username: userData.username || userData.email,
         email: userData.email,
-        password1: userData.password,
-        password2: userData.confirmPassword || userData.password,
-        first_name: userData.firstName || userData.name?.split(" ")[0] || "",
-        last_name:
-          userData.lastName ||
-          userData.name?.split(" ").slice(1).join(" ") ||
-          "",
+        password: userData.password,
+        is_supplier: userData.isSupplier || false,
       };
 
-      // Use Django's signup endpoint
-      const response = await fetch(
-        `${config.DJANGO_BASE_URL}/accounts/signup/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(registrationData),
-        }
-      );
+      // Use API signup endpoint
+      const response = await fetch(`${config.API_BASE_URL}/signup/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(registrationData),
+      });
 
       console.log("📡 Registration response status:", {
         status: response.status,
@@ -177,28 +165,11 @@ export const authService = {
         hasRefreshToken: !!refreshToken,
       });
 
-      // If we have a refresh token, try to invalidate it on the server
-      if (refreshToken) {
-        try {
-          console.log("🔄 Attempting to invalidate refresh token on server...");
-          await apiService.post("/token/blacklist/", {
-            refresh: refreshToken,
-          });
-          console.log("✅ Refresh token invalidated on server");
-        } catch (error) {
-          console.warn(
-            "⚠️ Failed to invalidate refresh token on server:",
-            error.message
-          );
-          // Continue with logout even if server invalidation fails
-        }
-      }
-
-      // Clear all local storage data
+      // Simply clear all local storage data - kill the session
       console.log("🧹 Clearing local authentication data...");
       this.removeAuthToken();
 
-      console.log("✅ Logout completed successfully");
+      console.log("✅ Session killed successfully");
 
       return {
         success: true,
@@ -210,13 +181,13 @@ export const authService = {
         name: error.name,
       });
 
-      // Still clear local tokens even if server logout fails
+      // Force clear local data even if there's an error
       console.log("🧹 Force clearing local data due to logout error...");
       this.removeAuthToken();
 
       return {
-        success: false,
-        message: "Logout completed with errors, but local data cleared",
+        success: true, // Still return success since we cleared local data
+        message: "Logged out successfully",
       };
     }
   },
@@ -228,8 +199,8 @@ export const authService = {
 
       // For Django Simple JWT, try common user endpoints
       const endpoints = [
-        "/api/user/",
-        "/api/users/me/",
+        "/user/",
+        "/users/me/",
         "/auth/user/",
         "/user/",
         "/dj-rest-auth/user/",
@@ -356,17 +327,14 @@ export const authService = {
   // Request password reset
   async forgotPassword(email) {
     try {
-      // Django AllAuth password reset
-      const response = await fetch(
-        `${config.DJANGO_BASE_URL}/accounts/password/reset/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email }),
-        }
-      );
+      // API password reset endpoint (if available)
+      const response = await fetch(`${config.API_BASE_URL}/password/reset/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
 
       if (!response.ok) {
         throw new Error("Failed to send reset email");

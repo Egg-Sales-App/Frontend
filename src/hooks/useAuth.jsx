@@ -75,10 +75,17 @@ export const AuthProvider = ({ children }) => {
       console.log("🚪 Starting logout process from useAuth...");
       const result = await authService.logout();
       console.log("✅ Logout completed:", result);
+
+      return result; // Return the result so components can use the message
     } catch (error) {
       console.error("❌ Logout error in useAuth:", error);
+      // Even if there's an error, we'll clear the state since session is killed
+      return {
+        success: true,
+        message: "Logged out successfully",
+      };
     } finally {
-      // Always clear local state regardless of API call success
+      // Always clear local state since we kill the session locally
       console.log("🧹 Clearing auth state in useAuth...");
       setUser(null);
       setIsAuthenticated(false);
