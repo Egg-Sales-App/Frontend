@@ -280,15 +280,9 @@ export const authService = {
     try {
       console.log("👤 Fetching current user profile...");
 
-      // For Django Simple JWT, try common user endpoints
+      // Try user endpoints based on API documentation
       const endpoints = [
-        "/user/",
-        "/users/me/",
-        "/auth/user/",
-        "/user/",
-        "/dj-rest-auth/user/",
-        "/api/auth/user/",
-        "/accounts/user/",
+        "/users/", // Get all users (we'll need to filter current user)
       ];
 
       let response;
@@ -297,7 +291,44 @@ export const authService = {
       for (const endpoint of endpoints) {
         try {
           console.log(`🔍 Trying user endpoint: ${endpoint}`);
-          response = await apiService.get(endpoint);
+          let userData = await apiService.get(endpoint);
+
+          // Handle case where /users/ returns an array
+          if (Array.isArray(userData)) {
+            console.log(
+              `📋 Endpoint ${endpoint} returned array with ${userData.length} users`
+            );
+
+            // Try to find current user from token
+            const token = this.getAuthToken();
+            if (token) {
+              try {
+                const payload = JSON.parse(atob(token.split(".")[1]));
+                const currentUserId = payload.user_id;
+                userData = userData.find((user) => user.id === currentUserId);
+
+                if (!userData) {
+                  console.log(
+                    `❌ Current user (ID: ${currentUserId}) not found in users array`
+                  );
+                  throw new Error("Current user not found in users list");
+                }
+                console.log(
+                  `✅ Found current user in array: ID ${userData.id}`
+                );
+              } catch (tokenError) {
+                console.log(
+                  `❌ Failed to decode token for user filtering:`,
+                  tokenError.message
+                );
+                throw new Error("Cannot identify current user from token");
+              }
+            } else {
+              throw new Error("No token available to identify current user");
+            }
+          }
+
+          response = userData;
           console.log(`✅ Success with endpoint: ${endpoint}`, {
             id: response.id,
             username: response.username,
@@ -469,7 +500,7 @@ export const authService = {
   // Verify email address
   async verifyEmail(token) {
     try {
-      const response = await apiService.post("/auth/verify-email", { token });
+      const response = await apiService.get(`/verify-email/?token=${token}`);
       return {
         success: true,
         message: response.message || "Email verified successfully",
