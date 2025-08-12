@@ -1,6 +1,8 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { useSidebar } from "../../context/SidebarContext";
+import { useLocation } from "react-router-dom";
+
 
 import {
   LayoutDashboard,
@@ -16,12 +18,20 @@ import {
 const PosSidebar = () => {
   const { isCollapsed, isMobile, toggleSidebar } = useSidebar();
 
+
+  const location = useLocation();
+const storeBasePath = location.pathname.includes("/feeds")
+  ? "/pos/feeds"
+  : "/pos/equipment";
+
+
   const menuItems = [
-    { icon: <LayoutDashboard size={18} />, label: "Dashboard", path: "/pos/equipment/dashboard" },
-    { icon: <Boxes size={18} />, label: "Inventory", path: "/pos/equipment/inventory" },
-    { icon: <FileText size={18} />, label: "Reports", path: "/pos/equipment/reports"  },
-    { icon: <ShoppingCart size={18} />, label: "Sales", path: "/pos/equipment/sales" },
-  ];
+  { icon: <LayoutDashboard size={18} />, label: "Dashboard", path: `${storeBasePath}/dashboard` },
+  { icon: <Boxes size={18} />, label: "Inventory", path: `${storeBasePath}/inventory` },
+  { icon: <FileText size={18} />, label: "Reports", path: `${storeBasePath}/reports` },
+  { icon: <ShoppingCart size={18} />, label: "Sales", path: `${storeBasePath}/sales` },
+];
+
 
   const footerItems = [
     { icon: <Settings size={18} />, label: "Settings", path: "/pos/settings" },

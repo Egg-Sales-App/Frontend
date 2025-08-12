@@ -18,12 +18,18 @@ import ApiTestPage from "./pages/ApiTestPage";
 import { SidebarProvider } from "./context/SidebarContext";
 import AdminLayout from "./components/layout/AdminLayout";
 import POSLayout from "./components/layout/POSLayout";
-import POSSales from "./pages/pos/equipments-store/Sales";
-import POSInventory from "./pages/pos/equipments-store/Inventory";
-import POSReports from "./pages/pos/equipments-store/Reports";
-import POSDashboard from "./pages/pos/equipments-store/Dashboard";
+import POSEquipmentsSales from "./pages/pos/equipments-store/Sales";
+import POSEquipmentsInventory from "./pages/pos/equipments-store/Inventory";
+import POSEquipmentsReports from "./pages/pos/equipments-store/Reports";
+import POSEquipmentsDashboard from "./pages/pos/equipments-store/Dashboard";
+
+import POSFeedsSales from "./pages/pos/feeds-and-eggs-store/Sales";
+import POSFeedsInventory from "./pages/pos/feeds-and-eggs-store/Inventory";
+import POSFeedsReports from "./pages/pos/feeds-and-eggs-store/Reports";
+import POSFeedsDashboard from "./pages/pos/feeds-and-eggs-store/Dashboard";
 import StoreSelector from "./pages/StoreSelector"; // ✅ ADD THIS
 import { Navigate } from "react-router-dom";
+import SupplierDetails from "./pages/admin/SupplierDetails"; // ✅ ADD THIS
 
 
 
@@ -66,19 +72,22 @@ function App() {
 
                 {/* POS - Equipment Store */}
                 <Route path="/pos/equipment"  element={<POSLayout />}>
-                  <Route path="dashboard" element={<POSDashboard />} />
-                  <Route path="inventory" element={<POSInventory />} />
-                  <Route path="sales" element={<POSSales />} />
-                  <Route path="reports" element={<POSReports />} />
+                  <Route path="dashboard" element={<POSEquipmentsDashboard />} />
+                  <Route path="inventory" element={<POSEquipmentsInventory />} />
+                  <Route path="sales" element={<POSEquipmentsSales />} />
+                  <Route path="reports" element={<POSEquipmentsReports />} />
                 </Route>
 
                 {/* POS - Feeds and Eggs Store */}
                 <Route path="/pos/feeds" element={<POSLayout />}>
-                  <Route path="dashboard" element={<POSDashboard />} />
-                  <Route path="inventory" element={<POSInventory />} />
-                  <Route path="sales" element={<POSSales />} />
-                  <Route path="reports" element={<POSReports />} />
+                  <Route path="dashboard" element={<POSFeedsDashboard />} />
+                  <Route path="inventory" element={<POSFeedsInventory />} />
+                  <Route path="sales" element={<POSFeedsSales />} />
+                  <Route path="reports" element={<POSFeedsReports />} />
                 </Route>
+
+                <Route path="/admin/suppliers/:supplierId" element={<SupplierDetails />} />
+
 
               </Routes>
               <ToastContainer />

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from "react-router-dom";
 
 // Form Component
 const NewSupplier = ({ onCancel }) => {
@@ -101,8 +102,12 @@ const  Supplier = () => {
                   key={index}
                   className="flex justify-between items-center p-4 bg-blue-50 hover:bg-blue-100 transition"
                 >
-                  <span className="font-medium text-gray-700">{supplier.name}</span>
-                  <span className="text-gray-600">{supplier.contact}</span>
+<Link
+  to={`/admin/suppliers/${supplier.name.toLowerCase().replace(/\s+/g, '-')}`} // or use supplier.id when backend available
+  className="font-medium text-blue-600 hover:underline"
+>
+  {supplier.name}
+</Link>                  <span className="text-gray-600">{supplier.contact}</span>
                 </div>
               ))}
             </div>
