@@ -20,10 +20,10 @@ const SignupForm = () => {
   }, [isAuthenticated, isLoading, navigate]);
 
   const validationRules = {
-    name: {
+    username: {
       required: true,
       minLength: 2,
-      label: "Name",
+      label: "Username",
     },
     email: {
       required: true,
@@ -38,7 +38,7 @@ const SignupForm = () => {
   };
 
   const { values, errors, isSubmitting, handleChange, handleSubmit } = useForm(
-    { name: "", email: "", password: "" },
+    { username: "", email: "", password: "" },
     validationRules
   );
 
@@ -66,9 +66,23 @@ const SignupForm = () => {
     } catch (error) {
       console.error("❌ Registration form error:", {
         message: error.message,
-        name: error.name,
+        fieldErrors: error.fieldErrors,
+        statusCode: error.statusCode,
       });
-      showError(error.message || "Registration failed. Please try again.");
+
+      // Use the enhanced error message from authService
+      let errorMessage =
+        error.message || "Registration failed. Please try again.";
+
+      // If there are field-specific errors, show them
+      if (error.fieldErrors && Object.keys(error.fieldErrors).length > 0) {
+        const fieldErrorMessages = Object.entries(error.fieldErrors)
+          .map(([field, message]) => `${field}: ${message}`)
+          .join(". ");
+        errorMessage = fieldErrorMessages;
+      }
+
+      showError(errorMessage);
     }
   };
 
@@ -86,13 +100,13 @@ const SignupForm = () => {
           }}
         >
           <FormInput
-            label="Name"
+            label="Username"
             type="text"
-            placeholder="Enter your name"
+            placeholder="Enter your username"
             icon={<UserIcon className="h-5 w-5 text-gray-400" />}
-            value={values.name}
-            onChange={(e) => handleChange("name", e.target.value)}
-            error={errors.name}
+            value={values.username}
+            onChange={(e) => handleChange("username", e.target.value)}
+            error={errors.username}
             required
           />
 

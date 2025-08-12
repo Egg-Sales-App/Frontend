@@ -84,7 +84,42 @@ export const authService = {
         statusText: error.response?.statusText,
         responseData: error.response?.data,
       });
-      throw new Error(error.message || "Login failed");
+
+      // Extract meaningful error messages
+      let errorMessage = "Login failed";
+
+      if (error.response?.data) {
+        const errorData = error.response.data;
+
+        if (errorData.detail) {
+          errorMessage = errorData.detail;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        } else if (errorData.non_field_errors) {
+          errorMessage = Array.isArray(errorData.non_field_errors)
+            ? errorData.non_field_errors[0]
+            : errorData.non_field_errors;
+        } else if (errorData.username) {
+          errorMessage = Array.isArray(errorData.username)
+            ? errorData.username[0]
+            : errorData.username;
+        } else if (errorData.password) {
+          errorMessage = Array.isArray(errorData.password)
+            ? errorData.password[0]
+            : errorData.password;
+        }
+      } else if (error.response?.status === 401) {
+        errorMessage = "Invalid username or password";
+      } else if (error.response?.status === 400) {
+        errorMessage = "Please check your login credentials";
+      } else if (error.response?.status >= 500) {
+        errorMessage = "Server error. Please try again later";
+      }
+
+      const loginError = new Error(errorMessage);
+      loginError.statusCode = error.response?.status;
+      loginError.originalError = error;
+      throw loginError;
     }
   },
 
@@ -102,7 +137,6 @@ export const authService = {
         username: userData.username || userData.email,
         email: userData.email,
         password: userData.password,
-        is_supplier: userData.isSupplier || false,
       };
 
       // Use API signup endpoint
@@ -126,7 +160,56 @@ export const authService = {
           status: response.status,
           errorData: errorData,
         });
-        throw new Error(errorData.message || "Registration failed");
+
+        // Extract meaningful error messages
+        let errorMessage = "Registration failed";
+        let fieldErrors = {};
+
+        if (errorData) {
+          // Handle field-specific errors
+          if (errorData.username) {
+            fieldErrors.username = Array.isArray(errorData.username)
+              ? errorData.username[0]
+              : errorData.username;
+            errorMessage = `Username: ${fieldErrors.username}`;
+          }
+
+          if (errorData.email) {
+            fieldErrors.email = Array.isArray(errorData.email)
+              ? errorData.email[0]
+              : errorData.email;
+            errorMessage = fieldErrors.username
+              ? `${errorMessage}. Email: ${fieldErrors.email}`
+              : `Email: ${fieldErrors.email}`;
+          }
+
+          if (errorData.password) {
+            fieldErrors.password = Array.isArray(errorData.password)
+              ? errorData.password[0]
+              : errorData.password;
+            errorMessage =
+              fieldErrors.username || fieldErrors.email
+                ? `${errorMessage}. Password: ${fieldErrors.password}`
+                : `Password: ${fieldErrors.password}`;
+          }
+
+          // Handle general error messages
+          if (errorData.message) {
+            errorMessage = errorData.message;
+          } else if (errorData.detail) {
+            errorMessage = errorData.detail;
+          } else if (errorData.non_field_errors) {
+            errorMessage = Array.isArray(errorData.non_field_errors)
+              ? errorData.non_field_errors[0]
+              : errorData.non_field_errors;
+          }
+        }
+
+        const error = new Error(errorMessage);
+        error.fieldErrors = fieldErrors;
+        error.statusCode = response.status;
+        error.rawErrorData = errorData;
+        throw error;
       }
 
       const data = await response.json().catch(() => ({ success: true }));
@@ -317,10 +400,26 @@ export const authService = {
         statusText: error.response?.statusText,
       });
 
+      // Enhanced error messages for token refresh
+      let errorMessage = "Session expired. Please login again.";
+
+      if (error.response?.status === 401) {
+        errorMessage = "Session expired. Please login again.";
+      } else if (error.response?.status === 400) {
+        errorMessage = "Invalid session. Please login again.";
+      } else if (error.response?.status >= 500) {
+        errorMessage =
+          "Server error during session refresh. Please login again.";
+      }
+
       // If refresh fails, logout user
       console.log("🚪 Token refresh failed, initiating logout...");
       this.logout();
-      throw new Error("Session expired. Please login again.");
+
+      const refreshError = new Error(errorMessage);
+      refreshError.statusCode = error.response?.status;
+      refreshError.isTokenExpired = true;
+      throw refreshError;
     }
   },
 
