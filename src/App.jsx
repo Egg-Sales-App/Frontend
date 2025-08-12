@@ -15,6 +15,8 @@ import ManageStore from "./pages/admin/ManageStore";
 import Supplier from "./pages/admin/Supplier";
 import Reports from "./pages/admin/Reports";
 import ApiTestPage from "./pages/ApiTestPage";
+import ApiIntegrationTest from "./pages/ApiIntegrationTest";
+import AuthTestPage from "./pages/AuthTestPage";
 import { SidebarProvider } from "./context/SidebarContext";
 import AdminLayout from "./components/layout/AdminLayout";
 import POSLayout from "./components/layout/POSLayout";
@@ -31,33 +33,73 @@ import StoreSelector from "./pages/StoreSelector"; // ✅ ADD THIS
 import { Navigate } from "react-router-dom";
 import SupplierDetails from "./pages/admin/SupplierDetails"; // ✅ ADD THIS
 
-
-
-
 function App() {
-   return (
+  return (
     <ErrorBoundary>
       <ToastProvider>
         <AuthProvider>
           <SidebarProvider>
             <Router>
               <Routes>
-
-                {/* Dev-only route */}
+                {/* Dev-only route - Protected for testing with real backend */}
                 {import.meta.env.MODE === "development" && (
-                  <Route path="/api-test" element={<ApiTestPage />} />
+                  <Route
+                    path="/api-test"
+                    element={
+                      <ProtectedRoute>
+                        <ApiTestPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                )}
+
+                {/* Comprehensive API Integration Test */}
+                {import.meta.env.MODE === "development" && (
+                  <Route
+                    path="/integration-test"
+                    element={
+                      <ProtectedRoute>
+                        <ApiIntegrationTest />
+                      </ProtectedRoute>
+                    }
+                  />
+                )}
+
+                {/* Authentication Test Page */}
+                {import.meta.env.MODE === "development" && (
+                  <Route
+                    path="/auth-test"
+                    element={
+                      <ProtectedRoute>
+                        <AuthTestPage />
+                      </ProtectedRoute>
+                    }
+                  />
                 )}
 
                 {/* Public Routes */}
                 <Route path="/signup" element={<SignupForm />} />
                 <Route path="/login" element={<LoginForm />} />
-                              
-                {/* Default Route */}
-                <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
 
+                {/* Default Route - Redirect to login if not authenticated, otherwise admin dashboard */}
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <Navigate to="/admin/dashboard" replace />
+                    </ProtectedRoute>
+                  }
+                />
 
-                {/* Admin Routes */}
-                <Route path="/admin" element={<AdminLayout />}>
+                {/* Admin Routes - Protected */}
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute>
+                      <AdminLayout />
+                    </ProtectedRoute>
+                  }
+                >
                   <Route path="dashboard" element={<Dashboard />} />
                   <Route path="inventory" element={<Inventory />} />
                   <Route path="reports" element={<Reports />} />
@@ -67,28 +109,64 @@ function App() {
                   <Route path="employees" element={<Employee />} />
                 </Route>
 
-                {/* POS Base Redirect */}
-                 <Route path="/pos" element={<StoreSelector />} />
+                {/* POS Base Redirect - Protected */}
+                <Route
+                  path="/pos"
+                  element={
+                    <ProtectedRoute>
+                      <StoreSelector />
+                    </ProtectedRoute>
+                  }
+                />
 
-                {/* POS - Equipment Store */}
-                <Route path="/pos/equipment"  element={<POSLayout />}>
-                  <Route path="dashboard" element={<POSEquipmentsDashboard />} />
-                  <Route path="inventory" element={<POSEquipmentsInventory />} />
+                {/* POS - Equipment Store - Protected */}
+                <Route
+                  path="/pos/equipment"
+                  element={
+                    <ProtectedRoute>
+                      <POSLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route
+                    path="dashboard"
+                    element={<POSEquipmentsDashboard />}
+                  />
+                  <Route
+                    path="inventory"
+                    element={<POSEquipmentsInventory />}
+                  />
                   <Route path="sales" element={<POSEquipmentsSales />} />
                   <Route path="reports" element={<POSEquipmentsReports />} />
                 </Route>
 
-                {/* POS - Feeds and Eggs Store */}
-                <Route path="/pos/feeds" element={<POSLayout />}>
+                {/* POS - Feeds and Eggs Store - Protected */}
+                <Route
+                  path="/pos/feeds"
+                  element={
+                    <ProtectedRoute>
+                      <POSLayout />
+                    </ProtectedRoute>
+                  }
+                >
                   <Route path="dashboard" element={<POSFeedsDashboard />} />
                   <Route path="inventory" element={<POSFeedsInventory />} />
                   <Route path="sales" element={<POSFeedsSales />} />
                   <Route path="reports" element={<POSFeedsReports />} />
                 </Route>
 
-                <Route path="/admin/suppliers/:supplierId" element={<SupplierDetails />} />
+                {/* Supplier Details - Protected */}
+                <Route
+                  path="/admin/suppliers/:supplierId"
+                  element={
+                    <ProtectedRoute>
+                      <SupplierDetails />
+                    </ProtectedRoute>
+                  }
+                />
 
-
+                {/* Catch-all route - redirect to login */}
+                <Route path="*" element={<Navigate to="/login" replace />} />
               </Routes>
               <ToastContainer />
             </Router>

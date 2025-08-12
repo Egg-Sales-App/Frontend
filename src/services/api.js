@@ -22,6 +22,11 @@ class ApiService {
     const url = `${this.baseURL}${endpoint}`;
     const token = this.getAuthToken();
 
+    console.log(`🌐 API Request: ${options.method || "GET"} ${url}`, {
+      hasToken: !!token,
+      tokenPreview: token ? `${token.substring(0, 20)}...` : null,
+    });
+
     const requestConfig = {
       headers: {
         "Content-Type": "application/json",
@@ -40,14 +45,98 @@ class ApiService {
       const response = await fetch(url, requestConfig);
       clearTimeout(timeoutId);
 
-      // Handle different response status codes
-      if (response.status === 401) {
-        this.removeAuthToken();
-        throw new Error("Unauthorized - Please login again");
-      }
+      console.log(`📡 API Response: ${options.method || "GET"} ${url}`, {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+      });
 
-      if (response.status === 403) {
-        throw new Error("Forbidden - Insufficient permissions");
+      // Check if this is a token expiration error
+      if (response.status === 401 || response.status === 403) {
+        let errorData;
+        try {
+          errorData = await response.json();
+          console.log("🔍 Auth error details:", errorData);
+        } catch (e) {
+          errorData = {};
+        }
+
+        // Check for token expiration
+        const isTokenExpired =
+          errorData.code === "token_not_valid" ||
+          errorData.detail?.includes("expired") ||
+          errorData.detail?.includes("not valid") ||
+          response.status === 401;
+
+        if (isTokenExpired) {
+          console.log("⏰ Token expired, attempting refresh...");
+          this.removeAuthToken();
+
+          // Try to refresh token
+          const refreshToken = localStorage.getItem("refresh_token");
+          if (refreshToken) {
+            try {
+              console.log("🔄 Refreshing token...");
+              const refreshResponse = await fetch(
+                `${this.baseURL}/token/refresh/`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ refresh: refreshToken }),
+                }
+              );
+
+              if (refreshResponse.ok) {
+                const refreshData = await refreshResponse.json();
+                console.log("✅ Token refreshed successfully");
+                this.setAuthToken(refreshData.access);
+
+                // Retry original request with new token
+                console.log("🔁 Retrying original request with new token...");
+                requestConfig.headers.Authorization = `Bearer ${refreshData.access}`;
+                delete requestConfig.signal; // Remove the old signal
+
+                const retryResponse = await fetch(url, requestConfig);
+                console.log(`📡 Retry response: ${retryResponse.status}`);
+
+                if (retryResponse.ok) {
+                  const contentType = retryResponse.headers.get("content-type");
+                  if (contentType && contentType.includes("application/json")) {
+                    return await retryResponse.json();
+                  }
+                  return { success: true };
+                } else {
+                  const retryError = await retryResponse
+                    .json()
+                    .catch(() => ({}));
+                  console.error("❌ Retry request failed:", retryError);
+                  throw new Error(
+                    retryError.message ||
+                      `Retry failed: ${retryResponse.status}`
+                  );
+                }
+              } else {
+                const refreshError = await refreshResponse
+                  .json()
+                  .catch(() => ({}));
+                console.error("❌ Token refresh failed:", refreshError);
+              }
+            } catch (refreshError) {
+              console.error("❌ Token refresh error:", refreshError);
+            }
+          } else {
+            console.log("⚠️ No refresh token available");
+          }
+
+          // If we get here, refresh failed
+          console.log("🚪 Redirecting to login due to auth failure");
+          window.location.href = "/login";
+          throw new Error("Session expired - Please login again");
+        }
+
+        throw new Error(
+          errorData.detail || "Forbidden - Insufficient permissions"
+        );
       }
 
       if (response.status === 404) {
@@ -60,9 +149,11 @@ class ApiService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error("❌ API Error:", errorData);
         throw new Error(
           errorData.message ||
             errorData.error ||
+            errorData.detail ||
             `HTTP ${response.status}: ${response.statusText}`
         );
       }
@@ -76,12 +167,22 @@ class ApiService {
       // Parse JSON response
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
-        return await response.json();
+        const responseData = await response.json();
+        console.log(`✅ API Success: ${options.method || "GET"} ${url}`, {
+          hasData: !!responseData,
+          dataType: Array.isArray(responseData) ? "array" : typeof responseData,
+        });
+        return responseData;
       } else {
         return { success: true, text: await response.text() };
       }
     } catch (error) {
       clearTimeout(timeoutId);
+
+      console.error(`❌ API Request Error: ${options.method || "GET"} ${url}`, {
+        message: error.message,
+        name: error.name,
+      });
 
       if (error.name === "AbortError") {
         throw new Error("Request timeout - Check your connection");

@@ -20,12 +20,24 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        // Check if we have a token first
+        if (!authService.isAuthenticated()) {
+          setIsLoading(false);
+          return;
+        }
+
+        // Try to get current user from backend
         const userData = await authService.getCurrentUser();
         setUser(userData);
         setIsAuthenticated(true);
       } catch (error) {
-        console.log("No valid session");
-        authService.logout();
+        console.log("No valid session:", error.message);
+        // Clear invalid tokens
+        authService.removeAuthToken();
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user_data");
+        setUser(null);
+        setIsAuthenticated(false);
       } finally {
         setIsLoading(false);
       }
@@ -37,11 +49,19 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     setIsLoading(true);
     try {
+      console.log("🔐 Starting login process...");
       const response = await authService.login(credentials);
+
+      console.log("✅ Login successful, updating auth state:", {
+        userId: response.user.id,
+        username: response.user.username,
+      });
+
       setUser(response.user);
       setIsAuthenticated(true);
       return response;
     } catch (error) {
+      console.error("❌ Login failed in useAuth:", error.message);
       setIsAuthenticated(false);
       throw error;
     } finally {
@@ -50,12 +70,34 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
+    setIsLoading(true);
     try {
-      await authService.logout();
+      console.log("🚪 Starting logout process from useAuth...");
+      const result = await authService.logout();
+      console.log("✅ Logout completed:", result);
+    } catch (error) {
+      console.error("❌ Logout error in useAuth:", error);
+    } finally {
+      // Always clear local state regardless of API call success
+      console.log("🧹 Clearing auth state in useAuth...");
       setUser(null);
       setIsAuthenticated(false);
+      setIsLoading(false);
+    }
+  };
+
+  const register = async (userData) => {
+    setIsLoading(true);
+    try {
+      console.log("📝 Starting registration process...");
+      const response = await authService.register(userData);
+      console.log("✅ Registration successful:", response.message);
+      return response;
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error("❌ Registration failed in useAuth:", error.message);
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -65,6 +107,7 @@ export const AuthProvider = ({ children }) => {
     isLoading,
     login,
     logout,
+    register,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

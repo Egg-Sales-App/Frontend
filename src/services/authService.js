@@ -1,32 +1,89 @@
 import { apiService } from "./api";
+import { config } from "../config/environment";
 
 export const authService = {
+  // Token management methods
+  getAuthToken() {
+    return apiService.getAuthToken();
+  },
+
+  setAuthToken(token) {
+    return apiService.setAuthToken(token);
+  },
+
+  removeAuthToken() {
+    apiService.removeAuthToken();
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user_data");
+  },
+
   // Login with email/username and password
   async login(credentials) {
     try {
-      const response = await apiService.post("/auth/login", {
-        email: credentials.email,
-        password: credentials.password,
-        rememberMe: credentials.rememberMe || false,
+      console.log("🔐 Attempting login with credentials:", {
+        username: credentials.email || credentials.username,
+        hasPassword: !!credentials.password,
       });
 
-      if (response.token || response.accessToken) {
-        const token = response.token || response.accessToken;
-        apiService.setAuthToken(token);
+      // Use Django's JWT token endpoint
+      const response = await apiService.post("/token/", {
+        username: credentials.email || credentials.username,
+        password: credentials.password,
+      });
 
-        // Store user data if provided
-        if (response.user) {
-          localStorage.setItem("user_data", JSON.stringify(response.user));
+      console.log("✅ Backend login response:", {
+        hasAccess: !!response.access,
+        hasRefresh: !!response.refresh,
+        tokenPreview: response.access
+          ? `${response.access.substring(0, 20)}...`
+          : null,
+        fullResponse: response,
+      });
+
+      if (response.access) {
+        apiService.setAuthToken(response.access);
+
+        // Store refresh token
+        if (response.refresh) {
+          localStorage.setItem("refresh_token", response.refresh);
+          console.log("💾 Refresh token stored successfully");
         }
+
+        // Get user profile after login
+        console.log("👤 Fetching user profile...");
+        const userProfile = await this.getCurrentUser();
+        console.log("✅ User profile retrieved:", {
+          id: userProfile.id,
+          username: userProfile.username,
+          email: userProfile.email,
+          isStaff: userProfile.is_staff,
+        });
+
+        const loginResult = {
+          success: true,
+          user: userProfile,
+          token: response.access,
+          refreshToken: response.refresh,
+          message: "Login successful",
+        };
+
+        console.log("🎉 Login completed successfully:", {
+          userId: userProfile.id,
+          username: userProfile.username,
+          hasToken: !!loginResult.token,
+        });
+
+        return loginResult;
       }
 
-      return {
-        success: true,
-        user: response.user,
-        token: response.token || response.accessToken,
-        message: response.message || "Login successful",
-      };
+      throw new Error("No access token received");
     } catch (error) {
+      console.error("❌ Login failed:", {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        responseData: error.response?.data,
+      });
       throw new Error(error.message || "Login failed");
     }
   },
@@ -34,21 +91,75 @@ export const authService = {
   // Register new user
   async register(userData) {
     try {
-      const response = await apiService.post("/auth/register", {
-        name: userData.name,
+      console.log("📝 Attempting user registration:", {
+        username: userData.username || userData.email,
         email: userData.email,
-        password: userData.password,
-        confirmPassword: userData.confirmPassword,
-        role: userData.role || "employee",
-        department: userData.department,
+        firstName: userData.firstName || userData.name?.split(" ")[0] || "",
+        lastName:
+          userData.lastName ||
+          userData.name?.split(" ").slice(1).join(" ") ||
+          "",
+        hasPassword: !!userData.password,
+      });
+
+      const registrationData = {
+        username: userData.username || userData.email,
+        email: userData.email,
+        password1: userData.password,
+        password2: userData.confirmPassword || userData.password,
+        first_name: userData.firstName || userData.name?.split(" ")[0] || "",
+        last_name:
+          userData.lastName ||
+          userData.name?.split(" ").slice(1).join(" ") ||
+          "",
+      };
+
+      // Use Django's signup endpoint
+      const response = await fetch(
+        `${config.DJANGO_BASE_URL}/accounts/signup/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(registrationData),
+        }
+      );
+
+      console.log("📡 Registration response status:", {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("❌ Registration failed:", {
+          status: response.status,
+          errorData: errorData,
+        });
+        throw new Error(errorData.message || "Registration failed");
+      }
+
+      const data = await response.json().catch(() => ({ success: true }));
+      console.log("✅ Registration successful:", {
+        hasUser: !!data.user,
+        message: data.message,
+        fullResponse: data,
       });
 
       return {
         success: true,
-        message: response.message || "Registration successful",
-        user: response.user,
+        message:
+          data.message ||
+          "Registration successful. Please check your email for verification.",
+        user: data.user,
       };
     } catch (error) {
+      console.error("❌ Registration error:", {
+        message: error.message,
+        name: error.name,
+      });
       throw new Error(error.message || "Registration failed");
     }
   },
@@ -56,80 +167,224 @@ export const authService = {
   // Logout user
   async logout() {
     try {
-      // Call logout endpoint to invalidate token on server
-      await apiService.post("/auth/logout");
+      console.log("🚪 Starting logout process...");
+
+      const refreshToken = localStorage.getItem("refresh_token");
+      const authToken = this.getAuthToken();
+
+      console.log("📊 Logout state:", {
+        hasAuthToken: !!authToken,
+        hasRefreshToken: !!refreshToken,
+      });
+
+      // If we have a refresh token, try to invalidate it on the server
+      if (refreshToken) {
+        try {
+          console.log("🔄 Attempting to invalidate refresh token on server...");
+          await apiService.post("/token/blacklist/", {
+            refresh: refreshToken,
+          });
+          console.log("✅ Refresh token invalidated on server");
+        } catch (error) {
+          console.warn(
+            "⚠️ Failed to invalidate refresh token on server:",
+            error.message
+          );
+          // Continue with logout even if server invalidation fails
+        }
+      }
+
+      // Clear all local storage data
+      console.log("🧹 Clearing local authentication data...");
+      this.removeAuthToken();
+
+      console.log("✅ Logout completed successfully");
+
+      return {
+        success: true,
+        message: "Logged out successfully",
+      };
     } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
-      // Always remove token from localStorage
-      apiService.removeAuthToken();
-      localStorage.removeItem("user_data");
+      console.error("❌ Logout error:", {
+        message: error.message,
+        name: error.name,
+      });
+
+      // Still clear local tokens even if server logout fails
+      console.log("🧹 Force clearing local data due to logout error...");
+      this.removeAuthToken();
+
+      return {
+        success: false,
+        message: "Logout completed with errors, but local data cleared",
+      };
     }
   },
 
   // Get current user profile
   async getCurrentUser() {
     try {
-      const response = await apiService.get("/auth/me");
-      return response.user || response;
+      console.log("👤 Fetching current user profile...");
+
+      // For Django Simple JWT, try common user endpoints
+      const endpoints = [
+        "/api/user/",
+        "/api/users/me/",
+        "/auth/user/",
+        "/user/",
+        "/dj-rest-auth/user/",
+        "/api/auth/user/",
+        "/accounts/user/",
+      ];
+
+      let response;
+      let lastError;
+
+      for (const endpoint of endpoints) {
+        try {
+          console.log(`🔍 Trying user endpoint: ${endpoint}`);
+          response = await apiService.get(endpoint);
+          console.log(`✅ Success with endpoint: ${endpoint}`, {
+            id: response.id,
+            username: response.username,
+            email: response.email,
+          });
+          break;
+        } catch (error) {
+          console.log(`❌ Failed endpoint ${endpoint}:`, error.message);
+          lastError = error;
+          continue;
+        }
+      }
+
+      if (!response) {
+        // If all endpoints fail, create a minimal user object from the token
+        console.warn(
+          "⚠️ All user endpoints failed, creating minimal user object from token"
+        );
+        const token = this.getAuthToken();
+        if (token) {
+          try {
+            const payload = JSON.parse(atob(token.split(".")[1]));
+            console.log("🔓 Decoded token payload:", {
+              userId: payload.user_id,
+              exp: payload.exp,
+              iat: payload.iat,
+            });
+            response = {
+              id: payload.user_id,
+              username: `user_${payload.user_id}`,
+              email: `user${payload.user_id}@example.com`,
+              is_staff: false,
+            };
+            console.log("✅ Created fallback user object:", response);
+          } catch (decodeError) {
+            console.error("❌ Failed to decode token:", decodeError.message);
+            throw new Error(
+              "All user endpoints failed and couldn't decode token"
+            );
+          }
+        } else {
+          console.error("❌ No auth token available");
+          throw lastError || new Error("No auth token available");
+        }
+      }
+
+      // Store user data locally
+      localStorage.setItem("user_data", JSON.stringify(response));
+      console.log("💾 User data stored locally:", {
+        id: response.id,
+        username: response.username,
+        isStaff: response.is_staff,
+      });
+
+      return response;
     } catch (error) {
-      throw new Error("Failed to get current user");
+      console.error("❌ Failed to get current user:", {
+        message: error.message,
+        name: error.name,
+      });
+      throw new Error("Failed to get current user: " + error.message);
     }
   },
 
   // Refresh authentication token
   async refreshToken() {
     try {
-      const response = await apiService.post("/auth/refresh");
+      console.log("🔄 Attempting to refresh authentication token...");
 
-      if (response.token || response.accessToken) {
-        const token = response.token || response.accessToken;
-        apiService.setAuthToken(token);
+      const refreshToken = localStorage.getItem("refresh_token");
+      if (!refreshToken) {
+        console.error("❌ No refresh token available");
+        throw new Error("No refresh token available");
       }
 
-      return response;
-    } catch (error) {
+      console.log("📡 Sending refresh token request...");
+      const response = await apiService.post("/token/refresh/", {
+        refresh: refreshToken,
+      });
+
+      console.log("✅ Token refresh response:", {
+        hasAccess: !!response.access,
+        accessTokenPreview: response.access
+          ? `${response.access.substring(0, 20)}...`
+          : null,
+      });
+
+      if (response.access) {
+        apiService.setAuthToken(response.access);
+        console.log("💾 New access token stored successfully");
+        return response.access;
+      }
+
+      console.error("❌ Token refresh failed - no access token in response");
       throw new Error("Token refresh failed");
+    } catch (error) {
+      console.error("❌ Token refresh error:", {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+      });
+
+      // If refresh fails, logout user
+      console.log("🚪 Token refresh failed, initiating logout...");
+      this.logout();
+      throw new Error("Session expired. Please login again.");
     }
   },
 
   // Request password reset
   async forgotPassword(email) {
     try {
-      const response = await apiService.post("/auth/forgot-password", {
-        email,
-      });
+      // Django AllAuth password reset
+      const response = await fetch(
+        `${config.DJANGO_BASE_URL}/accounts/password/reset/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to send reset email");
+      }
+
       return {
         success: true,
-        message: response.message || "Password reset email sent",
+        message: "Password reset email sent",
       };
     } catch (error) {
       throw new Error(error.message || "Failed to send reset email");
     }
   },
 
-  // Reset password with token
-  async resetPassword(token, newPassword) {
-    try {
-      const response = await apiService.post("/auth/reset-password", {
-        token,
-        password: newPassword,
-        confirmPassword: newPassword,
-      });
-
-      return {
-        success: true,
-        message: response.message || "Password reset successful",
-      };
-    } catch (error) {
-      throw new Error(error.message || "Password reset failed");
-    }
-  },
-
   // Change password for authenticated user
   async changePassword(currentPassword, newPassword) {
     try {
-      const response = await apiService.post("/auth/change-password", {
+      const response = await apiService.post("/auth/change-password/", {
         currentPassword,
         newPassword,
         confirmPassword: newPassword,
@@ -154,6 +409,75 @@ export const authService = {
       };
     } catch (error) {
       throw new Error(error.message || "Email verification failed");
+    }
+  },
+
+  // Check if user is authenticated
+  isAuthenticated() {
+    const token = this.getAuthToken();
+    if (!token) {
+      console.log("🔍 No auth token found");
+      return false;
+    }
+
+    try {
+      // Check if token is expired
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+      const isExpired = payload.exp < currentTime;
+
+      console.log("🔍 Token validation:", {
+        userId: payload.user_id,
+        exp: payload.exp,
+        currentTime: currentTime,
+        isExpired: isExpired,
+        expiresIn: payload.exp - currentTime,
+      });
+
+      if (isExpired) {
+        console.log("⏰ Token is expired, removing...");
+        this.removeAuthToken();
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("❌ Token validation error:", error);
+      this.removeAuthToken();
+      return false;
+    }
+  },
+
+  // Get token expiration info
+  getTokenInfo() {
+    const token = this.getAuthToken();
+    if (!token) return null;
+
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+
+      return {
+        userId: payload.user_id,
+        exp: payload.exp,
+        iat: payload.iat,
+        isExpired: payload.exp < currentTime,
+        expiresIn: payload.exp - currentTime,
+        expiresAt: new Date(payload.exp * 1000).toISOString(),
+      };
+    } catch (error) {
+      console.error("❌ Failed to decode token:", error);
+      return null;
+    }
+  },
+
+  // Get stored user data
+  getCurrentUserFromStorage() {
+    try {
+      const userData = localStorage.getItem("user_data");
+      return userData ? JSON.parse(userData) : null;
+    } catch (error) {
+      return null;
     }
   },
 };

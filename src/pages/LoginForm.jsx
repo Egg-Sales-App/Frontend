@@ -1,6 +1,6 @@
 import React from "react";
 import { UserIcon, LockClosedIcon } from "@heroicons/react/24/solid";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import FormInput from "../components/ui/FormInput";
 import { useForm } from "../hooks/useForm";
 import { useToast } from "../hooks/useToast";
@@ -9,8 +9,19 @@ import { useAuth } from "../hooks/useAuth";
 
 const LoginForm = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const location = useLocation();
+  const { login, isAuthenticated, isLoading } = useAuth();
   const { success, error: showError } = useToast();
+
+  // Get the intended destination from state, default to admin dashboard
+  const from = location.state?.from?.pathname || "/admin/dashboard";
+
+  // Redirect if already authenticated
+  React.useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate, from]);
 
   const validationRules = {
     email: {
@@ -32,11 +43,30 @@ const LoginForm = () => {
 
   const onSubmit = async (formData) => {
     try {
-      const response = await authService.login(formData);
-      await login(response.user);
-      success("Login successful! Welcome back.");
-      navigate("/");
+      console.log("🔐 Login form submission started...");
+      const response = await login(formData);
+
+      console.log("✅ Login form received response:", {
+        success: response.success,
+        hasUser: !!response.user,
+        hasToken: !!response.token,
+        message: response.message,
+      });
+
+      success(
+        `${response.message || "Login successful!"} Welcome back, ${
+          response.user?.username || "User"
+        }!`
+      );
+
+      // Redirect to intended page or dashboard
+      console.log(`🚀 Redirecting to: ${from}`);
+      navigate(from, { replace: true });
     } catch (error) {
+      console.error("❌ Login form error:", {
+        message: error.message,
+        name: error.name,
+      });
       showError(error.message || "Login failed. Please try again.");
     }
   };
@@ -103,22 +133,21 @@ const LoginForm = () => {
             {isSubmitting ? "Logging in..." : "Sign In"}
           </button>
 
-           {/* Google Sign-In Button */}
-  <button
-    type="button"
-    onClick={() => console.log("Handle Google Sign-In")}
-  className="w-full h-10 mt-4 border border-gray-300 flex items-center justify-center gap-2 rounded-md bg-white hover:bg-gray-100 active:scale-[0.98] transition duration-150 ease-in-out shadow-sm cursor-pointer"
-  >
-    <img
-      src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-      alt="Google Logo"
-      className="h-5 w-5"
-    />
-    <span className="text-sm text-gray-700 font-medium">
-      Sign in with Google
-    </span>
-  </button>
-
+          {/* Google Sign-In Button */}
+          <button
+            type="button"
+            onClick={() => console.log("Handle Google Sign-In")}
+            className="w-full h-10 mt-4 border border-gray-300 flex items-center justify-center gap-2 rounded-md bg-white hover:bg-gray-100 active:scale-[0.98] transition duration-150 ease-in-out shadow-sm cursor-pointer"
+          >
+            <img
+              src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+              alt="Google Logo"
+              className="h-5 w-5"
+            />
+            <span className="text-sm text-gray-700 font-medium">
+              Sign in with Google
+            </span>
+          </button>
         </form>
 
         <p className="text-center text-sm text-gray-600 mt-6">

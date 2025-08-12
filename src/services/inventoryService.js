@@ -4,25 +4,29 @@ export const inventoryService = {
   // Get all products with pagination and filters
   async getProducts(params = {}) {
     try {
-      const response = await apiService.get("/products", {
+      const response = await apiService.get("/products/", {
         page: params.page || 1,
-        limit: params.limit || 10,
+        page_size: params.limit || 10,
         search: params.search,
         category: params.category,
-        status: params.status,
-        sortBy: params.sortBy || "createdAt",
-        sortOrder: params.sortOrder || "desc",
+        ordering: params.sortBy
+          ? params.sortOrder === "desc"
+            ? `-${params.sortBy}`
+            : params.sortBy
+          : "-date_added",
       });
 
       return {
-        products: response.data || response.products || [],
-        pagination: response.pagination || {
-          page: 1,
-          limit: 10,
-          total: response.total || 0,
-          pages: Math.ceil((response.total || 0) / 10),
+        products: response.results || [],
+        pagination: {
+          page: params.page || 1,
+          limit: params.limit || 10,
+          total: response.count || 0,
+          pages: Math.ceil((response.count || 0) / (params.limit || 10)),
         },
-        total: response.total || 0,
+        total: response.count || 0,
+        next: response.next,
+        previous: response.previous,
       };
     } catch (error) {
       throw new Error("Failed to fetch products");
@@ -32,8 +36,8 @@ export const inventoryService = {
   // Get single product by ID
   async getProduct(id) {
     try {
-      const response = await apiService.get(`/products/${id}`);
-      return response.data || response.product || response;
+      const response = await apiService.get(`/products/${id}/`);
+      return response;
     } catch (error) {
       throw new Error("Failed to fetch product");
     }
@@ -42,26 +46,22 @@ export const inventoryService = {
   // Create new product
   async createProduct(productData) {
     try {
-      const response = await apiService.post("/products", {
+      const response = await apiService.post("/products/", {
+        sku: productData.sku,
         name: productData.name,
         description: productData.description,
         category: productData.category,
+        unit: productData.unit || "unit",
         price: parseFloat(productData.price),
-        costPrice: parseFloat(productData.costPrice),
-        quantity: parseInt(productData.quantity),
-        minStockLevel: parseInt(productData.minStockLevel || 10),
-        unit: productData.unit || "piece",
-        barcode: productData.barcode,
-        sku: productData.sku,
-        supplier: productData.supplier,
-        expiryDate: productData.expiryDate,
-        status: productData.status || "active",
+        quantity_in_stock: parseInt(productData.quantity_in_stock || 0),
+        expiry_date: productData.expiry_date || null,
+        supplier: productData.supplier || null,
       });
 
       return {
         success: true,
-        product: response.data || response.product || response,
-        message: response.message || "Product created successfully",
+        product: response,
+        message: "Product created successfully",
       };
     } catch (error) {
       throw new Error(error.message || "Failed to create product");
@@ -71,12 +71,22 @@ export const inventoryService = {
   // Update existing product
   async updateProduct(id, productData) {
     try {
-      const response = await apiService.put(`/products/${id}`, productData);
+      const response = await apiService.put(`/products/${id}/`, {
+        sku: productData.sku,
+        name: productData.name,
+        description: productData.description,
+        category: productData.category,
+        unit: productData.unit,
+        price: parseFloat(productData.price),
+        quantity_in_stock: parseInt(productData.quantity_in_stock),
+        expiry_date: productData.expiry_date || null,
+        supplier: productData.supplier || null,
+      });
 
       return {
         success: true,
-        product: response.data || response.product || response,
-        message: response.message || "Product updated successfully",
+        product: response,
+        message: "Product updated successfully",
       };
     } catch (error) {
       throw new Error(error.message || "Failed to update product");
@@ -86,125 +96,137 @@ export const inventoryService = {
   // Delete product
   async deleteProduct(id) {
     try {
-      const response = await apiService.delete(`/products/${id}`);
+      await apiService.delete(`/products/${id}/`);
 
       return {
         success: true,
-        message: response.message || "Product deleted successfully",
+        message: "Product deleted successfully",
       };
     } catch (error) {
       throw new Error("Failed to delete product");
     }
   },
 
-  // Get low stock items
-  async getLowStockItems(threshold = 10) {
+  // Get inventory records
+  async getInventoryHistory(params = {}) {
     try {
-      const response = await apiService.get("/products/low-stock", {
-        threshold,
-        status: "active",
+      const response = await apiService.get("/inventory/", {
+        page: params.page || 1,
+        page_size: params.limit || 10,
+        product: params.productId,
+        ordering: "-date",
       });
 
-      return response.data || response.products || [];
+      return {
+        records: response.results || [],
+        pagination: {
+          page: params.page || 1,
+          limit: params.limit || 10,
+          total: response.count || 0,
+          pages: Math.ceil((response.count || 0) / (params.limit || 10)),
+        },
+        total: response.count || 0,
+      };
+    } catch (error) {
+      throw new Error("Failed to fetch inventory history");
+    }
+  },
+
+  // Create inventory record (stock adjustment)
+  async createInventoryRecord(recordData) {
+    try {
+      const response = await apiService.post("/inventory/", {
+        product: recordData.productId,
+        change: parseInt(recordData.change),
+        reason: recordData.reason,
+      });
+
+      return {
+        success: true,
+        record: response,
+        message: "Inventory record created successfully",
+      };
+    } catch (error) {
+      throw new Error(error.message || "Failed to create inventory record");
+    }
+  },
+
+  // Get low stock items (products with low quantity)
+  async getLowStockItems(threshold = 10) {
+    try {
+      const response = await apiService.get("/products/", {
+        quantity_in_stock__lt: threshold,
+        ordering: "quantity_in_stock",
+      });
+
+      return response.results || [];
     } catch (error) {
       console.error("Failed to fetch low stock items:", error);
-      // Return empty array instead of throwing to prevent dashboard breaking
       return [];
     }
   },
 
-  // Get top selling products
-  async getTopSellingProducts(limit = 10, period = "30d") {
-    try {
-      const response = await apiService.get("/products/top-selling", {
-        limit,
-        period, // '7d', '30d', '90d', '1y'
-      });
-
-      return response.data || response.products || [];
-    } catch (error) {
-      throw new Error("Failed to fetch top selling products");
-    }
-  },
-
-  // Update stock quantity
-  async updateStock(id, quantity, operation = "set", reason = "") {
-    try {
-      const response = await apiService.patch(`/products/${id}/stock`, {
-        quantity: parseInt(quantity),
-        operation, // 'set', 'add', 'subtract'
-        reason,
-        timestamp: new Date().toISOString(),
-      });
-
-      return {
-        success: true,
-        product: response.data || response.product || response,
-        message: response.message || "Stock updated successfully",
-      };
-    } catch (error) {
-      throw new Error("Failed to update stock");
-    }
-  },
-
-  // Upload product image
-  async uploadProductImage(id, imageFile) {
-    try {
-      const response = await apiService.uploadFile(
-        `/products/${id}/image`,
-        imageFile
-      );
-
-      return {
-        success: true,
-        imageUrl: response.imageUrl || response.url,
-        message: response.message || "Image uploaded successfully",
-      };
-    } catch (error) {
-      throw new Error("Failed to upload product image");
-    }
+  // Get product categories (hardcoded from Django model choices)
+  getCategories() {
+    return [
+      { value: "Feed", label: "Feed" },
+      { value: "Equipment", label: "Equipment" },
+      { value: "Chick", label: "Day-old Chick" },
+      { value: "Drugs", label: "Drugs" },
+    ];
   },
 
   // Search products
   async searchProducts(query, filters = {}) {
     try {
-      const response = await apiService.get("/products/search", {
-        q: query,
-        ...filters,
+      const response = await apiService.get("/products/", {
+        search: query,
+        category: filters.category,
+        ordering: filters.ordering || "-date_added",
       });
 
-      return response.data || response.products || [];
+      return response.results || [];
     } catch (error) {
       throw new Error("Failed to search products");
     }
   },
 
-  // Get product categories
-  async getCategories() {
+  // Get top selling products for dashboard
+  async getTopSellingProducts(limit = 5) {
     try {
-      const response = await apiService.get("/products/categories");
-      return response.data || response.categories || [];
+      const response = await apiService.get("/products/", {
+        ordering: "-sales_count",
+        limit: limit,
+      });
+
+      return response.results || [];
     } catch (error) {
-      throw new Error("Failed to fetch categories");
+      console.error("Failed to fetch top selling products:", error.message);
+      // Return empty array instead of throwing to prevent dashboard crashes
+      return [];
     }
   },
 
-  // Get stock history for a product
-  async getStockHistory(id, params = {}) {
+  // Get dashboard inventory stats
+  async getInventoryStats() {
     try {
-      const response = await apiService.get(`/products/${id}/stock-history`, {
-        page: params.page || 1,
-        limit: params.limit || 20,
-        dateFrom: params.dateFrom,
-        dateTo: params.dateTo,
-      });
+      const [products, lowStock] = await Promise.all([
+        this.getProducts({ limit: 1 }), // Get total count
+        this.getLowStockItems(),
+      ]);
 
       return {
-        history: response.data || response.history || [],
-        pagination: response.pagination || {},
+        totalProducts: products.total || 0,
+        lowStockCount: lowStock.length || 0,
+        totalCategories: this.getCategories().length,
       };
     } catch (error) {
-      throw new Error("Failed to fetch stock history");
+      console.error("Failed to fetch inventory stats:", error.message);
+      return {
+        totalProducts: 0,
+        lowStockCount: 0,
+        totalCategories: 4,
+      };
     }
   },
 };

@@ -1,9 +1,27 @@
-import { Bell } from "lucide-react";
+import { Bell, LogOut, User, Settings } from "lucide-react";
 import React from "react";
 import { useSidebar } from "../context/SidebarContext";
+import { useAuth } from "../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "../hooks/useToast";
 
 const Navbar = () => {
   const { isCollapsed } = useSidebar();
+  const { user, logout, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const { showToast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      console.log("🚪 User initiated logout from navbar");
+      await logout();
+      showToast("Logged out successfully", "success");
+      navigate("/login");
+    } catch (error) {
+      console.error("❌ Logout failed:", error);
+      showToast("Logout failed. Please try again.", "error");
+    }
+  };
 
   return (
     <div
@@ -70,16 +88,44 @@ const Navbar = () => {
               tabIndex={0}
               className="menu menu-sm dropdown-content bg-base-100 rounded-box z-10 mt-3 w-52 p-2 shadow"
             >
+              {/* User Info */}
+              {user && (
+                <li className="menu-title px-4 py-2">
+                  <div className="text-sm">
+                    <div className="font-semibold">{user.username}</div>
+                    <div className="text-gray-500 text-xs">{user.email}</div>
+                  </div>
+                </li>
+              )}
               <li>
                 <a className="justify-between">
-                  Profile <span className="badge">New</span>
+                  <div className="flex items-center gap-2">
+                    <User size={16} />
+                    Profile
+                  </div>
+                  <span className="badge">New</span>
                 </a>
               </li>
               <li>
-                <a>Settings</a>
+                <a>
+                  <div className="flex items-center gap-2">
+                    <Settings size={16} />
+                    Settings
+                  </div>
+                </a>
               </li>
+              <div className="divider my-1"></div>
               <li>
-                <a>Logout</a>
+                <button
+                  onClick={handleLogout}
+                  disabled={isLoading}
+                  className="text-red-600 hover:bg-red-50"
+                >
+                  <div className="flex items-center gap-2">
+                    <LogOut size={16} />
+                    {isLoading ? "Logging out..." : "Logout"}
+                  </div>
+                </button>
               </li>
             </ul>
           </div>

@@ -3,10 +3,21 @@ import { UserIcon, LockClosedIcon } from "@heroicons/react/24/solid";
 import { Link, useNavigate } from "react-router-dom";
 import FormInput from "../components/ui/FormInput";
 import { useForm } from "../hooks/useForm";
+import { useToast } from "../hooks/useToast";
+import { useAuth } from "../hooks/useAuth";
 import { authService } from "../services/authService";
 
 const SignupForm = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, isLoading } = useAuth();
+  const { success, error: showError } = useToast();
+
+  // Redirect if already authenticated
+  React.useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      navigate("/admin/dashboard", { replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate]);
 
   const validationRules = {
     name: {
@@ -33,12 +44,31 @@ const SignupForm = () => {
 
   const onSubmit = async (formData) => {
     try {
-      await authService.register(formData);
+      console.log("📝 Registration form submission started...");
+      const response = await authService.register({
+        ...formData,
+        confirmPassword: formData.password, // Add confirm password
+      });
+
+      console.log("✅ Registration form received response:", {
+        success: response.success,
+        hasUser: !!response.user,
+        message: response.message,
+      });
+
+      success(
+        response.message ||
+          "Registration successful! Please check your email for verification."
+      );
+
+      console.log("🚀 Redirecting to login page...");
       navigate("/login");
-      // Add success toast
     } catch (error) {
-      console.error("Signup failed:", error.message);
-      // Add error toast
+      console.error("❌ Registration form error:", {
+        message: error.message,
+        name: error.name,
+      });
+      showError(error.message || "Registration failed. Please try again.");
     }
   };
 
@@ -106,22 +136,21 @@ const SignupForm = () => {
             {isSubmitting ? "Creating account..." : "Get started"}
           </button>
 
-           {/* Google Sign-In Button */}
-  <button
-    type="button"
-    onClick={() => console.log("Handle Google Sign-In")}
-  className="w-full h-10 mt-4 border border-gray-300 flex items-center justify-center gap-2 rounded-md bg-white hover:bg-gray-100 active:scale-[0.98] transition duration-150 ease-in-out shadow-sm cursor-pointer"
-  >
-    <img
-      src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-      alt="Google Logo"
-      className="h-5 w-5"
-    />
-    <span className="text-sm text-gray-700 font-medium">
-      Sign up with Google
-    </span>
-  </button>
-
+          {/* Google Sign-In Button */}
+          <button
+            type="button"
+            onClick={() => console.log("Handle Google Sign-In")}
+            className="w-full h-10 mt-4 border border-gray-300 flex items-center justify-center gap-2 rounded-md bg-white hover:bg-gray-100 active:scale-[0.98] transition duration-150 ease-in-out shadow-sm cursor-pointer"
+          >
+            <img
+              src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+              alt="Google Logo"
+              className="h-5 w-5"
+            />
+            <span className="text-sm text-gray-700 font-medium">
+              Sign up with Google
+            </span>
+          </button>
         </form>
 
         <p className="text-center text-sm text-gray-600 mt-6">
