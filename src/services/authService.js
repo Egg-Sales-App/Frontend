@@ -15,6 +15,8 @@ export const authService = {
     apiService.removeAuthToken();
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("user_data");
+    localStorage.removeItem("user"); // Also remove user data stored by getCurrentUser
+    console.log("🧹 All authentication data cleared from localStorage");
   },
 
   // Login with email/username and password
@@ -260,68 +262,88 @@ export const authService = {
         hasRefreshToken: !!refreshToken,
       });
 
-      // Call Django allauth logout endpoint to invalidate server-side session
+      // Call backend logout endpoint to invalidate server-side session
       try {
         console.log("🌐 Calling backend logout endpoint...");
-
-        const authToken = this.getAuthToken();
-
-        // First, get CSRF token for Django allauth
-        let csrfToken = null;
-        try {
-          const csrfResponse = await fetch(
-            `${config.DJANGO_BASE_URL}/accounts/logout/`,
-            {
-              method: "GET",
-              headers: {
-                ...(authToken && { Authorization: `Bearer ${authToken}` }),
-              },
-              credentials: "include", // Include cookies for CSRF
-            }
-          );
-
-          // Extract CSRF token from cookies or response headers
-          const csrfCookie = document.cookie
-            .split("; ")
-            .find((row) => row.startsWith("csrftoken="));
-
-          if (csrfCookie) {
-            csrfToken = csrfCookie.split("=")[1];
-            console.log("🔐 CSRF token obtained");
-          }
-        } catch (csrfError) {
-          console.warn("⚠️ Could not get CSRF token:", csrfError.message);
-        }
-
-        // Now perform the actual logout with CSRF token
-        const logoutResponse = await fetch(
-          `${config.DJANGO_BASE_URL}/accounts/logout/`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(authToken && { Authorization: `Bearer ${authToken}` }),
-              ...(csrfToken && { "X-CSRFToken": csrfToken }),
-            },
-            credentials: "include", // Include cookies
-            body: JSON.stringify({
-              refresh: refreshToken, // Send refresh token if available
-            }),
-          }
-        );
-
-        console.log("📡 Logout response:", {
-          status: logoutResponse.status,
-          statusText: logoutResponse.statusText,
-          ok: logoutResponse.ok,
+        console.log("🔧 Config debug:", {
+          DJANGO_BASE_URL: config.DJANGO_BASE_URL,
+          API_BASE_URL: config.API_BASE_URL,
         });
 
-        if (logoutResponse.ok) {
-          console.log("✅ Server-side logout successful");
-        } else {
+        // Try Django REST API logout first (if available)
+        try {
+          console.log("🔄 Attempting API logout endpoint...");
+          const apiLogoutResponse = await apiService.post("/logout/", {
+            refresh_token: refreshToken,
+          });
+          console.log("✅ API logout successful");
+        } catch (apiError) {
           console.warn(
-            "⚠️ Server logout returned non-OK status, but continuing..."
+            "⚠️ API logout failed, trying Django allauth:",
+            apiError.message
           );
+
+          // Fallback to Django allauth form-based logout
+          const logoutUrl = `${config.DJANGO_BASE_URL}/accounts/logout/`;
+          console.log("🔗 Fallback Logout URL:", logoutUrl);
+
+          const csrfResponse = await fetch(logoutUrl, {
+            method: "GET",
+            credentials: "include", // Include cookies for session
+          });
+
+          let csrfToken = null;
+          if (csrfResponse.ok) {
+            const htmlText = await csrfResponse.text();
+            // Extract CSRF token from the HTML form
+            const csrfMatch = htmlText.match(
+              /name=['"]csrfmiddlewaretoken['"] value=['"]([^'"]+)['"]/
+            );
+            if (csrfMatch) {
+              csrfToken = csrfMatch[1];
+              console.log("🔐 CSRF token extracted from HTML form");
+            }
+
+            // Also try to get from cookies as backup
+            const csrfCookie = document.cookie
+              .split("; ")
+              .find((row) => row.startsWith("csrftoken="));
+
+            if (csrfCookie && !csrfToken) {
+              csrfToken = csrfCookie.split("=")[1];
+              console.log("🔐 CSRF token obtained from cookie");
+            }
+          }
+
+          if (csrfToken) {
+            // Submit logout form with CSRF token
+            const formData = new FormData();
+            formData.append("csrfmiddlewaretoken", csrfToken);
+
+            const logoutResponse = await fetch(logoutUrl, {
+              method: "POST",
+              credentials: "include", // Include cookies
+              body: formData,
+            });
+
+            console.log("📡 Logout response:", {
+              status: logoutResponse.status,
+              statusText: logoutResponse.statusText,
+              ok: logoutResponse.ok,
+            });
+
+            if (logoutResponse.ok) {
+              console.log("✅ Server-side logout successful");
+            } else {
+              console.warn(
+                "⚠️ Server logout returned non-OK status, but continuing..."
+              );
+            }
+          } else {
+            console.warn(
+              "⚠️ Could not obtain CSRF token, skipping server logout"
+            );
+          }
         }
       } catch (backendError) {
         console.warn(
@@ -385,11 +407,19 @@ export const authService = {
             );
 
             // Try to find current user from token
-            const token = localStorage.getItem("token");
+            const token = this.getAuthToken(); // Use the proper method to get token
             if (token) {
               try {
                 const payload = JSON.parse(atob(token.split(".")[1]));
                 const currentUserId = payload.user_id;
+
+                console.log(
+                  "🔍 Looking for user with ID:",
+                  currentUserId,
+                  "in array of",
+                  userData.length,
+                  "users"
+                );
 
                 // Find user in the array by ID
                 const currentUser = userData.find(
@@ -406,21 +436,30 @@ export const authService = {
 
                   localStorage.setItem("user", JSON.stringify(userWithRole));
                   return userWithRole;
+                } else {
+                  console.warn(
+                    `⚠️ User with ID ${currentUserId} not found in users array`
+                  );
+                  // Don't fall back to first user - this causes the wrong user login issue
+                  throw new Error(`Current user not found in users list`);
                 }
               } catch (tokenError) {
                 console.warn("⚠️ Could not decode token:", tokenError);
+                throw new Error("Invalid token - cannot identify current user");
               }
+            } else {
+              throw new Error("No authentication token available");
             }
 
-            // If we can't identify current user, return first user as fallback
-            if (userData.length > 0) {
-              const fallbackUser = {
-                ...userData[0],
-                role: userData[0].is_superuser ? "admin" : "pos",
-              };
-              localStorage.setItem("user", JSON.stringify(fallbackUser));
-              return fallbackUser;
-            }
+            // Remove the fallback that was causing wrong user selection
+            // if (userData.length > 0) {
+            //   const fallbackUser = {
+            //     ...userData[0],
+            //     role: userData[0].is_superuser ? "admin" : "pos",
+            //   };
+            //   localStorage.setItem("user", JSON.stringify(fallbackUser));
+            //   return fallbackUser;
+            // }
           } else {
             // Single user object returned
             console.log(`✅ Endpoint ${endpoint} returned user:`, userData);
@@ -445,10 +484,13 @@ export const authService = {
       console.log(
         "⚠️ All user endpoints failed, attempting token-based user creation"
       );
-      const token = localStorage.getItem("token");
+      const token = this.getAuthToken(); // Use proper method to get token
       if (token) {
         try {
           const payload = JSON.parse(atob(token.split(".")[1]));
+          console.warn(
+            "⚠️ Using fallback user data from token - this should not happen in production"
+          );
           const fallbackUser = {
             id: payload.user_id,
             username: payload.username || "Unknown",
@@ -461,6 +503,9 @@ export const authService = {
           return fallbackUser;
         } catch (error) {
           console.error("❌ Failed to decode token:", error);
+          // If token is invalid, clear it
+          this.removeAuthToken();
+          throw new Error("Invalid authentication token");
         }
       }
 
