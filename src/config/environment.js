@@ -1,10 +1,12 @@
 export const config = {
   API_BASE_URL:
     import.meta.env.VITE_API_BASE_URL ||
-    "http://wc4kscgkwookowksgcs0g48s.213.199.60.135.sslip.io/api",
+    // "http://wc4kscgkwookowksgcs0g48s.213.199.60.135.sslip.io/api",
+    "https://wc4kscgkwookowksgcs0g48s.213.199.60.135.sslip.io/api",
   DJANGO_BASE_URL:
     import.meta.env.VITE_DJANGO_BASE_URL ||
-    "http://wc4kscgkwookowksgcs0g48s.213.199.60.135.sslip.io",
+    // "http://wc4kscgkwookowksgcs0g48s.213.199.60.135.sslip.io",
+    "https://wc4kscgkwookowksgcs0g48s.213.199.60.135.sslip.io",
   APP_NAME: import.meta.env.VITE_APP_NAME || "Poultry Store",
   NODE_ENV: import.meta.env.MODE,
   TOKEN_KEY: "poultry_auth_token",
