@@ -309,6 +309,61 @@ const Inventory = () => {
     }
   };
 
+  // Handle product save
+  const handleProductSave = async (productData) => {
+    try {
+      console.log("💾 Saving new product:", productData);
+
+      // For now, we'll add to local state - in production, this would call inventoryService
+      const newProduct = {
+        id: products.length + 1,
+        name: productData.name,
+        category: productData.category,
+        categoryId: getCategoryIdByName(productData.category),
+        price: parseFloat(productData.buyingPrice),
+        stock: productData.stock,
+        sku: productData.sku,
+        img: productData.img || HybridFeedImage, // Default image
+        unit: productData.unit,
+        description: productData.description,
+        expiryDate: productData.expiryDate,
+        status: productData.stock > 10 ? "In Stock" : "Low Stock",
+        sold: 0,
+        revenue: 0,
+      };
+
+      // Add to products list
+      setProducts((prevProducts) => [...prevProducts, newProduct]);
+
+      // Close modal
+      handleProductModalClose();
+
+      // Show success message (you can add toast here)
+      console.log("✅ Product added successfully:", newProduct);
+    } catch (error) {
+      console.error("❌ Error saving product:", error);
+      // Show error message (you can add toast here)
+    }
+  };
+
+  // Handle modal close
+  const handleProductModalClose = () => {
+    const modal = document.getElementById("add_product_modal");
+    if (modal) {
+      modal.close();
+    }
+  };
+
+  // Helper function to get category ID by name
+  const getCategoryIdByName = (categoryName) => {
+    const categoryMap = {
+      "Feed & Nutrition": 1,
+      "Day Old Chick": 2,
+      Equipment: 3,
+    };
+    return categoryMap[categoryName] || 1;
+  };
+
   const ProductCard = ({ product }) => (
     <div className="w-full max-w-sm bg-white rounded-xl shadow-lg px-3 pb-3 flex flex-col items-center justify-between transition-transform hover:scale-105 overflow-visible mt-8">
       <div className="w-32 h-32 mb-4 rounded-full overflow-hidden bg-transparent flex items-center justify-center -mt-10">
@@ -355,7 +410,9 @@ const Inventory = () => {
       </div>
       <div className="flex gap-2 mt-4">
         <button className="btn btn-sm btn-outline text-gray-500">Edit</button>
-        <button className="btn btn-sm bg-green-500 hover:bg-green-600 text-white">View</button>
+        <button className="btn btn-sm bg-green-500 hover:bg-green-600 text-white">
+          View
+        </button>
       </div>
     </div>
   );
@@ -475,7 +532,9 @@ const Inventory = () => {
           >
             Add Product
           </button>
-          <button className="btn bg-blue-500 text-gray-100 hover:bg-blue-600 font-medium">Add Category</button>
+          <button className="btn bg-blue-500 text-gray-100 hover:bg-blue-600 font-medium">
+            Add Category
+          </button>
         </div>
       </div>
 
@@ -489,7 +548,11 @@ const Inventory = () => {
           </form>
           <h3 className="text-2xl mb-4">New Product</h3>
           {/* AddProduct component will go here */}
-          <AddProduct />
+          <AddProduct
+            onSave={handleProductSave}
+            onClose={handleProductModalClose}
+            categories={mockInventoryData.categories.map((cat) => cat.name)}
+          />
         </div>
         <form method="dialog" className="modal-backdrop">
           <button>close</button>
