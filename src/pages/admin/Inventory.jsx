@@ -786,7 +786,14 @@ const Inventory = () => {
           <p className="text-gray-400 text-sm">
             Add your first product to get started.
           </p>
-          <button className="btn btn-primary mt-4">Add Product</button>
+          <button
+            className="btn btn-primary mt-4"
+            onClick={() =>
+              document.getElementById("add_product_modal").showModal()
+            }
+          >
+            Add Product
+          </button>
         </div>
       )}
 
