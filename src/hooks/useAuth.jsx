@@ -32,10 +32,8 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(true);
       } catch (error) {
         console.log("No valid session:", error.message);
-        // Clear invalid tokens
+        // Clear invalid tokens and all auth data
         authService.removeAuthToken();
-        localStorage.removeItem("refresh_token");
-        localStorage.removeItem("user_data");
         setUser(null);
         setIsAuthenticated(false);
       } finally {
