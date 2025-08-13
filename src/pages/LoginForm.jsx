@@ -49,19 +49,22 @@ const LoginForm = () => {
       console.log("✅ Login form received response:", {
         success: response.success,
         hasUser: !!response.user,
-        hasToken: !!response.token,
+        redirectTo: response.redirectTo,
         message: response.message,
       });
 
+      // Show role-specific success message
+      const roleMessage = response.user?.is_superuser ? "Admin" : "POS User";
       success(
         `${response.message || "Login successful!"} Welcome back, ${
           response.user?.username || "User"
-        }!`
+        }! (${roleMessage})`
       );
 
-      // Redirect to intended page or dashboard
-      console.log(`🚀 Redirecting to: ${from}`);
-      navigate(from, { replace: true });
+      // Use role-based redirect path from response
+      const redirectPath = response.redirectTo || from;
+      console.log(`🚀 Redirecting to: ${redirectPath}`);
+      navigate(redirectPath, { replace: true });
     } catch (error) {
       console.error("❌ Login form error:", {
         message: error.message,
