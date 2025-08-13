@@ -57,7 +57,17 @@ export const authService = {
           username: userProfile.username,
           email: userProfile.email,
           isStaff: userProfile.is_staff,
+          isSuperuser: userProfile.is_superuser,
+          role: userProfile.role,
         });
+
+        // Determine redirect path based on user role
+        const redirectTo = userProfile.is_superuser
+          ? "/admin/dashboard"
+          : "/pos";
+        console.log(
+          `🎯 Redirect path determined: ${redirectTo} (superuser: ${userProfile.is_superuser})`
+        );
 
         const loginResult = {
           success: true,
@@ -65,12 +75,14 @@ export const authService = {
           token: response.access,
           refreshToken: response.refresh,
           message: "Login successful",
+          redirectTo: redirectTo,
         };
 
         console.log("🎉 Login completed successfully:", {
           userId: userProfile.id,
           username: userProfile.username,
           hasToken: !!loginResult.token,
+          redirectTo: redirectTo,
         });
 
         return loginResult;
@@ -300,96 +312,89 @@ export const authService = {
             );
 
             // Try to find current user from token
-            const token = this.getAuthToken();
+            const token = localStorage.getItem("token");
             if (token) {
               try {
                 const payload = JSON.parse(atob(token.split(".")[1]));
                 const currentUserId = payload.user_id;
-                userData = userData.find((user) => user.id === currentUserId);
 
-                if (!userData) {
-                  console.log(
-                    `❌ Current user (ID: ${currentUserId}) not found in users array`
-                  );
-                  throw new Error("Current user not found in users list");
+                // Find user in the array by ID
+                const currentUser = userData.find(
+                  (user) => user.id === currentUserId
+                );
+                if (currentUser) {
+                  console.log("✅ Found current user in array:", currentUser);
+
+                  // Store user role information
+                  const userWithRole = {
+                    ...currentUser,
+                    role: currentUser.is_superuser ? "admin" : "pos",
+                  };
+
+                  localStorage.setItem("user", JSON.stringify(userWithRole));
+                  return userWithRole;
                 }
-                console.log(
-                  `✅ Found current user in array: ID ${userData.id}`
-                );
               } catch (tokenError) {
-                console.log(
-                  `❌ Failed to decode token for user filtering:`,
-                  tokenError.message
-                );
-                throw new Error("Cannot identify current user from token");
+                console.warn("⚠️ Could not decode token:", tokenError);
               }
-            } else {
-              throw new Error("No token available to identify current user");
             }
+
+            // If we can't identify current user, return first user as fallback
+            if (userData.length > 0) {
+              const fallbackUser = {
+                ...userData[0],
+                role: userData[0].is_superuser ? "admin" : "pos",
+              };
+              localStorage.setItem("user", JSON.stringify(fallbackUser));
+              return fallbackUser;
+            }
+          } else {
+            // Single user object returned
+            console.log(`✅ Endpoint ${endpoint} returned user:`, userData);
+            const userWithRole = {
+              ...userData,
+              role: userData.is_superuser ? "admin" : "pos",
+            };
+            localStorage.setItem("user", JSON.stringify(userWithRole));
+            return userWithRole;
           }
 
-          response = userData;
-          console.log(`✅ Success with endpoint: ${endpoint}`, {
-            id: response.id,
-            username: response.username,
-            email: response.email,
-          });
-          break;
+          console.log(`✅ Successfully fetched user from ${endpoint}`);
+          return userData;
         } catch (error) {
-          console.log(`❌ Failed endpoint ${endpoint}:`, error.message);
+          console.warn(`❌ Failed to fetch from ${endpoint}:`, error.message);
           lastError = error;
           continue;
         }
       }
 
-      if (!response) {
-        // If all endpoints fail, create a minimal user object from the token
-        console.warn(
-          "⚠️ All user endpoints failed, creating minimal user object from token"
-        );
-        const token = this.getAuthToken();
-        if (token) {
-          try {
-            const payload = JSON.parse(atob(token.split(".")[1]));
-            console.log("🔓 Decoded token payload:", {
-              userId: payload.user_id,
-              exp: payload.exp,
-              iat: payload.iat,
-            });
-            response = {
-              id: payload.user_id,
-              username: `user_${payload.user_id}`,
-              email: `user${payload.user_id}@example.com`,
-              is_staff: false,
-            };
-            console.log("✅ Created fallback user object:", response);
-          } catch (decodeError) {
-            console.error("❌ Failed to decode token:", decodeError.message);
-            throw new Error(
-              "All user endpoints failed and couldn't decode token"
-            );
-          }
-        } else {
-          console.error("❌ No auth token available");
-          throw lastError || new Error("No auth token available");
+      // If all endpoints fail, try to get user from stored token
+      console.log(
+        "⚠️ All user endpoints failed, attempting token-based user creation"
+      );
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split(".")[1]));
+          const fallbackUser = {
+            id: payload.user_id,
+            username: payload.username || "Unknown",
+            email: payload.email || "",
+            is_supplier: false,
+            is_superuser: false,
+            role: "pos", // Default to pos role
+          };
+          localStorage.setItem("user", JSON.stringify(fallbackUser));
+          return fallbackUser;
+        } catch (error) {
+          console.error("❌ Failed to decode token:", error);
         }
       }
 
-      // Store user data locally
-      localStorage.setItem("user_data", JSON.stringify(response));
-      console.log("💾 User data stored locally:", {
-        id: response.id,
-        username: response.username,
-        isStaff: response.is_staff,
-      });
-
-      return response;
+      throw lastError || new Error("Unable to fetch user profile");
     } catch (error) {
-      console.error("❌ Failed to get current user:", {
-        message: error.message,
-        name: error.name,
-      });
-      throw new Error("Failed to get current user: " + error.message);
+      console.error("❌ Get current user failed:", error);
+      throw error;
     }
   },
 

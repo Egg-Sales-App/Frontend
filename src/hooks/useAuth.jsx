@@ -55,11 +55,20 @@ export const AuthProvider = ({ children }) => {
       console.log("✅ Login successful, updating auth state:", {
         userId: response.user.id,
         username: response.user.username,
+        role: response.user.role,
+        redirectTo: response.redirectTo,
       });
 
       setUser(response.user);
       setIsAuthenticated(true);
-      return response;
+
+      // Return response with redirect information
+      return {
+        success: true,
+        user: response.user,
+        redirectTo: response.redirectTo,
+        message: response.message,
+      };
     } catch (error) {
       console.error("❌ Login failed in useAuth:", error.message);
       setIsAuthenticated(false);
