@@ -9,7 +9,7 @@ const Navbar = () => {
   const { isCollapsed } = useSidebar();
   const { user, logout, isLoading } = useAuth();
   const navigate = useNavigate();
-  const { showToast } = useToast();
+  const { addToast } = useToast();
 
   const handleLogout = async () => {
     try {
@@ -17,14 +17,14 @@ const Navbar = () => {
       const result = await logout();
 
       // Show success toast with message from backend/service
-      showToast(result.message || "Logged out successfully", "success");
+      addToast(result.message || "Logged out successfully", "success");
       console.log("🎉 Logout successful, redirecting to login...");
 
       // Redirect to login page
       navigate("/login", { replace: true });
     } catch (error) {
       console.error("❌ Logout failed:", error);
-      showToast(error.message || "Logout failed. Please try again.", "error");
+      addToast(error.message || "Logout failed. Please try again.", "error");
     }
   };
 
