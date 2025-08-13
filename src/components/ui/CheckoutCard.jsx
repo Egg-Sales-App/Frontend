@@ -12,9 +12,9 @@ const CheckoutCard = ({ items, onClose }) => {
         >
           ✕
         </button>
-        <h2 className="text-xl font-bold mb-4">🛒 Checkout</h2>
+        <h2 className="text-xl font-bold mb-4 text-blue-500">🛒 Checkout</h2>
         {items.length === 0 ? (
-          <p className="text-gray-400">Your cart is empty.</p>
+          <p className="text-gray-700">Your cart is empty.</p>
         ) : (
           <ul className="space-y-2">
             {items.map((item) => (
