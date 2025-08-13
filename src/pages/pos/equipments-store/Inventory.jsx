@@ -3,6 +3,11 @@ import { inventoryService } from "../../../services/inventoryService";
 import EquipmentImage from "../../../assets/equipment.png";
 import FeederImage from "../../../assets/feeder.png";
 import BroilerEquipmentImage from "../../../assets/broilerequipment.png";
+import HybridFeedImage from "../../../assets/hybridfeed.png";
+import DayOldChicksImage from "../../../assets/dayoldchicks.png";
+import DewormerImage from "../../../assets/dewormer.png";
+import ChickenFeedImage from "../../../assets/chicken_feed.png";
+import HalfDozenEggsImage from "../../../assets/eggcrate.png";
 import AddProduct from "../../../components/ui/AddProduct";
 import { ShoppingCartIcon } from "@heroicons/react/24/outline"; // or solid if you prefer
 import CheckoutCard from "../../../components/ui/CheckoutCard";
@@ -30,7 +35,120 @@ const Inventory = () => {
     }
   };
 
-  // Enhanced mock data with categories and sales data
+  const [categories, setCategories] = useState([]);
+
+  // Helper function to map category names to IDs
+  const getCategoryIdByName = (categoryName) => {
+    const categoryMap = {
+      Feed: 1,
+      "Feed & Nutrition": 1,
+      "Day Old Chick": 2,
+      Equipment: 3,
+      Chicks: 2,
+      Nutrition: 1,
+    };
+    return categoryMap[categoryName] || 1;
+  };
+
+  // Helper function to extract categories from products
+  const extractCategoriesFromProducts = (products) => {
+    const categoryMap = new Map();
+
+    products.forEach((product) => {
+      const categoryName = product.category;
+      const categoryId = getCategoryIdByName(categoryName);
+
+      if (!categoryMap.has(categoryName)) {
+        categoryMap.set(categoryName, {
+          id: categoryId,
+          name: categoryName,
+          totalProducts: 0,
+          totalValue: 0,
+          lastWeekSales: 0,
+          lowStockItems: 0,
+        });
+      }
+
+      const category = categoryMap.get(categoryName);
+      category.totalProducts += 1;
+      category.totalValue += product.price * product.stock;
+      category.lastWeekSales += product.weeklySales || 0;
+      if (product.stock < 10) category.lowStockItems += 1;
+    });
+
+    return Array.from(categoryMap.values());
+  };
+
+  // Helper function to get appropriate image for product
+  const getProductImage = (category, productName) => {
+    const name = productName.toLowerCase();
+    const cat = category.toLowerCase();
+
+    // Drug/Medicine products
+    if (
+      cat.includes("drug") ||
+      name.includes("dewormer") ||
+      name.includes("medicine")
+    ) {
+      return DewormerImage;
+    }
+
+    // Equipment products
+    if (
+      cat.includes("equipment") ||
+      name.includes("feeder") ||
+      name.includes("broiler")
+    ) {
+      if (name.includes("feeder")) return FeederImage;
+      if (name.includes("broiler")) return BroilerEquipmentImage;
+      return EquipmentImage;
+    }
+
+    // Feed products
+    if (
+      cat.includes("feed") ||
+      cat.includes("nutrition") ||
+      name.includes("feed")
+    ) {
+      if (
+        name.includes("chicken") ||
+        name.includes("starter") ||
+        name.includes("layer")
+      ) {
+        return ChickenFeedImage;
+      }
+      return HybridFeedImage;
+    }
+
+    // Egg products
+    if (cat.includes("egg") || name.includes("egg")) {
+      return HalfDozenEggsImage;
+    }
+
+    // Chick products
+    if (cat.includes("chick") || name.includes("chick")) {
+      return DayOldChicksImage;
+    }
+
+    // Default fallback based on category
+    switch (cat) {
+      case "drugs":
+        return DewormerImage;
+      case "equipment":
+        return EquipmentImage;
+      case "feed":
+      case "nutrition":
+        return HybridFeedImage;
+      case "eggs":
+        return HalfDozenEggsImage;
+      case "chicks":
+        return DayOldChicksImage;
+      default:
+        return HybridFeedImage; // Default fallback
+    }
+  };
+
+  // Enhanced mock data with categories and sales data (fallback only)
   const mockInventoryData = {
     categories: [
       {
@@ -197,15 +315,80 @@ const Inventory = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        // Simulate API call delay
-        setTimeout(() => {
-          setProducts(mockInventoryData.products);
-          setFilteredProducts(mockInventoryData.products);
-          setLoading(false);
-        }, 1000);
-      } catch (err) {
-        setError(err.message);
+        setError(null);
+        console.log("🔄 Fetching products from API...");
+
+        // Fetch products from backend API
+        const response = await inventoryService.getProducts({
+          page: 1,
+          limit: 100, // Get all products for now
+        });
+
+        console.log("📦 API Response:", response);
+
+        // Handle both paginated response and direct array response
+        let productsArray;
+        if (Array.isArray(response)) {
+          // Direct array response
+          productsArray = response;
+          console.log("📋 Backend returned direct array");
+        } else if (response.products && Array.isArray(response.products)) {
+          // Wrapped in products property
+          productsArray = response.products;
+          console.log("📋 Backend returned paginated response");
+        } else if (response.results && Array.isArray(response.results)) {
+          // Django REST Framework paginated response
+          productsArray = response.results;
+          console.log("📋 Backend returned DRF paginated response");
+        } else {
+          throw new Error("Unexpected response format from backend");
+        }
+
+        console.log("📦 Products to map:", productsArray);
+
+        // Map API response to component format
+        const mappedProducts = productsArray.map((product) => ({
+          id: product.id,
+          name: product.name,
+          category:
+            product.category === "Feed" ? "Feed & Nutrition" : product.category, // Normalize category
+          categoryId: getCategoryIdByName(product.category),
+          stock: product.quantity_in_stock,
+          img: getProductImage(product.category, product.name), // Dynamic image selection
+          price: parseFloat(product.price) || 0,
+          cost: parseFloat(product.price) * 0.8 || 0, // Estimate cost as 80% of price
+          sku: product.sku,
+          description: product.description,
+          weeklySales: Math.floor(Math.random() * 20), // Mock weekly sales for now
+          isTopSelling: Math.random() > 0.7, // Mock top selling status
+          unit: product.unit,
+          expiryDate: product.expiry_date,
+          supplier: product.supplier?.name || "Unknown", // Handle supplier object
+          supplierDetails: product.supplier, // Keep full supplier info
+          dateAdded: product.date_added,
+        }));
+
+        console.log("✅ Mapped products:", mappedProducts);
+
+        // Extract categories from products
+        const extractedCategories =
+          extractCategoriesFromProducts(mappedProducts);
+        console.log("📂 Extracted categories:", extractedCategories);
+
+        setProducts(mappedProducts);
+        setFilteredProducts(mappedProducts);
+        setCategories(extractedCategories);
         setLoading(false);
+      } catch (err) {
+        console.error("❌ Error fetching products:", err);
+        setError(err.message || "Failed to fetch products");
+        setLoading(false);
+
+        // Fallback to mock data if API fails
+        console.log("📋 Falling back to mock data...");
+        setProducts(mockInventoryData.products);
+        setFilteredProducts(mockInventoryData.products);
+        setCategories(mockInventoryData.categories);
       }
     };
 
@@ -273,7 +456,7 @@ const Inventory = () => {
           .length,
       };
     } else {
-      const categoryData = mockInventoryData.categories.find(
+      const categoryData = categories.find(
         (cat) => cat.name === selectedCategory
       );
 
@@ -370,13 +553,6 @@ const Inventory = () => {
 
   const handleProductModalClose = () => {
     document.getElementById("add_product_modal").close();
-  };
-
-  const getCategoryIdByName = (categoryName) => {
-    const category = mockInventoryData.categories.find(
-      (cat) => cat.name === categoryName
-    );
-    return category ? category.id : 1; // Default to first category
   };
 
   const ProductCard = ({ product }) => (
@@ -517,15 +693,28 @@ const Inventory = () => {
         <div>
           <div className="flex flex-wrap gap-3">
             <button
-              onClick={() => handleCategoryClick("all")}
+              onClick={() => setSelectedCategory("all")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedCategory === "all"
                   ? "bg-blue-500 text-white"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              All Equipments ({products.length})
+              All Products ({products.length})
             </button>
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.name)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  selectedCategory === category.name
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                {category.name} ({category.totalProducts})
+              </button>
+            ))}
           </div>
         </div>
         {/* Checkout Button with Cart Icon */}
@@ -551,7 +740,7 @@ const Inventory = () => {
           <AddProduct
             onSave={handleProductSave}
             onClose={handleProductModalClose}
-            categories={mockInventoryData.categories.map((cat) => cat.name)}
+            categories={categories.map((cat) => cat.name)}
           />
         </div>
         <form method="dialog" className="modal-backdrop">
