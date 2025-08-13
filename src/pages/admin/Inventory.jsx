@@ -3,6 +3,11 @@ import { inventoryService } from "../../services/inventoryService";
 import HybridFeedImage from "../../assets/hybridfeed.png";
 import HalfDozenEggsImage from "../../assets/eggcrate.png";
 import DayOldChicksImage from "../../assets/dayoldchicks.png";
+import EquipmentImage from "../../assets/equipment.png";
+import FeederImage from "../../assets/feeder.png";
+import BroilerEquipmentImage from "../../assets/broilerequipment.png";
+import DewormerImage from "../../assets/dewormer.png";
+import ChickenFeedImage from "../../assets/chicken_feed.png";
 import AddProduct from "../../components/ui/AddProduct";
 
 const Inventory = () => {
@@ -14,167 +19,73 @@ const Inventory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Enhanced mock data with categories and sales data
-  const mockInventoryData = {
-    categories: [
-      {
-        id: 1,
-        name: "Feed & Nutrition",
-        totalProducts: 3,
-        totalValue: 2575,
-        lastWeekSales: 8,
-        lowStockItems: 1,
-      },
-      {
-        id: 2,
-        name: "Day Old Chick",
-        totalProducts: 3,
-        totalValue: 9040,
-        lastWeekSales: 15,
-        lowStockItems: 1,
-      },
-      {
-        id: 3,
-        name: "Equipment",
-        totalProducts: 3,
-        totalValue: 4255,
-        lastWeekSales: 3,
-        lowStockItems: 1,
-      },
-    ],
-    products: [
-      // Feed & Nutrition Category
-      {
-        id: 1,
-        name: "Hybrid Feed Premium",
-        category: "Feed & Nutrition",
-        categoryId: 1,
-        stock: 10,
-        img: HybridFeedImage,
-        price: 150,
-        cost: 120,
-        sku: "HF-001",
-        description: "Premium quality hybrid feed for optimal nutrition",
-        weeklySales: 5,
-        isTopSelling: true,
-      },
-      {
-        id: 2,
-        name: "Starter Feed",
-        category: "Feed & Nutrition",
-        categoryId: 1,
-        stock: 25,
-        img: HybridFeedImage,
-        price: 180,
-        cost: 140,
-        sku: "SF-001",
-        description: "Specially formulated for young chicks",
-        weeklySales: 12,
-        isTopSelling: true,
-      },
-      {
-        id: 3,
-        name: "Layer Feed",
-        category: "Feed & Nutrition",
-        categoryId: 1,
-        stock: 5,
-        img: HybridFeedImage,
-        price: 160,
-        cost: 130,
-        sku: "LF-001",
-        description: "High calcium feed for laying hens",
-        weeklySales: 3,
-        isTopSelling: false,
-      },
+  // Helper function to get appropriate image for product
+  const getProductImage = (category, productName) => {
+    const name = productName.toLowerCase();
+    const cat = category.toLowerCase();
 
-      // Day Old Chick Category
-      {
-        id: 7,
-        name: "Day Old Chicks",
-        category: "Day Old Chick",
-        categoryId: 3,
-        stock: 8,
-        img: DayOldChicksImage,
-        price: 5,
-        cost: 3,
-        sku: "CH-001",
-        description: "Healthy day-old chicks",
-        weeklySales: 20,
-        isTopSelling: true,
-      },
-      {
-        id: 8,
-        name: "Broiler Chickens",
-        category: "Day Old Chick",
-        categoryId: 3,
-        stock: 20,
-        img: DayOldChicksImage,
-        price: 250,
-        cost: 180,
-        sku: "BR-001",
-        description: "Ready-to-sell broiler chickens",
-        weeklySales: 8,
-        isTopSelling: true,
-      },
-      {
-        id: 9,
-        name: "Layer Hens",
-        category: "Day Old Chick",
-        categoryId: 3,
-        stock: 12,
-        img: DayOldChicksImage,
-        price: 300,
-        cost: 220,
-        sku: "LH-001",
-        description: "Productive laying hens",
-        weeklySales: 4,
-        isTopSelling: false,
-      },
+    // Drug/Medicine products
+    if (
+      cat.includes("drug") ||
+      name.includes("dewormer") ||
+      name.includes("medicine")
+    ) {
+      return DewormerImage;
+    }
 
-      // Equipment Category
-      {
-        id: 10,
-        name: "Feeders",
-        category: "Equipment",
-        categoryId: 4,
-        stock: 15,
-        img: HybridFeedImage,
-        price: 75,
-        cost: 50,
-        sku: "FD-001",
-        description: "Automatic chicken feeders",
-        weeklySales: 6,
-        isTopSelling: true,
-      },
-      {
-        id: 11,
-        name: "Water Dispensers",
-        category: "Equipment",
-        categoryId: 4,
-        stock: 8,
-        img: HybridFeedImage,
-        price: 85,
-        cost: 60,
-        sku: "WD-001",
-        description: "Gravity-fed water dispensers",
-        weeklySales: 4,
-        isTopSelling: false,
-      },
-      {
-        id: 12,
-        name: "Incubators",
-        category: "Equipment",
-        categoryId: 4,
-        stock: 2,
-        img: HybridFeedImage,
-        price: 1500,
-        cost: 1200,
-        sku: "IN-001",
-        description: "Automatic egg incubators",
-        weeklySales: 1,
-        isTopSelling: false,
-      },
-    ],
+    // Equipment products
+    if (
+      cat.includes("equipment") ||
+      name.includes("feeder") ||
+      name.includes("broiler")
+    ) {
+      if (name.includes("feeder")) return FeederImage;
+      if (name.includes("broiler")) return BroilerEquipmentImage;
+      return EquipmentImage;
+    }
+
+    // Feed products
+    if (
+      cat.includes("feed") ||
+      cat.includes("nutrition") ||
+      name.includes("feed")
+    ) {
+      if (
+        name.includes("chicken") ||
+        name.includes("starter") ||
+        name.includes("layer")
+      ) {
+        return ChickenFeedImage;
+      }
+      return HybridFeedImage;
+    }
+
+    // Egg products
+    if (cat.includes("egg") || name.includes("egg")) {
+      return HalfDozenEggsImage;
+    }
+
+    // Chick products
+    if (cat.includes("chick") || name.includes("chick")) {
+      return DayOldChicksImage;
+    }
+
+    // Default fallback based on category
+    switch (cat) {
+      case "drugs":
+        return DewormerImage;
+      case "equipment":
+        return EquipmentImage;
+      case "feed":
+      case "nutrition":
+        return HybridFeedImage;
+      case "eggs":
+        return HalfDozenEggsImage;
+      case "chicks":
+        return DayOldChicksImage;
+      default:
+        return HybridFeedImage; // Default fallback
+    }
   };
 
   // Extract unique categories from products and create category objects
@@ -220,15 +131,35 @@ const Inventory = () => {
 
         console.log("📦 API Response:", response);
 
+        // Handle both paginated response and direct array response
+        let productsArray;
+        if (Array.isArray(response)) {
+          // Direct array response
+          productsArray = response;
+          console.log("📋 Backend returned direct array");
+        } else if (response.products && Array.isArray(response.products)) {
+          // Wrapped in products property
+          productsArray = response.products;
+          console.log("📋 Backend returned paginated response");
+        } else if (response.results && Array.isArray(response.results)) {
+          // Django REST Framework paginated response
+          productsArray = response.results;
+          console.log("📋 Backend returned DRF paginated response");
+        } else {
+          throw new Error("Unexpected response format from backend");
+        }
+
+        console.log("📦 Products to map:", productsArray);
+
         // Map API response to component format
-        const mappedProducts = response.products.map((product) => ({
+        const mappedProducts = productsArray.map((product) => ({
           id: product.id,
           name: product.name,
           category:
             product.category === "Feed" ? "Feed & Nutrition" : product.category, // Normalize category
           categoryId: getCategoryIdByName(product.category),
           stock: product.quantity_in_stock,
-          img: HybridFeedImage, // Default image since API doesn't provide images yet
+          img: getProductImage(product.category, product.name), // Dynamic image selection
           price: parseFloat(product.price) || 0,
           cost: parseFloat(product.price) * 0.8 || 0, // Estimate cost as 80% of price
           sku: product.sku,
@@ -237,7 +168,8 @@ const Inventory = () => {
           isTopSelling: Math.random() > 0.7, // Mock top selling status
           unit: product.unit,
           expiryDate: product.expiry_date,
-          supplier: product.supplier,
+          supplier: product.supplier?.name || "Unknown", // Handle supplier object
+          supplierDetails: product.supplier, // Keep full supplier info
           dateAdded: product.date_added,
         }));
 
