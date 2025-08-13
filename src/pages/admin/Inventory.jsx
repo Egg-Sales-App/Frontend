@@ -8,6 +8,7 @@ import AddProduct from "../../components/ui/AddProduct";
 const Inventory = () => {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedFilter, setSelectedFilter] = useState("all"); // New state for filter
   const [loading, setLoading] = useState(true);
@@ -176,19 +177,94 @@ const Inventory = () => {
     ],
   };
 
+  // Extract unique categories from products and create category objects
+  const extractCategoriesFromProducts = (productsData) => {
+    const categoryMap = new Map();
+
+    productsData.forEach((product) => {
+      const categoryName = product.category;
+      if (!categoryMap.has(categoryName)) {
+        categoryMap.set(categoryName, {
+          id: categoryMap.size + 1,
+          name: categoryName,
+          totalProducts: 0,
+          totalValue: 0,
+          lastWeekSales: 0,
+          lowStockItems: 0,
+        });
+      }
+
+      const category = categoryMap.get(categoryName);
+      category.totalProducts += 1;
+      category.totalValue += product.price * product.stock;
+      category.lastWeekSales += product.weeklySales || 0;
+      if (product.stock < 10) {
+        category.lowStockItems += 1;
+      }
+    });
+
+    return Array.from(categoryMap.values());
+  };
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        // Simulate API call delay
-        setTimeout(() => {
-          setProducts(mockInventoryData.products);
-          setFilteredProducts(mockInventoryData.products);
-          setLoading(false);
-        }, 1000);
+        console.log("🔄 Fetching products from API...");
+
+        // Fetch products from backend API
+        const response = await inventoryService.getProducts({
+          page: 1,
+          limit: 100, // Get all products for now
+        });
+
+        console.log("📦 API Response:", response);
+
+        // Map API response to component format
+        const mappedProducts = response.products.map((product) => ({
+          id: product.id,
+          name: product.name,
+          category:
+            product.category === "Feed" ? "Feed & Nutrition" : product.category, // Normalize category
+          categoryId: getCategoryIdByName(product.category),
+          stock: product.quantity_in_stock,
+          img: HybridFeedImage, // Default image since API doesn't provide images yet
+          price: parseFloat(product.price) || 0,
+          cost: parseFloat(product.price) * 0.8 || 0, // Estimate cost as 80% of price
+          sku: product.sku,
+          description: product.description,
+          weeklySales: Math.floor(Math.random() * 20), // Mock weekly sales for now
+          isTopSelling: Math.random() > 0.7, // Mock top selling status
+          unit: product.unit,
+          expiryDate: product.expiry_date,
+          supplier: product.supplier,
+          dateAdded: product.date_added,
+        }));
+
+        console.log("✅ Mapped products:", mappedProducts);
+
+        // Extract categories from products
+        const extractedCategories =
+          extractCategoriesFromProducts(mappedProducts);
+        console.log("📂 Extracted categories:", extractedCategories);
+
+        setProducts(mappedProducts);
+        setFilteredProducts(mappedProducts);
+        setCategories(extractedCategories);
+        setLoading(false);
       } catch (err) {
+        console.error("❌ Error fetching products:", err);
         setError(err.message);
         setLoading(false);
+
+        // Fallback to mock data if API fails
+        console.log("🔄 Falling back to mock data...");
+        const fallbackCategories = extractCategoriesFromProducts(
+          mockInventoryData.products
+        );
+        setProducts(mockInventoryData.products);
+        setFilteredProducts(mockInventoryData.products);
+        setCategories(fallbackCategories);
       }
     };
 
@@ -201,9 +277,16 @@ const Inventory = () => {
 
     // First filter by category
     if (selectedCategory !== "all") {
-      baseProducts = products.filter(
-        (product) => product.category === selectedCategory
-      );
+      baseProducts = products.filter((product) => {
+        // Handle mapping between API categories and UI categories
+        if (selectedCategory === "Feed & Nutrition") {
+          return (
+            product.category === "Feed & Nutrition" ||
+            product.category === "Feed"
+          );
+        }
+        return product.category === selectedCategory;
+      });
     }
 
     // Then apply additional filters
@@ -256,17 +339,23 @@ const Inventory = () => {
           .length,
       };
     } else {
-      const categoryData = mockInventoryData.categories.find(
+      // Find category from dynamic categories instead of mock data
+      const categoryData = categories.find(
         (cat) => cat.name === selectedCategory
       );
 
-      // Calculate real-time data for selected category
-      const categoryProducts = products.filter(
-        (p) => p.category === selectedCategory
-      );
+      // Calculate real-time data for selected category from API products
+      const categoryProducts = products.filter((p) => {
+        // Handle mapping between API categories and UI categories
+        if (selectedCategory === "Feed & Nutrition") {
+          return p.category === "Feed & Nutrition" || p.category === "Feed";
+        }
+        return p.category === selectedCategory;
+      });
 
       return {
-        ...categoryData,
+        name: selectedCategory,
+        id: categoryData?.id || 1,
         totalProducts: categoryProducts.length,
         totalValue: categoryProducts.reduce(
           (sum, p) => sum + p.price * p.stock,
@@ -314,22 +403,44 @@ const Inventory = () => {
     try {
       console.log("💾 Saving new product:", productData);
 
-      // For now, we'll add to local state - in production, this would call inventoryService
-      const newProduct = {
-        id: products.length + 1,
+      // Map component data to API format
+      const apiProductData = {
         name: productData.name,
+        description: productData.description || "",
         category: productData.category,
-        categoryId: getCategoryIdByName(productData.category),
-        price: parseFloat(productData.buyingPrice),
-        stock: productData.stock,
-        sku: productData.sku,
-        img: productData.img || HybridFeedImage, // Default image
-        unit: productData.unit,
-        description: productData.description,
-        expiryDate: productData.expiryDate,
-        status: productData.stock > 10 ? "In Stock" : "Low Stock",
-        sold: 0,
-        revenue: 0,
+        price: productData.buyingPrice || productData.price,
+        quantity_in_stock: parseInt(productData.stock) || 0,
+        sku: productData.sku || `SKU-${Date.now()}`,
+        unit: productData.unit || "unit",
+        expiry_date: productData.expiryDate || null,
+        supplier_id: null, // No supplier selection in form yet
+      };
+
+      console.log("🚀 Sending to API:", apiProductData);
+
+      // Create product via API
+      const response = await inventoryService.createProduct(apiProductData);
+
+      console.log("✅ API Response:", response);
+
+      // Map the new product to component format
+      const newProduct = {
+        id: response.product.id,
+        name: response.product.name,
+        category: response.product.category,
+        categoryId: getCategoryIdByName(response.product.category),
+        stock: response.product.quantity_in_stock,
+        img: HybridFeedImage, // Default image
+        price: parseFloat(response.product.price) || 0,
+        cost: parseFloat(response.product.price) * 0.8 || 0, // Estimate cost
+        sku: response.product.sku,
+        description: response.product.description,
+        weeklySales: 0,
+        isTopSelling: false,
+        unit: response.product.unit,
+        expiryDate: response.product.expiry_date,
+        supplier: response.product.supplier,
+        dateAdded: response.product.date_added,
       };
 
       // Add to products list
@@ -338,11 +449,12 @@ const Inventory = () => {
       // Close modal
       handleProductModalClose();
 
-      // Show success message (you can add toast here)
       console.log("✅ Product added successfully:", newProduct);
+      // TODO: Add success toast notification here
     } catch (error) {
       console.error("❌ Error saving product:", error);
-      // Show error message (you can add toast here)
+      // TODO: Add error toast notification here
+      alert(`Failed to save product: ${error.message}`);
     }
   };
 
@@ -356,12 +468,36 @@ const Inventory = () => {
 
   // Helper function to get category ID by name
   const getCategoryIdByName = (categoryName) => {
+    // First try to find in dynamic categories
+    const dynamicCategory = categories.find((cat) => cat.name === categoryName);
+    if (dynamicCategory) {
+      return dynamicCategory.id;
+    }
+
+    // Fallback to static mapping
     const categoryMap = {
       "Feed & Nutrition": 1,
       "Day Old Chick": 2,
       Equipment: 3,
+      Feed: 1, // Map API category "Feed" to "Feed & Nutrition"
     };
     return categoryMap[categoryName] || 1;
+  };
+
+  // Get categories with dynamic product counts from API data
+  const getCategoriesWithCounts = () => {
+    return categories.map((category) => {
+      const categoryProducts = products.filter(
+        (p) =>
+          p.category === category.name ||
+          (category.name === "Feed & Nutrition" && p.category === "Feed")
+      );
+
+      return {
+        ...category,
+        totalProducts: categoryProducts.length,
+      };
+    });
   };
 
   const ProductCard = ({ product }) => (
@@ -512,7 +648,7 @@ const Inventory = () => {
             >
               All Products ({products.length})
             </button>
-            {mockInventoryData.categories.map((category) => (
+            {getCategoriesWithCounts().map((category) => (
               <CategoryButton
                 key={category.id}
                 category={category}
@@ -551,7 +687,7 @@ const Inventory = () => {
           <AddProduct
             onSave={handleProductSave}
             onClose={handleProductModalClose}
-            categories={mockInventoryData.categories.map((cat) => cat.name)}
+            categories={categories.map((cat) => cat.name)}
           />
         </div>
         <form method="dialog" className="modal-backdrop">
