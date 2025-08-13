@@ -260,11 +260,84 @@ export const authService = {
         hasRefreshToken: !!refreshToken,
       });
 
-      // Simply clear all local storage data - kill the session
+      // Call Django allauth logout endpoint to invalidate server-side session
+      try {
+        console.log("🌐 Calling backend logout endpoint...");
+
+        const authToken = this.getAuthToken();
+
+        // First, get CSRF token for Django allauth
+        let csrfToken = null;
+        try {
+          const csrfResponse = await fetch(
+            `${config.DJANGO_BASE_URL}/accounts/logout/`,
+            {
+              method: "GET",
+              headers: {
+                ...(authToken && { Authorization: `Bearer ${authToken}` }),
+              },
+              credentials: "include", // Include cookies for CSRF
+            }
+          );
+
+          // Extract CSRF token from cookies or response headers
+          const csrfCookie = document.cookie
+            .split("; ")
+            .find((row) => row.startsWith("csrftoken="));
+
+          if (csrfCookie) {
+            csrfToken = csrfCookie.split("=")[1];
+            console.log("🔐 CSRF token obtained");
+          }
+        } catch (csrfError) {
+          console.warn("⚠️ Could not get CSRF token:", csrfError.message);
+        }
+
+        // Now perform the actual logout with CSRF token
+        const logoutResponse = await fetch(
+          `${config.DJANGO_BASE_URL}/accounts/logout/`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(authToken && { Authorization: `Bearer ${authToken}` }),
+              ...(csrfToken && { "X-CSRFToken": csrfToken }),
+            },
+            credentials: "include", // Include cookies
+            body: JSON.stringify({
+              refresh: refreshToken, // Send refresh token if available
+            }),
+          }
+        );
+
+        console.log("📡 Logout response:", {
+          status: logoutResponse.status,
+          statusText: logoutResponse.statusText,
+          ok: logoutResponse.ok,
+        });
+
+        if (logoutResponse.ok) {
+          console.log("✅ Server-side logout successful");
+        } else {
+          console.warn(
+            "⚠️ Server logout returned non-OK status, but continuing..."
+          );
+        }
+      } catch (backendError) {
+        console.warn(
+          "⚠️ Backend logout failed, but continuing with client-side logout:",
+          {
+            message: backendError.message,
+          }
+        );
+        // Continue with client-side logout even if backend fails
+      }
+
+      // Clear all local storage data - kill the session
       console.log("🧹 Clearing local authentication data...");
       this.removeAuthToken();
 
-      console.log("✅ Session killed successfully");
+      console.log("✅ Logout completed successfully");
 
       return {
         success: true,
