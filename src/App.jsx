@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ErrorBoundary from "./components/common/ErrorBoundary";
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import RoleBasedRedirect from "./components/common/RoleBasedRedirect";
 import ToastContainer from "./components/ui/ToastContainer"; // ✅ ADD THIS
 import { AuthProvider } from "./hooks/useAuth";
 import { ToastProvider } from "./components/ui/ToastContext"; // ✅ ADD THIS
@@ -81,21 +82,21 @@ function App() {
                 <Route path="/signup" element={<SignupForm />} />
                 <Route path="/login" element={<LoginForm />} />
 
-                {/* Default Route - Redirect to login if not authenticated, otherwise admin dashboard */}
+                {/* Default Route - Role-based redirect */}
                 <Route
                   path="/"
                   element={
                     <ProtectedRoute>
-                      <Navigate to="/admin/dashboard" replace />
+                      <RoleBasedRedirect />
                     </ProtectedRoute>
                   }
                 />
 
-                {/* Admin Routes - Protected */}
+                {/* Admin Routes - Protected and require admin role */}
                 <Route
                   path="/admin"
                   element={
-                    <ProtectedRoute>
+                    <ProtectedRoute requireAdmin={true}>
                       <AdminLayout />
                     </ProtectedRoute>
                   }
@@ -155,11 +156,11 @@ function App() {
                   <Route path="reports" element={<POSFeedsReports />} />
                 </Route>
 
-                {/* Supplier Details - Protected */}
+                {/* Supplier Details - Protected and require admin role */}
                 <Route
                   path="/admin/suppliers/:supplierId"
                   element={
-                    <ProtectedRoute>
+                    <ProtectedRoute requireAdmin={true}>
                       <SupplierDetails />
                     </ProtectedRoute>
                   }
