@@ -17,20 +17,18 @@ const Inventory = () => {
   const [cartItems, setCartItems] = useState([]);
   const [showCheckout, setShowCheckout] = useState(false);
 
-
   const handleCheckout = () => {
-  setShowCheckout(true);
-  console.log("Checkout clicked!");
-};
+    setShowCheckout(true);
+    console.log("Checkout clicked!");
+  };
 
-const handleAddToCart = (product) => {
-  // Check if already in cart
-  const exists = cartItems.find((item) => item.id === product.id);
-  if (!exists) {
-    setCartItems((prev) => [...prev, product]);
-  }
-};
-
+  const handleAddToCart = (product) => {
+    // Check if already in cart
+    const exists = cartItems.find((item) => item.id === product.id);
+    if (!exists) {
+      setCartItems((prev) => [...prev, product]);
+    }
+  };
 
   // Enhanced mock data with categories and sales data
   const mockInventoryData = {
@@ -328,6 +326,50 @@ const handleAddToCart = (product) => {
     }
   };
 
+  // Product handling functions
+  const handleProductSave = async (productData) => {
+    try {
+      console.log("Adding new product:", productData);
+
+      // Create new product with proper structure
+      const newProduct = {
+        id: Date.now(), // Temporary ID
+        name: productData.name,
+        category: productData.category,
+        categoryId: getCategoryIdByName(productData.category),
+        stock: parseInt(productData.stock) || 0,
+        price: parseFloat(productData.price) || 0,
+        cost: parseFloat(productData.cost) || 0,
+        sku: productData.sku || `SKU-${Date.now()}`,
+        description: productData.description || "",
+        img: HybridFeedImage, // Default image for now
+        weeklySales: 0,
+        isTopSelling: false,
+      };
+
+      // Add to products list
+      setProducts((prev) => [...prev, newProduct]);
+
+      // Close modal
+      document.getElementById("add_product_modal").close();
+
+      console.log("Product added successfully");
+    } catch (error) {
+      console.error("Error adding product:", error);
+    }
+  };
+
+  const handleProductModalClose = () => {
+    document.getElementById("add_product_modal").close();
+  };
+
+  const getCategoryIdByName = (categoryName) => {
+    const category = mockInventoryData.categories.find(
+      (cat) => cat.name === categoryName
+    );
+    return category ? category.id : 1; // Default to first category
+  };
+
   const ProductCard = ({ product }) => (
     <div className="w-full max-w-sm bg-white rounded-xl shadow-lg px-3 pb-3 flex flex-col items-center justify-between transition-transform hover:scale-105 overflow-visible mt-8">
       <div className="w-32 h-32 mb-4 rounded-full overflow-hidden bg-transparent flex items-center justify-center -mt-10">
@@ -373,15 +415,13 @@ const handleAddToCart = (product) => {
         )}
       </div>
       <div className="flex gap-2 mt-4">
-  <button
-  onClick={() => handleAddToCart(product)}
-  className="btn btn-sm bg-green-500 hover:bg-green-600 text-white"
->
-  Add to cart
-</button>
-
-</div>
-
+        <button
+          onClick={() => handleAddToCart(product)}
+          className="btn btn-sm bg-green-500 hover:bg-green-600 text-white"
+        >
+          Add to cart
+        </button>
+      </div>
     </div>
   );
 
@@ -466,7 +506,6 @@ const handleAddToCart = (product) => {
       <div className="sticky top-15 bg-gray-50/80 backdrop-blur-sm border-b border-gray-200/50 z-10 py-2 px-2 mb-2 flex justify-between items-center">
         {/* Category Filter */}
         <div>
-          
           <div className="flex flex-wrap gap-3">
             <button
               onClick={() => handleCategoryClick("all")}
@@ -478,17 +517,16 @@ const handleAddToCart = (product) => {
             >
               All Feeds and eggs ({products.length})
             </button>
-           
           </div>
         </div>
-          {/* Checkout Button with Cart Icon */}
-  <button
-    onClick={handleCheckout} // define this function or link to your checkout route
-    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-  >
-    <ShoppingCartIcon className="h-5 w-5" />
-    Checkout
-  </button>
+        {/* Checkout Button with Cart Icon */}
+        <button
+          onClick={handleCheckout} // define this function or link to your checkout route
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        >
+          <ShoppingCartIcon className="h-5 w-5" />
+          Checkout
+        </button>
       </div>
 
       {/* Add Product Modal */}
@@ -501,7 +539,11 @@ const handleAddToCart = (product) => {
           </form>
           <h3 className="text-2xl mb-4">New Product</h3>
           {/* AddProduct component will go here */}
-          <AddProduct />
+          <AddProduct
+            onSave={handleProductSave}
+            onClose={handleProductModalClose}
+            categories={mockInventoryData.categories.map((cat) => cat.name)}
+          />
         </div>
         <form method="dialog" className="modal-backdrop">
           <button>close</button>
@@ -618,9 +660,11 @@ const handleAddToCart = (product) => {
         </div>
       )}
       {showCheckout && (
-  <CheckoutCard items={cartItems} onClose={() => setShowCheckout(false)} />
-)}
-
+        <CheckoutCard
+          items={cartItems}
+          onClose={() => setShowCheckout(false)}
+        />
+      )}
     </>
   );
 };
