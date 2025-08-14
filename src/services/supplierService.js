@@ -4,7 +4,7 @@ export const supplierService = {
   // Get all suppliers
   async getSuppliers(params = {}) {
     try {
-      const response = await apiService.get("/api/suppliers/", {
+      const response = await apiService.get("/suppliers/", {
         page: params.page || 1,
         page_size: params.limit || 20,
         search: params.search,
@@ -59,7 +59,7 @@ export const supplierService = {
   // Get single supplier
   async getSupplier(id) {
     try {
-      const response = await apiService.get(`/api/suppliers/${id}/`);
+      const response = await apiService.get(`/suppliers/${id}/`);
       return response;
     } catch (error) {
       throw new Error("Failed to fetch supplier");
@@ -69,7 +69,7 @@ export const supplierService = {
   // Create new supplier
   async createSupplier(supplierData) {
     try {
-      const response = await apiService.post("/api/suppliers/", {
+      const response = await apiService.post("/suppliers/", {
         name: supplierData.name,
         contact_email: supplierData.email,
         contact_phone: supplierData.phone,
@@ -85,7 +85,7 @@ export const supplierService = {
   // Update existing supplier
   async updateSupplier(id, supplierData) {
     try {
-      const response = await apiService.put(`/api/suppliers/${id}/`, {
+      const response = await apiService.put(`/suppliers/${id}/`, {
         name: supplierData.name,
         contact_email: supplierData.email,
         contact_phone: supplierData.phone,
@@ -101,7 +101,7 @@ export const supplierService = {
   // Delete supplier
   async deleteSupplier(id) {
     try {
-      await apiService.delete(`/api/suppliers/${id}/`);
+      await apiService.delete(`/suppliers/${id}/`);
 
       return {
         success: true,
@@ -115,7 +115,7 @@ export const supplierService = {
   // Search suppliers
   async searchSuppliers(query) {
     try {
-      const response = await apiService.get("/api/suppliers/", {
+      const response = await apiService.get("/suppliers/", {
         search: query,
         page_size: 50,
       });
