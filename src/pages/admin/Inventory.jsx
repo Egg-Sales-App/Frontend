@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { inventoryService } from "../../services/inventoryService";
+import { supplierService } from "../../services/supplierService";
 import { useToast } from "../../components/ui/ToastContext";
 import HybridFeedImage from "../../assets/hybridfeed.png";
 import HalfDozenEggsImage from "../../assets/eggcrate.png";
@@ -15,6 +16,7 @@ const Inventory = () => {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedFilter, setSelectedFilter] = useState("all"); // New state for filter
   const [loading, setLoading] = useState(true);
@@ -127,22 +129,28 @@ const Inventory = () => {
   };
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        console.log("🔄 Fetching products from API...");
+        console.log("🔄 Fetching data from API...");
 
-        // Fetch products from backend API
-        const response = await inventoryService.getProducts({
-          page: 1,
-          limit: 100, // Get all products for now
-        });
+        // Fetch both products and suppliers in parallel
+        const [productsResponse, suppliersResponse] = await Promise.all([
+          inventoryService.getProducts({
+            page: 1,
+            limit: 100, // Get all products for now
+          }),
+          supplierService.getSuppliers({
+            page: 1,
+            limit: 100, // Get all suppliers
+          }),
+        ]);
 
-        console.log("📦 API Response:", response);
+        console.log("📦 Products API Response:", productsResponse);
+        console.log("👥 Suppliers API Response:", suppliersResponse);
 
-        // inventoryService now handles response format normalization
-        const productsArray = response.products || [];
-
+        // Handle products
+        const productsArray = productsResponse.products || [];
         console.log("📦 Products to map:", productsArray);
 
         // Map API response to component format
@@ -169,6 +177,10 @@ const Inventory = () => {
 
         console.log("✅ Mapped products:", mappedProducts);
 
+        // Handle suppliers
+        const suppliersArray = suppliersResponse.suppliers || [];
+        console.log("👥 Suppliers to set:", suppliersArray);
+
         // Extract categories from products
         const extractedCategories =
           extractCategoriesFromProducts(mappedProducts);
@@ -177,24 +189,23 @@ const Inventory = () => {
         setProducts(mappedProducts);
         setFilteredProducts(mappedProducts);
         setCategories(extractedCategories);
+        setSuppliers(suppliersArray);
         setLoading(false);
       } catch (err) {
-        console.error("❌ Error fetching products:", err);
+        console.error("❌ Error fetching data:", err);
         setError(err.message);
         setLoading(false);
 
-        // Fallback to mock data if API fails
-        console.log("🔄 Falling back to mock data...");
-        const fallbackCategories = extractCategoriesFromProducts(
-          mockInventoryData.products
-        );
-        setProducts(mockInventoryData.products);
-        setFilteredProducts(mockInventoryData.products);
-        setCategories(fallbackCategories);
+        // Fallback to empty data if API fails
+        console.log("🔄 Setting empty data as fallback...");
+        setProducts([]);
+        setFilteredProducts([]);
+        setCategories([]);
+        setSuppliers([]);
       }
     };
 
-    fetchProducts();
+    fetchData();
   }, []);
 
   // Filter products by category and additional filters
@@ -389,18 +400,13 @@ const Inventory = () => {
       }
 
       // Construct supplier object if any supplier data is provided
-      const supplierData = {
-        name: formData.supplier || selectedProduct.supplier,
-        contact_email: selectedProduct.supplierDetails?.contact_email || "",
-        contact_phone:
-          formData.supplierContact ||
-          selectedProduct.supplierDetails?.contact_phone ||
-          "",
-        address:
-          formData.supplierAddress ||
-          selectedProduct.supplierDetails?.address ||
-          "",
-      };
+      const supplierData = formData.supplierDetails ||
+        selectedProduct.supplierDetails || {
+          name: formData.supplier || selectedProduct.supplier || "",
+          contact_email: "",
+          contact_phone: "",
+          address: "",
+        };
 
       // Prepare data for API
       const updateData = {
@@ -413,7 +419,8 @@ const Inventory = () => {
         unit: selectedProduct.unit || "unit",
         expiry_date: formData.expiryDate || selectedProduct.expiryDate,
         supplier: supplierData,
-        supplier_id: selectedProduct.supplierDetails?.id || 0,
+        supplier_id:
+          formData.supplierId || selectedProduct.supplierDetails?.id || 0,
       };
 
       console.log("🚀 Sending update to API:", updateData);
@@ -755,6 +762,7 @@ const Inventory = () => {
             onSave={handleProductSave}
             onClose={handleProductModalClose}
             categories={categories.map((cat) => cat.name)}
+            suppliers={suppliers}
           />
         </div>
         <form method="dialog" className="modal-backdrop">
@@ -1002,16 +1010,33 @@ const Inventory = () => {
                         {selectedProduct.supplier || "N/A"}
                       </p>
                     ) : (
-                      <input
-                        type="text"
+                      <select
                         value={
-                          formData.supplier || selectedProduct.supplier || ""
+                          formData.supplierId ||
+                          selectedProduct.supplierDetails?.id ||
+                          ""
                         }
-                        onChange={(e) =>
-                          setFormData({ ...formData, supplier: e.target.value })
-                        }
+                        onChange={(e) => {
+                          const selectedSupplierId = e.target.value;
+                          const selectedSupplier = suppliers.find(
+                            (s) => s.id.toString() === selectedSupplierId
+                          );
+                          setFormData({
+                            ...formData,
+                            supplierId: selectedSupplierId,
+                            supplier: selectedSupplier?.name || "",
+                            supplierDetails: selectedSupplier || null,
+                          });
+                        }}
                         className="w-full p-2 border border-gray-300 rounded"
-                      />
+                      >
+                        <option value="">Select a supplier...</option>
+                        {suppliers.map((supplier) => (
+                          <option key={supplier.id} value={supplier.id}>
+                            {supplier.name}
+                          </option>
+                        ))}
+                      </select>
                     )}
                   </div>
 
@@ -1027,17 +1052,13 @@ const Inventory = () => {
                       <input
                         type="text"
                         value={
-                          formData.supplierAddress ||
+                          formData.supplierDetails?.address ||
                           selectedProduct.supplierDetails?.address ||
                           ""
                         }
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            supplierAddress: e.target.value,
-                          })
-                        }
-                        className="w-full p-2 border border-gray-300 rounded"
+                        readOnly
+                        className="w-full p-2 border border-gray-300 rounded bg-gray-50"
+                        placeholder="Select a supplier to see address"
                       />
                     )}
                   </div>
@@ -1055,17 +1076,13 @@ const Inventory = () => {
                       <input
                         type="text"
                         value={
-                          formData.supplierContact ||
+                          formData.supplierDetails?.contact_phone ||
                           selectedProduct.supplierDetails?.contact_phone ||
                           ""
                         }
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            supplierContact: e.target.value,
-                          })
-                        }
-                        className="w-full p-2 border border-gray-300 rounded"
+                        readOnly
+                        className="w-full p-2 border border-gray-300 rounded bg-gray-50"
+                        placeholder="Select a supplier to see contact"
                       />
                     )}
                   </div>
