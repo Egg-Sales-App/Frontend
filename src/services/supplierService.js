@@ -4,7 +4,7 @@ export const supplierService = {
   // Get all suppliers
   async getSuppliers(params = {}) {
     try {
-      const response = await apiService.get("/api/suppliers/", {
+      const response = await apiService.get("/suppliers/", {
         page: params.page || 1,
         page_size: params.limit || 20,
         search: params.search,

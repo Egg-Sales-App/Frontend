@@ -1,75 +1,181 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { supplierService } from "../../services/supplierService";
+import { useToast } from "../../components/ui/ToastContext";
 
 // Form Component
-const NewSupplier = ({ onCancel }) => {
+const NewSupplier = ({ onCancel, onSave }) => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { success, error: showError } = useToast();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validate required fields
+    if (!formData.name.trim()) {
+      showError("Supplier name is required");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      console.log("📝 Creating supplier:", formData);
+
+      await onSave(formData);
+
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        address: "",
+      });
+
+      success("Supplier created successfully!");
+    } catch (error) {
+      console.error("❌ Error creating supplier:", error);
+      showError("Failed to create supplier");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="w-[500px] bg-white rounded-lg p-6 shadow-md relative">
-      <h2 className="text-[20px] font-medium text-gray-800 mb-6">New Supplier</h2>
+      <h2 className="text-[20px] font-medium text-gray-800 mb-6">
+        New Supplier
+      </h2>
 
-      {/* Form Fields */}
-      <div className="space-y-6">
-        <FormField label="Supplier Name" placeholder="Enter name" />
-        <FormField label="Product" placeholder="Enter product" />
-        <FormField label="Email" placeholder="Enter email" />
-        <FormField label="Buying Price" placeholder="Enter price" />
-        <FormField label="Contact Number" placeholder="Enter contact" />
-        <FormField label="Shop" placeholder="Enter shop name" />
-
-        {/* Type */}
-        <div>
-          <label className="text-gray-700 font-medium">Type</label>
-          <div className="flex gap-4 mt-2">
-            <div className="w-[114px] h-[44px] rounded-lg shadow px-3 flex items-center bg-white">
-              <span className="text-gray-500">In stock</span>
-            </div>
-            <div className="w-[149px] h-[44px] rounded-lg shadow px-3 flex items-center bg-white">
-              <span className="text-gray-500">Out of Stock</span>
-            </div>
-          </div>
+      <form onSubmit={handleSubmit}>
+        {/* Form Fields */}
+        <div className="space-y-6">
+          <FormField
+            label="Supplier Name"
+            placeholder="Enter name"
+            value={formData.name}
+            onChange={(value) => setFormData({ ...formData, name: value })}
+            required
+          />
+          <FormField
+            label="Email"
+            placeholder="Enter email"
+            type="email"
+            value={formData.email}
+            onChange={(value) => setFormData({ ...formData, email: value })}
+          />
+          <FormField
+            label="Contact Number"
+            placeholder="Enter contact"
+            value={formData.phone}
+            onChange={(value) => setFormData({ ...formData, phone: value })}
+          />
+          <FormField
+            label="Address"
+            placeholder="Enter address"
+            value={formData.address}
+            onChange={(value) => setFormData({ ...formData, address: value })}
+          />
         </div>
-      </div>
 
-      {/* Buttons */}
-      <div className="flex justify-end gap-4 mt-8">
-        <button
-          className="bg-gray-100 text-gray-600 px-4 py-2 rounded hover:bg-gray-200"
-          onClick={onCancel}
-        >
-          Discard
-        </button>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          Add Supplier
-        </button>
-      </div>
+        {/* Buttons */}
+        <div className="flex justify-end gap-4 mt-8">
+          <button
+            type="button"
+            className="bg-gray-100 text-gray-600 px-4 py-2 rounded hover:bg-gray-200"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
+            Discard
+          </button>
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Adding..." : "Add Supplier"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };
 
-const FormField = ({ label, placeholder }) => (
+const FormField = ({
+  label,
+  placeholder,
+  type = "text",
+  value,
+  onChange,
+  required = false,
+}) => (
   <div className="flex justify-between items-center">
-    <label className="text-gray-700 font-medium w-[120px]">{label}</label>
+    <label className="text-gray-700 font-medium w-[120px]">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
     <div className="w-[273px] h-[44px] bg-white rounded-lg shadow px-4 flex items-center">
       <input
         className="w-full outline-none text-gray-700 placeholder-gray-400"
         placeholder={placeholder}
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        required={required}
       />
     </div>
   </div>
 );
 
 // Supplier Page
-const suppliers = [
-  { name: 'Richard Martin', contact: '7687764556' },
-  { name: 'Tom Homan', contact: '9867545368' },
-  { name: 'Veandir', contact: '9867545566' },
-  { name: 'Charin', contact: '9367546531' },
-  { name: 'Hoffman', contact: '9667545982' },
-  { name: 'Joe Nike', contact: '9867545457' },
-];
-
-const  Supplier = () => {
+const Supplier = () => {
   const [isAddingSupplier, setIsAddingSupplier] = useState(false);
+  const [suppliers, setSuppliers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { success, error: showError } = useToast();
+
+  // Fetch suppliers on component mount
+  useEffect(() => {
+    const fetchSuppliers = async () => {
+      try {
+        setIsLoading(true);
+        console.log("📦 Fetching suppliers from backend...");
+        const response = await supplierService.getSuppliers();
+        console.log("✅ Suppliers fetched:", response);
+        // Extract the suppliers array from the response
+        setSuppliers(response.suppliers || []);
+      } catch (error) {
+        console.error("❌ Error fetching suppliers:", error);
+        showError("Failed to load suppliers");
+        setSuppliers([]); // Set empty array on error
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSuppliers();
+  }, [showError]);
+
+  // Handle supplier creation
+  const handleSupplierCreated = (newSupplier) => {
+    setSuppliers((prev) => [...prev, newSupplier]);
+    setIsAddingSupplier(false);
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <section className="p-6 bg-white rounded-lg shadow-md">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-gray-600">Loading suppliers...</div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <>
@@ -96,35 +202,54 @@ const  Supplier = () => {
               <span>Contact Number</span>
             </div>
 
-            <div className="divide-y border rounded-lg">
-              {suppliers.map((supplier, index) => (
-                <div
-                  key={index}
-                  className="flex justify-between items-center p-4 bg-blue-50 hover:bg-blue-100 transition"
-                >
-<Link
-  to={`/admin/suppliers/${supplier.name.toLowerCase().replace(/\s+/g, '-')}`} // or use supplier.id when backend available
-  className="font-medium text-blue-600 hover:underline"
->
-  {supplier.name}
-</Link>                  <span className="text-gray-600">{supplier.contact}</span>
-                </div>
-              ))}
-            </div>
+            {suppliers.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>No suppliers found.</p>
+                <p>Click "Add Supplier" to get started.</p>
+              </div>
+            ) : (
+              <div className="divide-y border rounded-lg">
+                {suppliers.map((supplier) => (
+                  <div
+                    key={supplier.id || supplier.name}
+                    className="flex justify-between items-center p-4 bg-blue-50 hover:bg-blue-100 transition"
+                  >
+                    <Link
+                      to={`/admin/suppliers/${
+                        supplier.id ||
+                        supplier.name.toLowerCase().replace(/\s+/g, "-")
+                      }`}
+                      className="font-medium text-blue-600 hover:underline"
+                    >
+                      {supplier.name}
+                    </Link>
+                    <span className="text-gray-600">
+                      {supplier.phone || supplier.contact}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="flex justify-between items-center mt-6 text-sm text-gray-600">
-              <button className="px-4 py-2 border rounded hover:bg-gray-100">Prev</button>
+              <button className="px-4 py-2 border rounded hover:bg-gray-100">
+                Prev
+              </button>
               <span>Page 1 of 1</span>
-              <button className="px-4 py-2 border rounded hover:bg-gray-100">Next</button>
+              <button className="px-4 py-2 border rounded hover:bg-gray-100">
+                Next
+              </button>
             </div>
           </>
         ) : (
-          <NewSupplier onCancel={() => setIsAddingSupplier(false)} />
+          <NewSupplier
+            onCancel={() => setIsAddingSupplier(false)}
+            onSave={handleSupplierCreated}
+          />
         )}
       </section>
     </>
   );
-}
-
+};
 
 export default Supplier;
