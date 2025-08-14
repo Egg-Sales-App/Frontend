@@ -16,17 +16,55 @@ export const inventoryService = {
           : "-date_added",
       });
 
-      return {
-        products: response.results || [],
-        pagination: {
-          page: params.page || 1,
-          limit: params.limit || 10,
+      console.log("📦 Raw API response:", response);
+
+      // Handle direct array response from backend
+      if (Array.isArray(response)) {
+        console.log("📋 Backend returned direct array of products");
+        return {
+          products: response,
+          pagination: {
+            page: params.page || 1,
+            limit: params.limit || 10,
+            total: response.length,
+            pages: 1, // Since we get all products in one array
+          },
+          total: response.length,
+          next: null,
+          previous: null,
+        };
+      }
+
+      // Handle paginated response (if backend changes to pagination later)
+      if (response.results && Array.isArray(response.results)) {
+        console.log("📋 Backend returned paginated response");
+        return {
+          products: response.results,
+          pagination: {
+            page: params.page || 1,
+            limit: params.limit || 10,
+            total: response.count || 0,
+            pages: Math.ceil((response.count || 0) / (params.limit || 10)),
+          },
           total: response.count || 0,
-          pages: Math.ceil((response.count || 0) / (params.limit || 10)),
+          next: response.next,
+          previous: response.previous,
+        };
+      }
+
+      // Fallback for unexpected response format
+      console.warn("⚠️ Unexpected response format:", response);
+      return {
+        products: [],
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 0,
+          pages: 0,
         },
-        total: response.count || 0,
-        next: response.next,
-        previous: response.previous,
+        total: 0,
+        next: null,
+        previous: null,
       };
     } catch (error) {
       throw new Error("Failed to fetch products");

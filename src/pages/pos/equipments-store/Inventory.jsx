@@ -326,23 +326,8 @@ const Inventory = () => {
 
         console.log("📦 API Response:", response);
 
-        // Handle both paginated response and direct array response
-        let productsArray;
-        if (Array.isArray(response)) {
-          // Direct array response
-          productsArray = response;
-          console.log("📋 Backend returned direct array");
-        } else if (response.products && Array.isArray(response.products)) {
-          // Wrapped in products property
-          productsArray = response.products;
-          console.log("📋 Backend returned paginated response");
-        } else if (response.results && Array.isArray(response.results)) {
-          // Django REST Framework paginated response
-          productsArray = response.results;
-          console.log("📋 Backend returned DRF paginated response");
-        } else {
-          throw new Error("Unexpected response format from backend");
-        }
+        // inventoryService now handles response format normalization
+        const productsArray = response.products || [];
 
         console.log("📦 Products to map:", productsArray);
 
@@ -836,10 +821,7 @@ const Inventory = () => {
               ? "No products found in inventory"
               : `No products found in ${selectedCategory} category`}
           </p>
-          <p className="text-gray-400 text-sm">
-            Add your first product to get started.
-          </p>
-          <button className="btn btn-primary mt-4">Add Product</button>
+          <p className="text-gray-400 text-sm">Contact admin to get started.</p>
         </div>
       )}
 
