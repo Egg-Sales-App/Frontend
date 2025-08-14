@@ -475,12 +475,17 @@ const Inventory = () => {
         name: productData.name,
         description: productData.description || "",
         category: productData.category,
-        price: productData.buyingPrice || productData.price,
-        quantity_in_stock: parseInt(productData.stock) || 0,
+        price: String(productData.buyingPrice || productData.price), // Convert to string as required by API
+        quantity_in_stock:
+          parseInt(productData.quantity) || parseInt(productData.stock) || 0,
         sku: productData.sku || `SKU-${Date.now()}`,
         unit: productData.unit || "unit",
         expiry_date: productData.expiryDate || null,
-        supplier_id: null, // No supplier selection in form yet
+        supplier_id: productData.supplier_id
+          ? parseInt(productData.supplier_id)
+          : productData.supplier
+          ? parseInt(productData.supplier)
+          : null,
       };
 
       console.log("🚀 Sending to API:", apiProductData);
