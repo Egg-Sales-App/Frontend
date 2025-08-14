@@ -19,6 +19,10 @@ const Inventory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Modal state for view/edit
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [modalMode, setModalMode] = useState("view"); // "view", "edit", or "add"
+
   // Helper function to get appropriate image for product
   const getProductImage = (category, productName) => {
     const name = productName.toLowerCase();
@@ -315,6 +319,39 @@ const Inventory = () => {
     }
   };
 
+  // Modal handlers
+  const handleViewProduct = (product) => {
+    setSelectedProduct(product);
+    setModalMode("view");
+    document.getElementById("product_details_modal").showModal();
+  };
+
+  const handleEditProduct = (product) => {
+    setSelectedProduct(product);
+    setModalMode("edit");
+    document.getElementById("product_details_modal").showModal();
+  };
+
+  const handleDeleteProduct = async (productId) => {
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      try {
+        // Add delete API call here when backend is ready
+        console.log("Deleting product:", productId);
+        // await inventoryService.deleteProduct(productId);
+        // Refresh products list
+        // setProducts(products.filter(p => p.id !== productId));
+      } catch (error) {
+        console.error("Error deleting product:", error);
+      }
+    }
+  };
+
+  const closeModal = () => {
+    setSelectedProduct(null);
+    setModalMode("view");
+    document.getElementById("product_details_modal").close();
+  };
+
   // Handle product save
   const handleProductSave = async (productData) => {
     try {
@@ -462,8 +499,16 @@ const Inventory = () => {
         )}
       </div>
       <div className="flex gap-2 mt-4">
-        <button className="btn btn-sm btn-outline text-gray-500">Edit</button>
-        <button className="btn btn-sm bg-green-500 hover:bg-green-600 text-white">
+        <button
+          onClick={() => handleEditProduct(product)}
+          className="btn btn-sm btn-outline text-gray-500"
+        >
+          Edit
+        </button>
+        <button
+          onClick={() => handleViewProduct(product)}
+          className="btn btn-sm bg-green-500 hover:bg-green-600 text-white"
+        >
           View
         </button>
       </div>
@@ -609,6 +654,310 @@ const Inventory = () => {
         </div>
         <form method="dialog" className="modal-backdrop">
           <button>close</button>
+        </form>
+      </dialog>
+
+      {/* Product Details Modal */}
+      <dialog id="product_details_modal" className="modal text-black">
+        <div className="modal-box bg-white max-w-lg">
+          <form method="dialog">
+            <button
+              className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+              onClick={closeModal}
+            >
+              ✕
+            </button>
+          </form>
+
+          {selectedProduct && (
+            <>
+              <h3 className="text-2xl mb-4">
+                {modalMode === "view" ? "Product Details" : "Edit Product"}
+              </h3>
+
+              <div className="space-y-4">
+                {/* Product Image */}
+                <div className="flex justify-center">
+                  <div className="w-24 h-24 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden">
+                    <img
+                      src={selectedProduct.img}
+                      alt={selectedProduct.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                        e.target.nextSibling.style.display = "flex";
+                      }}
+                    />
+                    <div className="hidden w-full h-full bg-gray-200 items-center justify-center text-gray-500 text-sm">
+                      No Image
+                    </div>
+                  </div>
+                </div>
+
+                {/* Product Information */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Product Name
+                    </label>
+                    {modalMode === "view" ? (
+                      <p className="p-2 bg-gray-50 rounded">
+                        {selectedProduct.name}
+                      </p>
+                    ) : (
+                      <input
+                        type="text"
+                        defaultValue={selectedProduct.name}
+                        className="w-full p-2 border border-gray-300 rounded"
+                      />
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Category
+                    </label>
+                    {modalMode === "view" ? (
+                      <p className="p-2 bg-gray-50 rounded">
+                        {selectedProduct.category}
+                      </p>
+                    ) : (
+                      <select
+                        defaultValue={selectedProduct.category}
+                        className="w-full p-2 border border-gray-300 rounded"
+                      >
+                        {categories.map((cat) => (
+                          <option key={cat.name} value={cat.name}>
+                            {cat.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Price
+                    </label>
+                    {modalMode === "view" ? (
+                      <p className="p-2 bg-gray-50 rounded">
+                        GHS {selectedProduct.price}
+                      </p>
+                    ) : (
+                      <input
+                        type="number"
+                        defaultValue={selectedProduct.price}
+                        className="w-full p-2 border border-gray-300 rounded"
+                        step="0.01"
+                      />
+                    )}
+                  </div>
+
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Description
+                    </label>
+                    {modalMode === "view" ? (
+                      <p className="p-2 bg-gray-50 rounded">
+                        {selectedProduct.description}
+                      </p>
+                    ) : (
+                      <input
+                        type="text"
+                        defaultValue={selectedProduct.description}
+                        className="w-full p-2 border border-gray-300 rounded"
+                      />
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Stock
+                    </label>
+                    {modalMode === "view" ? (
+                      <p className="p-2 bg-gray-50 rounded">
+                        {selectedProduct.stock}
+                      </p>
+                    ) : (
+                      <input
+                        type="number"
+                        defaultValue={selectedProduct.stock}
+                        className="w-full p-2 border border-gray-300 rounded"
+                      />
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      SKU
+                    </label>
+                    {modalMode === "view" ? (
+                      <p className="p-2 bg-gray-50 rounded">
+                        {selectedProduct.sku}
+                      </p>
+                    ) : (
+                      <input
+                        type="text"
+                        defaultValue={selectedProduct.sku}
+                        className="w-full p-2 border border-gray-300 rounded"
+                      />
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Date Added
+                    </label>
+                    {modalMode === "view" ? (
+                      <p className="p-2 bg-gray-50 rounded">
+                        {selectedProduct.dateAdded
+                          ? new Date(selectedProduct.dateAdded).toLocaleString(
+                              undefined,
+                              {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            )
+                          : ""}
+                      </p>
+                    ) : (
+                      <input
+                        type="text"
+                        defaultValue={selectedProduct.dateAdded}
+                        className="w-full p-2 border border-gray-300 rounded"
+                      />
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Expiry Date
+                    </label>
+                    {modalMode === "view" ? (
+                      <p className="p-2 bg-gray-50 rounded">
+                        {selectedProduct.expiryDate
+                          ? new Date(
+                              selectedProduct.expiryDate
+                            ).toLocaleDateString(undefined, {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            })
+                          : ""}
+                      </p>
+                    ) : (
+                      <input
+                        type="text"
+                        defaultValue={selectedProduct.expiryDate}
+                        className="w-full p-2 border border-gray-300 rounded"
+                      />
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Supplier
+                    </label>
+                    {modalMode === "view" ? (
+                      <p className="p-2 bg-gray-50 rounded">
+                        {selectedProduct.supplier || "N/A"}
+                      </p>
+                    ) : (
+                      <input
+                        type="text"
+                        defaultValue={selectedProduct.supplier || ""}
+                        className="w-full p-2 border border-gray-300 rounded"
+                      />
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Supplier's Address
+                    </label>
+                    {modalMode === "view" ? (
+                      <p className="p-2 bg-gray-50 rounded">
+                        {selectedProduct.supplierDetails?.address || "N/A"}
+                      </p>
+                    ) : (
+                      <input
+                        type="text"
+                        defaultValue={
+                          selectedProduct.supplierDetails?.address || ""
+                        }
+                        className="w-full p-2 border border-gray-300 rounded"
+                      />
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Supplier's Contact
+                    </label>
+                    {modalMode === "view" ? (
+                      <p className="p-2 bg-gray-50 rounded">
+                        {selectedProduct.supplierDetails?.contact_phone ||
+                          "N/A"}
+                      </p>
+                    ) : (
+                      <input
+                        type="text"
+                        defaultValue={
+                          selectedProduct.supplierDetails?.contact_phone || ""
+                        }
+                        className="w-full p-2 border border-gray-300 rounded"
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2 mt-6">
+                  {modalMode === "view" ? (
+                    <>
+                      <button
+                        onClick={() => setModalMode("edit")}
+                        className="btn bg-blue-500 hover:bg-blue-600 text-white flex-1"
+                      >
+                        Edit Product
+                      </button>
+                      <button
+                        onClick={() => handleDeleteProduct(selectedProduct.id)}
+                        className="btn bg-red-500 hover:bg-red-600 text-white"
+                      >
+                        Delete
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={closeModal}
+                        className="btn btn-outline flex-1"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => {
+                          // Add save logic here
+                          console.log("Saving product changes...");
+                          closeModal();
+                        }}
+                        className="btn bg-green-500 hover:bg-green-600 text-white flex-1"
+                      >
+                        Save Changes
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+        <form method="dialog" className="modal-backdrop">
+          <button onClick={closeModal}>close</button>
         </form>
       </dialog>
 
