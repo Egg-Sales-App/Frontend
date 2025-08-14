@@ -270,80 +270,66 @@ export const authService = {
           API_BASE_URL: config.API_BASE_URL,
         });
 
-        // Try Django REST API logout first (if available)
-        try {
-          console.log("🔄 Attempting API logout endpoint...");
-          const apiLogoutResponse = await apiService.post("/logout/", {
-            refresh_token: refreshToken,
-          });
-          console.log("✅ API logout successful");
-        } catch (apiError) {
-          console.warn(
-            "⚠️ API logout failed, trying Django allauth:",
-            apiError.message
+        // Use Django allauth logout endpoint
+        const logoutUrl = `${config.DJANGO_BASE_URL}/accounts/logout/`;
+        console.log("🔗 Django allauth Logout URL:", logoutUrl);
+
+        const csrfResponse = await fetch(logoutUrl, {
+          method: "GET",
+          credentials: "include", // Include cookies for session
+        });
+
+        let csrfToken = null;
+        if (csrfResponse.ok) {
+          const htmlText = await csrfResponse.text();
+          // Extract CSRF token from the HTML form
+          const csrfMatch = htmlText.match(
+            /name=['"]csrfmiddlewaretoken['"] value=['"]([^'"]+)['"]/
           );
-
-          // Fallback to Django allauth form-based logout
-          const logoutUrl = `${config.DJANGO_BASE_URL}/accounts/logout/`;
-          console.log("🔗 Fallback Logout URL:", logoutUrl);
-
-          const csrfResponse = await fetch(logoutUrl, {
-            method: "GET",
-            credentials: "include", // Include cookies for session
-          });
-
-          let csrfToken = null;
-          if (csrfResponse.ok) {
-            const htmlText = await csrfResponse.text();
-            // Extract CSRF token from the HTML form
-            const csrfMatch = htmlText.match(
-              /name=['"]csrfmiddlewaretoken['"] value=['"]([^'"]+)['"]/
-            );
-            if (csrfMatch) {
-              csrfToken = csrfMatch[1];
-              console.log("🔐 CSRF token extracted from HTML form");
-            }
-
-            // Also try to get from cookies as backup
-            const csrfCookie = document.cookie
-              .split("; ")
-              .find((row) => row.startsWith("csrftoken="));
-
-            if (csrfCookie && !csrfToken) {
-              csrfToken = csrfCookie.split("=")[1];
-              console.log("🔐 CSRF token obtained from cookie");
-            }
+          if (csrfMatch) {
+            csrfToken = csrfMatch[1];
+            console.log("🔐 CSRF token extracted from HTML form");
           }
 
-          if (csrfToken) {
-            // Submit logout form with CSRF token
-            const formData = new FormData();
-            formData.append("csrfmiddlewaretoken", csrfToken);
+          // Also try to get from cookies as backup
+          const csrfCookie = document.cookie
+            .split("; ")
+            .find((row) => row.startsWith("csrftoken="));
 
-            const logoutResponse = await fetch(logoutUrl, {
-              method: "POST",
-              credentials: "include", // Include cookies
-              body: formData,
-            });
+          if (csrfCookie && !csrfToken) {
+            csrfToken = csrfCookie.split("=")[1];
+            console.log("🔐 CSRF token obtained from cookie");
+          }
+        }
 
-            console.log("📡 Logout response:", {
-              status: logoutResponse.status,
-              statusText: logoutResponse.statusText,
-              ok: logoutResponse.ok,
-            });
+        if (csrfToken) {
+          // Submit logout form with CSRF token
+          const formData = new FormData();
+          formData.append("csrfmiddlewaretoken", csrfToken);
 
-            if (logoutResponse.ok) {
-              console.log("✅ Server-side logout successful");
-            } else {
-              console.warn(
-                "⚠️ Server logout returned non-OK status, but continuing..."
-              );
-            }
+          const logoutResponse = await fetch(logoutUrl, {
+            method: "POST",
+            credentials: "include", // Include cookies
+            body: formData,
+          });
+
+          console.log("📡 Logout response:", {
+            status: logoutResponse.status,
+            statusText: logoutResponse.statusText,
+            ok: logoutResponse.ok,
+          });
+
+          if (logoutResponse.ok) {
+            console.log("✅ Server-side logout successful");
           } else {
             console.warn(
-              "⚠️ Could not obtain CSRF token, skipping server logout"
+              "⚠️ Server logout returned non-OK status, but continuing..."
             );
           }
+        } else {
+          console.warn(
+            "⚠️ Could not obtain CSRF token, skipping server logout"
+          );
         }
       } catch (backendError) {
         console.warn(
