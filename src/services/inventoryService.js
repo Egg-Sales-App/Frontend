@@ -109,17 +109,32 @@ export const inventoryService = {
   // Update existing product
   async updateProduct(id, productData) {
     try {
-      const response = await apiService.put(`/products/${id}/`, {
-        sku: productData.sku,
+      console.log("🔧 inventoryService.updateProduct called with:", {
+        id,
+        productData,
+      });
+
+      const payload = {
         name: productData.name,
         description: productData.description,
         category: productData.category,
-        unit: productData.unit,
-        price: parseFloat(productData.price),
-        quantity_in_stock: parseInt(productData.quantity_in_stock),
+        price: productData.price ? productData.price.toString() : "0", // Safely convert to string
+        quantity_in_stock: parseInt(productData.quantity_in_stock) || 0,
+        sku: productData.sku,
+        unit: productData.unit || "unit",
         expiry_date: productData.expiry_date || null,
-        supplier: productData.supplier || null,
-      });
+        supplier: productData.supplier || null, // Supplier object
+        supplier_id: productData.supplier_id || 0, // Supplier ID
+      };
+
+      console.log(
+        "📤 Sending PUT request to /products/" + id + "/ with payload:",
+        payload
+      );
+
+      const response = await apiService.put(`/products/${id}/`, payload);
+
+      console.log("📥 API Response from update:", response);
 
       return {
         success: true,
@@ -127,6 +142,7 @@ export const inventoryService = {
         message: "Product updated successfully",
       };
     } catch (error) {
+      console.error("❌ inventoryService.updateProduct error:", error);
       throw new Error(error.message || "Failed to update product");
     }
   },

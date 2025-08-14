@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { inventoryService } from "../../services/inventoryService";
+import { useToast } from "../../components/ui/ToastContext";
 import HybridFeedImage from "../../assets/hybridfeed.png";
 import HalfDozenEggsImage from "../../assets/eggcrate.png";
 import DayOldChicksImage from "../../assets/dayoldchicks.png";
@@ -22,6 +23,10 @@ const Inventory = () => {
   // Modal state for view/edit
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [modalMode, setModalMode] = useState("view"); // "view", "edit", or "add"
+  const [formData, setFormData] = useState({});
+
+  // Toast notifications
+  const { success, error: showError, info } = useToast();
 
   // Helper function to get appropriate image for product
   const getProductImage = (category, productName) => {
@@ -329,27 +334,128 @@ const Inventory = () => {
   const handleEditProduct = (product) => {
     setSelectedProduct(product);
     setModalMode("edit");
+    info("You can now edit the product details");
     document.getElementById("product_details_modal").showModal();
   };
 
   const handleDeleteProduct = async (productId) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
-        // Add delete API call here when backend is ready
-        console.log("Deleting product:", productId);
-        // await inventoryService.deleteProduct(productId);
-        // Refresh products list
-        // setProducts(products.filter(p => p.id !== productId));
+        console.log("🗑️ Deleting product:", productId);
+
+        // Call delete API
+        await inventoryService.deleteProduct(productId);
+
+        // Remove product from local state
+        setProducts(products.filter((p) => p.id !== productId));
+
+        // Close modal
+        closeModal();
+
+        console.log("✅ Product deleted successfully");
+        success("Product deleted successfully!");
       } catch (error) {
-        console.error("Error deleting product:", error);
+        console.error("❌ Error deleting product:", error);
+        showError(`Failed to delete product: ${error.message}`);
       }
     }
   };
 
   const closeModal = () => {
+    if (modalMode === "edit" && Object.keys(formData).length > 0) {
+      // User was editing and has unsaved changes
+      info("Changes discarded");
+    }
     setSelectedProduct(null);
     setModalMode("view");
+    setFormData({});
     document.getElementById("product_details_modal").close();
+  };
+
+  // Handle saving product changes (for edit mode)
+  const handleSaveProductChanges = async () => {
+    try {
+      console.log("💾 Saving product changes...", formData);
+      console.log("📝 Selected product:", selectedProduct);
+
+      // Validate required fields
+      const productName = formData.name || selectedProduct.name;
+      const productPrice = formData.price || selectedProduct.price;
+      const productStock = formData.stock || selectedProduct.stock;
+
+      if (!productName || !productPrice || productStock === undefined) {
+        showError("Please fill in all required fields (name, price, stock)");
+        return;
+      }
+
+      // Construct supplier object if any supplier data is provided
+      const supplierData = {
+        name: formData.supplier || selectedProduct.supplier,
+        contact_email: selectedProduct.supplierDetails?.contact_email || "",
+        contact_phone:
+          formData.supplierContact ||
+          selectedProduct.supplierDetails?.contact_phone ||
+          "",
+        address:
+          formData.supplierAddress ||
+          selectedProduct.supplierDetails?.address ||
+          "",
+      };
+
+      // Prepare data for API
+      const updateData = {
+        name: productName,
+        description: formData.description || selectedProduct.description,
+        category: formData.category || selectedProduct.category,
+        price: productPrice,
+        quantity_in_stock: parseInt(productStock),
+        sku: formData.sku || selectedProduct.sku,
+        unit: selectedProduct.unit || "unit",
+        expiry_date: formData.expiryDate || selectedProduct.expiryDate,
+        supplier: supplierData,
+        supplier_id: selectedProduct.supplierDetails?.id || 0,
+      };
+
+      console.log("🚀 Sending update to API:", updateData);
+
+      // Call update API
+      const response = await inventoryService.updateProduct(
+        selectedProduct.id,
+        updateData
+      );
+
+      console.log("✅ Update response:", response);
+
+      // Update the product in local state
+      setProducts((prevProducts) =>
+        prevProducts.map((product) =>
+          product.id === selectedProduct.id
+            ? {
+                ...product,
+                name: updateData.name,
+                description: updateData.description,
+                category: updateData.category,
+                price: parseFloat(updateData.price),
+                stock: parseInt(updateData.quantity_in_stock),
+                sku: updateData.sku,
+                unit: updateData.unit,
+                expiryDate: updateData.expiry_date,
+                supplier: updateData.supplier?.name || "Unknown",
+                supplierDetails: updateData.supplier,
+              }
+            : product
+        )
+      );
+
+      // Close modal
+      closeModal();
+
+      console.log("✅ Product updated successfully");
+      success("Product updated successfully!");
+    } catch (error) {
+      console.error("❌ Error updating product:", error);
+      showError(`Failed to update product: ${error.message}`);
+    }
   };
 
   // Handle product save
@@ -404,11 +510,10 @@ const Inventory = () => {
       handleProductModalClose();
 
       console.log("✅ Product added successfully:", newProduct);
-      // TODO: Add success toast notification here
+      success("Product added successfully!");
     } catch (error) {
       console.error("❌ Error saving product:", error);
-      // TODO: Add error toast notification here
-      alert(`Failed to save product: ${error.message}`);
+      showError(`Failed to save product: ${error.message}`);
     }
   };
 
@@ -707,7 +812,10 @@ const Inventory = () => {
                     ) : (
                       <input
                         type="text"
-                        defaultValue={selectedProduct.name}
+                        value={formData.name || selectedProduct.name}
+                        onChange={(e) =>
+                          setFormData({ ...formData, name: e.target.value })
+                        }
                         className="w-full p-2 border border-gray-300 rounded"
                       />
                     )}
@@ -723,7 +831,10 @@ const Inventory = () => {
                       </p>
                     ) : (
                       <select
-                        defaultValue={selectedProduct.category}
+                        value={formData.category || selectedProduct.category}
+                        onChange={(e) =>
+                          setFormData({ ...formData, category: e.target.value })
+                        }
                         className="w-full p-2 border border-gray-300 rounded"
                       >
                         {categories.map((cat) => (
@@ -746,7 +857,10 @@ const Inventory = () => {
                     ) : (
                       <input
                         type="number"
-                        defaultValue={selectedProduct.price}
+                        value={formData.price || selectedProduct.price}
+                        onChange={(e) =>
+                          setFormData({ ...formData, price: e.target.value })
+                        }
                         className="w-full p-2 border border-gray-300 rounded"
                         step="0.01"
                       />
@@ -764,7 +878,15 @@ const Inventory = () => {
                     ) : (
                       <input
                         type="text"
-                        defaultValue={selectedProduct.description}
+                        value={
+                          formData.description || selectedProduct.description
+                        }
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            description: e.target.value,
+                          })
+                        }
                         className="w-full p-2 border border-gray-300 rounded"
                       />
                     )}
@@ -781,7 +903,10 @@ const Inventory = () => {
                     ) : (
                       <input
                         type="number"
-                        defaultValue={selectedProduct.stock}
+                        value={formData.stock || selectedProduct.stock}
+                        onChange={(e) =>
+                          setFormData({ ...formData, stock: e.target.value })
+                        }
                         className="w-full p-2 border border-gray-300 rounded"
                       />
                     )}
@@ -798,7 +923,10 @@ const Inventory = () => {
                     ) : (
                       <input
                         type="text"
-                        defaultValue={selectedProduct.sku}
+                        value={formData.sku || selectedProduct.sku}
+                        onChange={(e) =>
+                          setFormData({ ...formData, sku: e.target.value })
+                        }
                         className="w-full p-2 border border-gray-300 rounded"
                       />
                     )}
@@ -850,8 +978,16 @@ const Inventory = () => {
                       </p>
                     ) : (
                       <input
-                        type="text"
-                        defaultValue={selectedProduct.expiryDate}
+                        type="date"
+                        value={
+                          formData.expiryDate || selectedProduct.expiryDate
+                        }
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            expiryDate: e.target.value,
+                          })
+                        }
                         className="w-full p-2 border border-gray-300 rounded"
                       />
                     )}
@@ -868,7 +1004,12 @@ const Inventory = () => {
                     ) : (
                       <input
                         type="text"
-                        defaultValue={selectedProduct.supplier || ""}
+                        value={
+                          formData.supplier || selectedProduct.supplier || ""
+                        }
+                        onChange={(e) =>
+                          setFormData({ ...formData, supplier: e.target.value })
+                        }
                         className="w-full p-2 border border-gray-300 rounded"
                       />
                     )}
@@ -885,8 +1026,16 @@ const Inventory = () => {
                     ) : (
                       <input
                         type="text"
-                        defaultValue={
-                          selectedProduct.supplierDetails?.address || ""
+                        value={
+                          formData.supplierAddress ||
+                          selectedProduct.supplierDetails?.address ||
+                          ""
+                        }
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            supplierAddress: e.target.value,
+                          })
                         }
                         className="w-full p-2 border border-gray-300 rounded"
                       />
@@ -905,8 +1054,16 @@ const Inventory = () => {
                     ) : (
                       <input
                         type="text"
-                        defaultValue={
-                          selectedProduct.supplierDetails?.contact_phone || ""
+                        value={
+                          formData.supplierContact ||
+                          selectedProduct.supplierDetails?.contact_phone ||
+                          ""
+                        }
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            supplierContact: e.target.value,
+                          })
                         }
                         className="w-full p-2 border border-gray-300 rounded"
                       />
@@ -940,11 +1097,7 @@ const Inventory = () => {
                         Cancel
                       </button>
                       <button
-                        onClick={() => {
-                          // Add save logic here
-                          console.log("Saving product changes...");
-                          closeModal();
-                        }}
+                        onClick={handleSaveProductChanges}
                         className="btn bg-green-500 hover:bg-green-600 text-white flex-1"
                       >
                         Save Changes
