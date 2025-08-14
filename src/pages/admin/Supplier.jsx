@@ -131,9 +131,105 @@ const FormField = ({
   </div>
 );
 
+// Edit Supplier Component
+const EditSupplier = ({ supplier, onCancel, onSave }) => {
+  const [formData, setFormData] = useState({
+    name: supplier.name || "",
+    email: supplier.contact_email || supplier.email || "",
+    phone: supplier.contact_phone || supplier.phone || "",
+    address: supplier.address || "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { success, error: showError } = useToast();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validate required fields
+    if (!formData.name.trim()) {
+      showError("Supplier name is required");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      console.log("📝 Updating supplier:", formData);
+
+      await onSave(supplier.id, formData);
+
+      success("Supplier updated successfully!");
+    } catch (error) {
+      console.error("❌ Error updating supplier:", error);
+      showError("Failed to update supplier");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="w-[500px] bg-white rounded-lg p-6 shadow-md relative">
+      <h2 className="text-[20px] font-medium text-gray-800 mb-6">
+        Edit Supplier
+      </h2>
+
+      <form onSubmit={handleSubmit}>
+        {/* Form Fields */}
+        <div className="space-y-6">
+          <FormField
+            label="Supplier Name"
+            placeholder="Enter name"
+            value={formData.name}
+            onChange={(value) => setFormData({ ...formData, name: value })}
+            required
+          />
+          <FormField
+            label="Email"
+            placeholder="Enter email"
+            type="email"
+            value={formData.email}
+            onChange={(value) => setFormData({ ...formData, email: value })}
+          />
+          <FormField
+            label="Contact Number"
+            placeholder="Enter contact"
+            value={formData.phone}
+            onChange={(value) => setFormData({ ...formData, phone: value })}
+          />
+          <FormField
+            label="Address"
+            placeholder="Enter address"
+            value={formData.address}
+            onChange={(value) => setFormData({ ...formData, address: value })}
+          />
+        </div>
+
+        {/* Buttons */}
+        <div className="flex justify-end gap-4 mt-8">
+          <button
+            type="button"
+            className="bg-gray-100 text-gray-600 px-4 py-2 rounded hover:bg-gray-200"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Updating..." : "Update Supplier"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
 // Supplier Page
 const Supplier = () => {
   const [isAddingSupplier, setIsAddingSupplier] = useState(false);
+  const [editingSupplier, setEditingSupplier] = useState(null);
   const [suppliers, setSuppliers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const { success, error: showError } = useToast();
@@ -161,9 +257,48 @@ const Supplier = () => {
   }, [showError]);
 
   // Handle supplier creation
-  const handleSupplierCreated = (newSupplier) => {
-    setSuppliers((prev) => [...prev, newSupplier]);
-    setIsAddingSupplier(false);
+  const handleSupplierCreated = async (newSupplierData) => {
+    try {
+      const response = await supplierService.createSupplier(newSupplierData);
+      setSuppliers((prev) => [...prev, response]);
+      setIsAddingSupplier(false);
+      success("Supplier created successfully!");
+    } catch (error) {
+      console.error("❌ Error creating supplier:", error);
+      showError(error.message || "Failed to create supplier");
+      throw error; // Re-throw to let the form handle the error
+    }
+  };
+
+  // Handle supplier update
+  const handleSupplierUpdated = async (id, updatedData) => {
+    try {
+      const response = await supplierService.updateSupplier(id, updatedData);
+      setSuppliers((prev) =>
+        prev.map((supplier) => (supplier.id === id ? response : supplier))
+      );
+      success("Supplier updated successfully!");
+    } catch (error) {
+      console.error("❌ Error updating supplier:", error);
+      showError(error.message || "Failed to update supplier");
+      throw error;
+    }
+  };
+
+  // Handle supplier deletion
+  const handleSupplierDeleted = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this supplier?")) {
+      return;
+    }
+
+    try {
+      await supplierService.deleteSupplier(id);
+      setSuppliers((prev) => prev.filter((supplier) => supplier.id !== id));
+      success("Supplier deleted successfully!");
+    } catch (error) {
+      console.error("❌ Error deleting supplier:", error);
+      showError(error.message || "Failed to delete supplier");
+    }
   };
 
   // Loading state
@@ -180,7 +315,7 @@ const Supplier = () => {
   return (
     <>
       <section className="p-6 bg-white rounded-lg shadow-md">
-        {!isAddingSupplier ? (
+        {!isAddingSupplier && !editingSupplier ? (
           <>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-medium text-gray-800">Suppliers</h2>
@@ -202,6 +337,7 @@ const Supplier = () => {
               <span>Address</span>
               <span>Email</span>
               <span>Contact Number</span>
+              <span>Actions</span>
             </div>
 
             {suppliers.length === 0 ? (
@@ -217,10 +353,7 @@ const Supplier = () => {
                     className="flex justify-between items-center p-4 bg-blue-50 hover:bg-blue-100 transition"
                   >
                     <Link
-                      to={`/admin/suppliers/${
-                        supplier.id ||
-                        supplier.name.toLowerCase().replace(/\s+/g, "-")
-                      }`}
+                      to={`/admin/suppliers/${supplier.id}`}
                       className="font-medium text-blue-600 hover:underline flex-1"
                     >
                       {supplier.name}
@@ -229,14 +362,28 @@ const Supplier = () => {
                       {supplier.address || "N/A"}
                     </span>
                     <span className="text-gray-600 flex-1 text-center">
-                      {supplier.email || supplier.contact_email || "N/A"}
+                      {supplier.contact_email || supplier.email || "N/A"}
                     </span>
-                    <span className="text-gray-600 flex-1 text-right">
-                      {supplier.phone ||
-                        supplier.contact_phone ||
+                    <span className="text-gray-600 flex-1 text-center">
+                      {supplier.contact_phone ||
+                        supplier.phone ||
                         supplier.contact ||
                         "N/A"}
                     </span>
+                    <div className="flex gap-2 flex-1 justify-end">
+                      <button
+                        onClick={() => setEditingSupplier(supplier)}
+                        className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleSupplierDeleted(supplier.id)}
+                        className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -252,12 +399,18 @@ const Supplier = () => {
               </button>
             </div>
           </>
-        ) : (
+        ) : isAddingSupplier ? (
           <NewSupplier
             onCancel={() => setIsAddingSupplier(false)}
             onSave={handleSupplierCreated}
           />
-        )}
+        ) : editingSupplier ? (
+          <EditSupplier
+            supplier={editingSupplier}
+            onCancel={() => setEditingSupplier(null)}
+            onSave={handleSupplierUpdated}
+          />
+        ) : null}
       </section>
     </>
   );
