@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -20,13 +19,15 @@ const SupplierDetails = () => {
         ← Back to Suppliers
       </button>
 
-      <h2 className="text-2xl font-semibold mb-4 capitalize">
-        Supplier: {supplierId.replace(/-/g, ' ')}
+      <h2 className="text-2xl font-semibold mb-4 capitalize text-blue-600">
+        Supplier: {supplierId.replace(/-/g, " ")}
       </h2>
 
       <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-2">Purchase History</h3>
-        <div className="border rounded divide-y">
+        <h3 className="text-lg font-semibold mb-2 text-blue-600">
+          Purchase History
+        </h3>
+        <div className="border rounded divide-y text-blue-600">
           {mockOrders.map((order) => (
             <div key={order.id} className="p-4 flex justify-between">
               <span>{order.item}</span>
@@ -38,17 +39,17 @@ const SupplierDetails = () => {
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold mb-2">New Order</h3>
+        <h3 className="text-lg font-semibold mb-2 text-blue-600">New Order</h3>
         <form className="space-y-4">
           <input
             type="text"
             placeholder="Product name"
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border rounded text-blue-600"
           />
           <input
             type="number"
             placeholder="Quantity"
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border rounded text-blue-600"
           />
           <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
             Place Order

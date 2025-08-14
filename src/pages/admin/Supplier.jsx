@@ -199,6 +199,8 @@ const Supplier = () => {
 
             <div className="flex justify-between items-center mb-2 text-sm text-gray-500 px-2">
               <span>Supplier Name</span>
+              <span>Address</span>
+              <span>Email</span>
               <span>Contact Number</span>
             </div>
 
@@ -219,12 +221,21 @@ const Supplier = () => {
                         supplier.id ||
                         supplier.name.toLowerCase().replace(/\s+/g, "-")
                       }`}
-                      className="font-medium text-blue-600 hover:underline"
+                      className="font-medium text-blue-600 hover:underline flex-1"
                     >
                       {supplier.name}
                     </Link>
-                    <span className="text-gray-600">
-                      {supplier.phone || supplier.contact}
+                    <span className="text-gray-600 flex-1 text-center">
+                      {supplier.address || "N/A"}
+                    </span>
+                    <span className="text-gray-600 flex-1 text-center">
+                      {supplier.email || supplier.contact_email || "N/A"}
+                    </span>
+                    <span className="text-gray-600 flex-1 text-right">
+                      {supplier.phone ||
+                        supplier.contact_phone ||
+                        supplier.contact ||
+                        "N/A"}
                     </span>
                   </div>
                 ))}
