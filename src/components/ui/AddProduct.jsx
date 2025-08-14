@@ -1,17 +1,17 @@
 import React, { useState } from "react";
 
-const AddProduct = ({ onClose, onSave, categories = [] }) => {
+const AddProduct = ({ onClose, onSave, categories = [], suppliers = [] }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [dragOver, setDragOver] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
-    productId: "",
+    description: "",
     category: "",
     buyingPrice: "",
     quantity: "",
     unit: "",
     expiryDate: "",
-    supplierDetails: "",
+    supplier_id: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -66,14 +66,15 @@ const AddProduct = ({ onClose, onSave, categories = [] }) => {
     const newErrors = {};
 
     if (!formData.name.trim()) newErrors.name = "Product name is required";
-    if (!formData.productId.trim())
-      newErrors.productId = "Product ID is required";
+    if (!formData.description.trim())
+      newErrors.description = "Product description is required";
     if (!formData.category) newErrors.category = "Category is required";
     if (!formData.buyingPrice || formData.buyingPrice <= 0)
       newErrors.buyingPrice = "Valid buying price is required";
     if (!formData.quantity || formData.quantity <= 0)
       newErrors.quantity = "Valid quantity is required";
     if (!formData.unit.trim()) newErrors.unit = "Unit is required";
+    if (!formData.supplier) newErrors.supplier = "Supplier is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -88,11 +89,11 @@ const AddProduct = ({ onClose, onSave, categories = [] }) => {
         price: parseFloat(formData.buyingPrice),
         cost: parseFloat(formData.buyingPrice),
         stock: parseInt(formData.quantity),
-        sku: formData.productId,
-        description: formData.supplierDetails || "No description provided",
+        description: formData.description,
         img: selectedImage,
         unit: formData.unit,
         expiryDate: formData.expiryDate,
+        supplier_id: formData.supplier,
       };
 
       onSave(productData);
@@ -102,13 +103,13 @@ const AddProduct = ({ onClose, onSave, categories = [] }) => {
   const handleDiscard = () => {
     setFormData({
       name: "",
-      productId: "",
+      description: "",
       category: "",
       buyingPrice: "",
       quantity: "",
       unit: "",
       expiryDate: "",
-      supplierDetails: "",
+      supplier: "",
     });
     setSelectedImage(null);
     setErrors({});
@@ -210,25 +211,29 @@ const AddProduct = ({ onClose, onSave, categories = [] }) => {
             </div>
           </div>
 
-          {/* Product ID */}
-          <div className="grid grid-cols-3 gap-4 items-center">
-            <label className="text-sm font-medium text-gray-700 text-right">
-              Product ID
+          {/* Product Description */}
+          <div className="grid grid-cols-3 gap-4 items-start">
+            <label className="text-sm font-medium text-gray-700 text-right pt-3">
+              Description
             </label>
             <div className="col-span-2">
-              <input
-                type="text"
-                value={formData.productId}
-                onChange={(e) => handleInputChange("productId", e.target.value)}
-                placeholder="Enter product ID"
-                className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all ${
-                  errors.productId
+              <textarea
+                value={formData.description}
+                onChange={(e) =>
+                  handleInputChange("description", e.target.value)
+                }
+                placeholder="Enter product description"
+                rows="3"
+                className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none ${
+                  errors.description
                     ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                     : "border-gray-300"
                 }`}
               />
-              {errors.productId && (
-                <p className="mt-1 text-sm text-red-500">{errors.productId}</p>
+              {errors.description && (
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.description}
+                </p>
               )}
             </div>
           </div>
@@ -378,21 +383,31 @@ const AddProduct = ({ onClose, onSave, categories = [] }) => {
             </div>
           </div>
 
-          {/* Supplier Details */}
-          <div className="grid grid-cols-3 gap-4 items-start">
-            <label className="text-sm font-medium text-gray-700 text-right pt-3">
-              Supplier Details
+          {/* Supplier */}
+          <div className="grid grid-cols-3 gap-4 items-center">
+            <label className="text-sm font-medium text-gray-700 text-right">
+              Supplier *
             </label>
             <div className="col-span-2">
-              <textarea
-                value={formData.supplierDetails}
-                onChange={(e) =>
-                  handleInputChange("supplierDetails", e.target.value)
-                }
-                placeholder="Enter Supplier details"
-                rows="4"
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"
-              />
+              <select
+                value={formData.supplier}
+                onChange={(e) => handleInputChange("supplier", e.target.value)}
+                className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white ${
+                  errors.supplier
+                    ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                    : "border-gray-300"
+                }`}
+              >
+                <option value="">Select supplier</option>
+                {suppliers.map((supplier) => (
+                  <option key={supplier.id} value={supplier.id}>
+                    {supplier.name}
+                  </option>
+                ))}
+              </select>
+              {errors.supplier && (
+                <p className="mt-1 text-sm text-red-500">{errors.supplier}</p>
+              )}
             </div>
           </div>
         </div>
