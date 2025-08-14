@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { validateForm } from "../utils/validation";
 
 export const useForm = (initialValues, validationRules = {}, options = {}) => {
-  const [values, setValues] = useState(initialValues); // ✅ FIXED: Uncommented this line
+  const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
