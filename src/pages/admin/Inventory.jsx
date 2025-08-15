@@ -470,25 +470,42 @@ const Inventory = () => {
     try {
       console.log("💾 Saving new product:", productData);
 
-      // Map component data to API format
+      // Validate that supplier is provided since it's required by API
+      if (!productData.supplier_id) {
+        showError("Supplier is required");
+        return;
+      }
+
+      // Find the selected supplier object for the nested supplier field
+      const selectedSupplier = suppliers.find(
+        (s) => s.id === parseInt(productData.supplier_id)
+      );
+
+      if (!selectedSupplier) {
+        showError("Selected supplier not found");
+        return;
+      }
+
+      // Map component data to EXACT API schema format
       const apiProductData = {
-        name: productData.name,
-        description: productData.description || "",
-        category: productData.category,
-        price: String(productData.buyingPrice || productData.price), // Convert to string as required by API
-        quantity_in_stock:
-          parseInt(productData.quantity) || parseInt(productData.stock) || 0,
-        sku: productData.sku || `SKU-${Date.now()}`,
-        unit: productData.unit || "unit",
-        expiry_date: productData.expiryDate || null,
-        supplier_id: productData.supplier_id
-          ? parseInt(productData.supplier_id)
-          : productData.supplier
-          ? parseInt(productData.supplier)
-          : null,
+        name: productData.name, // required string
+        description: productData.description || "", // optional string
+        category: productData.category, // required string (enum)
+        price: String(productData.buyingPrice), // required string (decimal)
+        quantity_in_stock: parseInt(productData.quantity), // required integer
+        sku: productData.sku || `SKU-${Date.now()}`, // optional string
+        unit: productData.unit, // required string
+        expiry_date: productData.expiryDate || null, // optional string (date)
+        supplier: {
+          name: selectedSupplier.name,
+          contact_email: selectedSupplier.contact_email || null,
+          contact_phone: selectedSupplier.contact_phone || null,
+          address: selectedSupplier.address || null,
+        },
+        supplier_id: parseInt(productData.supplier_id), // required integer
       };
 
-      console.log("🚀 Sending to API:", apiProductData);
+      console.log("🚀 Sending to API (exact schema match):", apiProductData);
 
       // Create product via API
       const response = await inventoryService.createProduct(apiProductData);

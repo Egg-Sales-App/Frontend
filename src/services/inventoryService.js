@@ -1,14 +1,14 @@
-import { apiService } from "./api";
+import { config } from "../config/environment";
 
 export const inventoryService = {
   // Get all products with pagination and filters
   async getProducts(params = {}) {
     try {
-      const response = await apiService.get("/products/", {
+      const queryParams = new URLSearchParams({
         page: params.page || 1,
         page_size: params.limit || 10,
-        search: params.search,
-        category: params.category,
+        ...(params.search && { search: params.search }),
+        ...(params.category && { category: params.category }),
         ordering: params.sortBy
           ? params.sortOrder === "desc"
             ? `-${params.sortBy}`
@@ -16,44 +16,61 @@ export const inventoryService = {
           : "-date_added",
       });
 
-      console.log("📦 Raw API response:", response);
+      const response = await fetch(
+        `${config.DJANGO_BASE_URL}/api/products/?${queryParams}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(config.TOKEN_KEY)}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      console.log("📦 Raw API response:", data);
 
       // Handle direct array response from backend
-      if (Array.isArray(response)) {
+      if (Array.isArray(data)) {
         console.log("📋 Backend returned direct array of products");
         return {
-          products: response,
+          products: data,
           pagination: {
             page: params.page || 1,
             limit: params.limit || 10,
-            total: response.length,
+            total: data.length,
             pages: 1, // Since we get all products in one array
           },
-          total: response.length,
+          total: data.length,
           next: null,
           previous: null,
         };
       }
 
       // Handle paginated response (if backend changes to pagination later)
-      if (response.results && Array.isArray(response.results)) {
+      if (data.results && Array.isArray(data.results)) {
         console.log("📋 Backend returned paginated response");
         return {
-          products: response.results,
+          products: data.results,
           pagination: {
             page: params.page || 1,
             limit: params.limit || 10,
-            total: response.count || 0,
-            pages: Math.ceil((response.count || 0) / (params.limit || 10)),
+            total: data.count || 0,
+            pages: Math.ceil((data.count || 0) / (params.limit || 10)),
           },
-          total: response.count || 0,
-          next: response.next,
-          previous: response.previous,
+          total: data.count || 0,
+          next: data.next,
+          previous: data.previous,
         };
       }
 
       // Fallback for unexpected response format
-      console.warn("⚠️ Unexpected response format:", response);
+      console.warn("⚠️ Unexpected response format:", data);
       return {
         products: [],
         pagination: {
@@ -74,8 +91,22 @@ export const inventoryService = {
   // Get single product by ID
   async getProduct(id) {
     try {
-      const response = await apiService.get(`/products/${id}/`);
-      return response;
+      const response = await fetch(
+        `${config.DJANGO_BASE_URL}/api/products/${id}/`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(config.TOKEN_KEY)}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
     } catch (error) {
       throw new Error("Failed to fetch product");
     }
@@ -84,7 +115,7 @@ export const inventoryService = {
   // Create new product
   async createProduct(productData) {
     try {
-      const response = await apiService.post("/products/", {
+      const payload = {
         sku: productData.sku,
         name: productData.name,
         description: productData.description,
@@ -94,11 +125,29 @@ export const inventoryService = {
         quantity_in_stock: parseInt(productData.quantity_in_stock || 0),
         expiry_date: productData.expiry_date || null,
         supplier: productData.supplier || null,
+      };
+
+      const response = await fetch(`${config.DJANGO_BASE_URL}/api/products/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem(config.TOKEN_KEY)}`,
+        },
+        body: JSON.stringify(payload),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
 
       return {
         success: true,
-        product: response,
+        product: data,
         message: "Product created successfully",
       };
     } catch (error) {
@@ -128,17 +177,36 @@ export const inventoryService = {
       };
 
       console.log(
-        "📤 Sending PUT request to /products/" + id + "/ with payload:",
+        "📤 Sending PUT request to /api/products/" + id + "/ with payload:",
         payload
       );
 
-      const response = await apiService.put(`/products/${id}/`, payload);
+      const response = await fetch(
+        `${config.DJANGO_BASE_URL}/api/products/${id}/`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(config.TOKEN_KEY)}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
-      console.log("📥 API Response from update:", response);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+
+      console.log("📥 API Response from update:", data);
 
       return {
         success: true,
-        product: response,
+        product: data,
         message: "Product updated successfully",
       };
     } catch (error) {
@@ -150,7 +218,20 @@ export const inventoryService = {
   // Delete product
   async deleteProduct(id) {
     try {
-      await apiService.delete(`/products/${id}/`);
+      const response = await fetch(
+        `${config.DJANGO_BASE_URL}/api/products/${id}/`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(config.TOKEN_KEY)}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       return {
         success: true,
@@ -164,22 +245,39 @@ export const inventoryService = {
   // Get inventory records
   async getInventoryHistory(params = {}) {
     try {
-      const response = await apiService.get("/inventory/", {
+      const queryParams = new URLSearchParams({
         page: params.page || 1,
         page_size: params.limit || 10,
-        product: params.productId,
+        ...(params.productId && { product: params.productId }),
         ordering: "-date",
       });
 
+      const response = await fetch(
+        `${config.DJANGO_BASE_URL}/api/inventory/?${queryParams}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(config.TOKEN_KEY)}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
       return {
-        records: response.results || [],
+        records: data.results || [],
         pagination: {
           page: params.page || 1,
           limit: params.limit || 10,
-          total: response.count || 0,
-          pages: Math.ceil((response.count || 0) / (params.limit || 10)),
+          total: data.count || 0,
+          pages: Math.ceil((data.count || 0) / (params.limit || 10)),
         },
-        total: response.count || 0,
+        total: data.count || 0,
       };
     } catch (error) {
       throw new Error("Failed to fetch inventory history");
@@ -189,15 +287,33 @@ export const inventoryService = {
   // Create inventory record (stock adjustment)
   async createInventoryRecord(recordData) {
     try {
-      const response = await apiService.post("/inventory/", {
+      const payload = {
         product: recordData.productId,
         change: parseInt(recordData.change),
         reason: recordData.reason,
+      };
+
+      const response = await fetch(`${config.DJANGO_BASE_URL}/api/inventory/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem(config.TOKEN_KEY)}`,
+        },
+        body: JSON.stringify(payload),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
 
       return {
         success: true,
-        record: response,
+        record: data,
         message: "Inventory record created successfully",
       };
     } catch (error) {
@@ -208,12 +324,28 @@ export const inventoryService = {
   // Get low stock items (products with low quantity)
   async getLowStockItems(threshold = 10) {
     try {
-      const response = await apiService.get("/products/", {
+      const queryParams = new URLSearchParams({
         quantity_in_stock__lt: threshold,
         ordering: "quantity_in_stock",
       });
 
-      return response.results || [];
+      const response = await fetch(
+        `${config.DJANGO_BASE_URL}/api/products/?${queryParams}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(config.TOKEN_KEY)}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.results || [];
     } catch (error) {
       console.error("Failed to fetch low stock items:", error);
       return [];
@@ -233,13 +365,29 @@ export const inventoryService = {
   // Search products
   async searchProducts(query, filters = {}) {
     try {
-      const response = await apiService.get("/products/", {
+      const queryParams = new URLSearchParams({
         search: query,
-        category: filters.category,
+        ...(filters.category && { category: filters.category }),
         ordering: filters.ordering || "-date_added",
       });
 
-      return response.results || [];
+      const response = await fetch(
+        `${config.DJANGO_BASE_URL}/api/products/?${queryParams}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(config.TOKEN_KEY)}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.results || [];
     } catch (error) {
       throw new Error("Failed to search products");
     }
@@ -248,12 +396,28 @@ export const inventoryService = {
   // Get top selling products for dashboard
   async getTopSellingProducts(limit = 5) {
     try {
-      const response = await apiService.get("/products/", {
+      const queryParams = new URLSearchParams({
         ordering: "-sales_count",
         limit: limit,
       });
 
-      return response.results || [];
+      const response = await fetch(
+        `${config.DJANGO_BASE_URL}/api/products/?${queryParams}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(config.TOKEN_KEY)}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.results || [];
     } catch (error) {
       console.error("Failed to fetch top selling products:", error.message);
       // Return empty array instead of throwing to prevent dashboard crashes
