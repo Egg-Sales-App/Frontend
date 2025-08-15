@@ -1039,22 +1039,52 @@ const Inventory = () => {
                     {modalMode === "view" ? (
                       <p className="p-2 bg-gray-50 rounded">
                         {selectedProduct.dateAdded
-                          ? new Date(selectedProduct.dateAdded).toLocaleString(
-                              undefined,
-                              {
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
+                          ? (() => {
+                              try {
+                                const date = new Date(
+                                  selectedProduct.dateAdded
+                                );
+                                return isNaN(date.getTime())
+                                  ? "Invalid date"
+                                  : date.toLocaleString(undefined, {
+                                      year: "numeric",
+                                      month: "long",
+                                      day: "numeric",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    });
+                              } catch (error) {
+                                return "Invalid date";
                               }
-                            )
-                          : ""}
+                            })()
+                          : "Not set"}
                       </p>
                     ) : (
                       <input
-                        type="text"
-                        defaultValue={selectedProduct.dateAdded}
+                        type="datetime-local"
+                        value={
+                          formData.dateAdded ||
+                          (selectedProduct.dateAdded
+                            ? (() => {
+                                try {
+                                  const date = new Date(
+                                    selectedProduct.dateAdded
+                                  );
+                                  return isNaN(date.getTime())
+                                    ? ""
+                                    : date.toISOString().slice(0, 16);
+                                } catch (error) {
+                                  return "";
+                                }
+                              })()
+                            : "")
+                        }
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            dateAdded: e.target.value,
+                          })
+                        }
                         className="w-full p-2 border border-gray-300 rounded"
                       />
                     )}
@@ -1067,20 +1097,43 @@ const Inventory = () => {
                     {modalMode === "view" ? (
                       <p className="p-2 bg-gray-50 rounded">
                         {selectedProduct.expiryDate
-                          ? new Date(
-                              selectedProduct.expiryDate
-                            ).toLocaleDateString(undefined, {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            })
-                          : ""}
+                          ? (() => {
+                              try {
+                                const date = new Date(
+                                  selectedProduct.expiryDate
+                                );
+                                return isNaN(date.getTime())
+                                  ? "Invalid date"
+                                  : date.toLocaleDateString(undefined, {
+                                      year: "numeric",
+                                      month: "long",
+                                      day: "numeric",
+                                    });
+                              } catch (error) {
+                                return "Invalid date";
+                              }
+                            })()
+                          : "Not set"}
                       </p>
                     ) : (
                       <input
                         type="date"
                         value={
-                          formData.expiryDate || selectedProduct.expiryDate
+                          formData.expiryDate ||
+                          (selectedProduct.expiryDate
+                            ? (() => {
+                                try {
+                                  const date = new Date(
+                                    selectedProduct.expiryDate
+                                  );
+                                  return isNaN(date.getTime())
+                                    ? ""
+                                    : date.toISOString().split("T")[0];
+                                } catch (error) {
+                                  return "";
+                                }
+                              })()
+                            : "")
                         }
                         onChange={(e) =>
                           setFormData({
