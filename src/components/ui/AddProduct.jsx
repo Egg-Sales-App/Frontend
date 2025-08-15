@@ -11,7 +11,7 @@ const AddProduct = ({ onClose, onSave, categories = [], suppliers = [] }) => {
     quantity: "",
     unit: "",
     expiryDate: "",
-    supplier_id: "",
+    supplier: "", // Use 'supplier' consistently for the dropdown value
   });
 
   const [errors, setErrors] = useState({});
@@ -84,17 +84,28 @@ const AddProduct = ({ onClose, onSave, categories = [], suppliers = [] }) => {
     e.preventDefault();
 
     if (validateForm()) {
+      // Structure data to match API schema requirements
       const productData = {
-        ...formData,
-        price: parseFloat(formData.buyingPrice),
-        cost: parseFloat(formData.buyingPrice),
-        stock: parseInt(formData.quantity),
-        description: formData.description,
-        img: selectedImage,
-        unit: formData.unit,
-        expiryDate: formData.expiryDate,
-        supplier_id: formData.supplier,
+        name: formData.name, // required string
+        description: formData.description, // optional string
+        category: formData.category, // required string (enum)
+        buyingPrice: formData.buyingPrice, // will be converted to price string
+        quantity: formData.quantity, // will be converted to quantity_in_stock integer
+        unit: formData.unit, // required string
+        expiryDate: formData.expiryDate, // will be converted to expiry_date
+        supplier_id: parseInt(formData.supplier), // convert to integer as required by API
+        img: selectedImage, // for component use
       };
+
+      console.log("📝 AddProduct submitting data:", productData);
+      console.log(
+        "🏢 Selected supplier ID (integer):",
+        parseInt(formData.supplier)
+      );
+      console.log(
+        "🔢 Type of supplier_id:",
+        typeof parseInt(formData.supplier)
+      );
 
       onSave(productData);
     }
@@ -109,7 +120,7 @@ const AddProduct = ({ onClose, onSave, categories = [], suppliers = [] }) => {
       quantity: "",
       unit: "",
       expiryDate: "",
-      supplier: "",
+      supplier: "", // Use 'supplier' consistently
     });
     setSelectedImage(null);
     setErrors({});
@@ -389,22 +400,30 @@ const AddProduct = ({ onClose, onSave, categories = [], suppliers = [] }) => {
               Supplier *
             </label>
             <div className="col-span-2">
-              <select
-                value={formData.supplier}
-                onChange={(e) => handleInputChange("supplier", e.target.value)}
-                className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white ${
-                  errors.supplier
-                    ? "border-red-300 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300"
-                }`}
-              >
-                <option value="">Select supplier</option>
-                {suppliers.map((supplier) => (
-                  <option key={supplier.id} value={supplier.id}>
-                    {supplier.name}
-                  </option>
-                ))}
-              </select>
+              {suppliers.length === 0 ? (
+                <div className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
+                  No suppliers available. Please add suppliers first.
+                </div>
+              ) : (
+                <select
+                  value={formData.supplier}
+                  onChange={(e) =>
+                    handleInputChange("supplier", e.target.value)
+                  }
+                  className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white ${
+                    errors.supplier
+                      ? "border-red-300 focus:ring-red-500 focus:border-red-500"
+                      : "border-gray-300"
+                  }`}
+                >
+                  <option value="">Select supplier</option>
+                  {suppliers.map((supplier) => (
+                    <option key={supplier.id} value={supplier.id}>
+                      {supplier.name}
+                    </option>
+                  ))}
+                </select>
+              )}
               {errors.supplier && (
                 <p className="mt-1 text-sm text-red-500">{errors.supplier}</p>
               )}
