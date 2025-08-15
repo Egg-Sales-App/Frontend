@@ -125,6 +125,7 @@ export const inventoryService = {
         quantity_in_stock: parseInt(productData.quantity_in_stock || 0),
         expiry_date: productData.expiry_date || null,
         supplier: productData.supplier || null,
+        supplier_id: productData.supplier_id || null,
       };
 
       const response = await fetch(`${config.DJANGO_BASE_URL}/api/products/`, {

@@ -98,13 +98,11 @@ const AddProduct = ({ onClose, onSave, categories = [], suppliers = [] }) => {
       };
 
       console.log("📝 AddProduct submitting data:", productData);
-      console.log(
-        "🏢 Selected supplier ID (integer):",
-        parseInt(formData.supplier)
-      );
+
       console.log(
         "🔢 Type of supplier_id:",
-        typeof parseInt(formData.supplier)
+        typeof productData.supplier_id,
+        productData.supplier_id
       );
 
       onSave(productData);
@@ -397,7 +395,7 @@ const AddProduct = ({ onClose, onSave, categories = [], suppliers = [] }) => {
           {/* Supplier */}
           <div className="grid grid-cols-3 gap-4 items-center">
             <label className="text-sm font-medium text-gray-700 text-right">
-              Supplier *
+              Supplier
             </label>
             <div className="col-span-2">
               {suppliers.length === 0 ? (
