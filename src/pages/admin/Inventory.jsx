@@ -134,6 +134,9 @@ const Inventory = () => {
         setLoading(true);
         console.log("🔄 Fetching data from API...");
 
+        // Test toast to verify system is working
+        info("Loading inventory data...");
+
         // Fetch both products and suppliers in parallel
         const [productsResponse, suppliersResponse] = await Promise.all([
           inventoryService.getProducts({
@@ -191,10 +194,30 @@ const Inventory = () => {
         setCategories(extractedCategories);
         setSuppliers(suppliersArray);
         setLoading(false);
+
+        // Show success message only if we have data
+        if (mappedProducts.length > 0) {
+          info(
+            `Loaded ${mappedProducts.length} products and ${suppliersArray.length} suppliers`
+          );
+
+          // Check for low stock items and notify
+          const lowStockItems = mappedProducts.filter(
+            (product) => product.stock < 10
+          );
+          if (lowStockItems.length > 0) {
+            setTimeout(() => {
+              showError(
+                `⚠️ Warning: ${lowStockItems.length} product(s) have low stock (<10 units)`
+              );
+            }, 2000); // Show after 2 seconds to not overwhelm the user
+          }
+        }
       } catch (err) {
         console.error("❌ Error fetching data:", err);
         setError(err.message);
         setLoading(false);
+        showError(`Failed to load inventory data: ${err.message}`);
 
         // Fallback to empty data if API fails
         console.log("🔄 Setting empty data as fallback...");
@@ -311,10 +334,51 @@ const Inventory = () => {
   const handleCategoryClick = (categoryName) => {
     setSelectedCategory(categoryName);
     setSelectedFilter("all"); // Reset filter when changing category
+
+    // Show informative toast for category changes
+    if (categoryName === "all") {
+      info(`Showing all ${products.length} products`);
+    } else {
+      const categoryProducts = products.filter((product) => {
+        if (categoryName === "Feed & Nutrition") {
+          return (
+            product.category === "Feed & Nutrition" ||
+            product.category === "Feed"
+          );
+        }
+        return product.category === categoryName;
+      });
+      info(
+        `Switched to ${categoryName} - ${categoryProducts.length} product(s)`
+      );
+    }
   };
 
   const handleFilterClick = (filterType) => {
     setSelectedFilter(filterType);
+
+    // Show informative toast for special filters
+    if (filterType === "low-stock") {
+      const lowStockCount = products.filter(
+        (product) => product.stock < 10
+      ).length;
+      if (lowStockCount > 0) {
+        info(`Found ${lowStockCount} product(s) with low stock (< 10 units)`);
+      } else {
+        info("No products with low stock found");
+      }
+    } else if (filterType === "top-selling") {
+      const topSellingCount = products.filter(
+        (product) => product.isTopSelling
+      ).length;
+      if (topSellingCount > 0) {
+        info(`Showing ${topSellingCount} top-selling product(s)`);
+      } else {
+        info("No top-selling products found");
+      }
+    } else if (filterType === "highest-value") {
+      info("Products sorted by highest inventory value");
+    }
   };
 
   // Get filter name for display
@@ -360,11 +424,13 @@ const Inventory = () => {
         // Remove product from local state
         setProducts(products.filter((p) => p.id !== productId));
 
-        // Close modal
-        closeModal();
-
         console.log("✅ Product deleted successfully");
         success("Product deleted successfully!");
+
+        // Close modal with slight delay to ensure toast shows
+        setTimeout(() => {
+          closeModal();
+        }, 100);
       } catch (error) {
         console.error("❌ Error deleting product:", error);
         showError(`Failed to delete product: ${error.message}`);
@@ -454,11 +520,13 @@ const Inventory = () => {
         )
       );
 
-      // Close modal
-      closeModal();
-
       console.log("✅ Product updated successfully");
       success("Product updated successfully!");
+
+      // Close modal with slight delay to ensure toast shows
+      setTimeout(() => {
+        closeModal();
+      }, 100);
     } catch (error) {
       console.error("❌ Error updating product:", error);
       showError(`Failed to update product: ${error.message}`);
@@ -535,11 +603,13 @@ const Inventory = () => {
       // Add to products list
       setProducts((prevProducts) => [...prevProducts, newProduct]);
 
-      // Close modal
-      handleProductModalClose();
-
       console.log("✅ Product added successfully:", newProduct);
-      success("Product added successfully!");
+      success(`Product "${newProduct.name}" added successfully!`);
+
+      // Close modal with slight delay to ensure toast shows
+      setTimeout(() => {
+        handleProductModalClose();
+      }, 100);
     } catch (error) {
       console.error("❌ Error saving product:", error);
       showError(`Failed to save product: ${error.message}`);
