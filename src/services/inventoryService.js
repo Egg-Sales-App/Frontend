@@ -195,10 +195,42 @@ export const inventoryService = {
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || `HTTP error! status: ${response.status}`
-        );
+        const errorData = await response.json().catch(() => ({}));
+        console.error("❌ API Error Response:", errorData);
+
+        // Extract detailed error messages
+        let errorMessage = `HTTP error! status: ${response.status}`;
+
+        if (errorData.message) {
+          errorMessage = errorData.message;
+        } else if (errorData.detail) {
+          errorMessage = errorData.detail;
+        } else if (errorData.errors) {
+          // Handle field-specific errors
+          const fieldErrors = Object.entries(errorData.errors)
+            .map(
+              ([field, errors]) =>
+                `${field}: ${
+                  Array.isArray(errors) ? errors.join(", ") : errors
+                }`
+            )
+            .join("; ");
+          errorMessage = `Validation errors: ${fieldErrors}`;
+        } else if (
+          typeof errorData === "object" &&
+          Object.keys(errorData).length > 0
+        ) {
+          // Handle Django field errors (non-field errors)
+          const allErrors = Object.entries(errorData)
+            .map(([field, errors]) => {
+              const errorList = Array.isArray(errors) ? errors : [errors];
+              return `${field}: ${errorList.join(", ")}`;
+            })
+            .join("; ");
+          errorMessage = `Validation errors: ${allErrors}`;
+        }
+
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { inventoryService } from "../../services/inventoryService";
 import { supplierService } from "../../services/supplierService";
+import { categoryService } from "../../services/categoryService";
 import { useToast } from "../../components/ui/ToastContext";
 import HybridFeedImage from "../../assets/hybridfeed.png";
 import HalfDozenEggsImage from "../../assets/eggcrate.png";
@@ -11,6 +12,8 @@ import BroilerEquipmentImage from "../../assets/broilerequipment.png";
 import DewormerImage from "../../assets/dewormer.png";
 import ChickenFeedImage from "../../assets/chicken_feed.png";
 import AddProduct from "../../components/ui/AddProduct";
+import CategoryManagement from "../../components/ui/CategoryManagement";
+import CategoryDropdown from "../../components/ui/CategoryDropdown";
 
 const Inventory = () => {
   const [products, setProducts] = useState([]);
@@ -99,35 +102,6 @@ const Inventory = () => {
     }
   };
 
-  // Extract unique categories from products and create category objects
-  const extractCategoriesFromProducts = (productsData) => {
-    const categoryMap = new Map();
-
-    productsData.forEach((product) => {
-      const categoryName = product.category; // This is now the normalized category name
-      if (!categoryMap.has(categoryName)) {
-        categoryMap.set(categoryName, {
-          id: categoryMap.size + 1,
-          name: categoryName,
-          totalProducts: 0,
-          totalValue: 0,
-          lastWeekSales: 0,
-          lowStockItems: 0,
-        });
-      }
-
-      const category = categoryMap.get(categoryName);
-      category.totalProducts += 1;
-      category.totalValue += product.price * product.stock;
-      category.lastWeekSales += product.weeklySales || 0;
-      if (product.stock < 10) {
-        category.lowStockItems += 1;
-      }
-    });
-
-    return Array.from(categoryMap.values());
-  };
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -137,20 +111,23 @@ const Inventory = () => {
         // Test toast to verify system is working
         info("Loading inventory data...");
 
-        // Fetch both products and suppliers in parallel
-        const [productsResponse, suppliersResponse] = await Promise.all([
-          inventoryService.getProducts({
-            page: 1,
-            limit: 100, // Get all products for now
-          }),
-          supplierService.getSuppliers({
-            page: 1,
-            limit: 100, // Get all suppliers
-          }),
-        ]);
+        // Fetch products, suppliers, and categories in parallel
+        const [productsResponse, suppliersResponse, categoriesResponse] =
+          await Promise.all([
+            inventoryService.getProducts({
+              page: 1,
+              limit: 100, // Get all products for now
+            }),
+            supplierService.getSuppliers({
+              page: 1,
+              limit: 100, // Get all suppliers
+            }),
+            categoryService.getCategories(),
+          ]);
 
         console.log("📦 Products API Response:", productsResponse);
         console.log("👥 Suppliers API Response:", suppliersResponse);
+        console.log("📂 Categories API Response:", categoriesResponse);
 
         // Handle products
         const productsArray =
@@ -161,10 +138,7 @@ const Inventory = () => {
         const mappedProducts = productsArray.map((product) => ({
           id: product.id,
           name: product.name,
-          category:
-            product.category?.name === "Feed"
-              ? "Feed & Nutrition"
-              : product.category?.name || product.category, // Handle nested category object
+          category: product.category?.name || product.category, // Handle nested category object
           categoryId: getCategoryIdByName(
             product.category?.name || product.category
           ),
@@ -192,14 +166,13 @@ const Inventory = () => {
         const suppliersArray = suppliersResponse.suppliers || [];
         console.log("👥 Suppliers to set:", suppliersArray);
 
-        // Extract categories from products
-        const extractedCategories =
-          extractCategoriesFromProducts(mappedProducts);
-        console.log("📂 Extracted categories:", extractedCategories);
+        // Handle categories from API
+        const apiCategories = categoriesResponse.categories || [];
+        console.log("📂 API Categories:", apiCategories);
 
         setProducts(mappedProducts);
         setFilteredProducts(mappedProducts);
-        setCategories(extractedCategories);
+        setCategories(apiCategories);
         setSuppliers(suppliersArray);
         setLoading(false);
 
@@ -246,13 +219,6 @@ const Inventory = () => {
     // First filter by category
     if (selectedCategory !== "all") {
       baseProducts = products.filter((product) => {
-        // Handle mapping between API categories and UI categories
-        if (selectedCategory === "Feed & Nutrition") {
-          return (
-            product.category === "Feed & Nutrition" ||
-            product.category === "Feed"
-          );
-        }
         return product.category === selectedCategory;
       });
     }
@@ -280,6 +246,10 @@ const Inventory = () => {
       case "low-stock":
         // Show low stock items
         finalProducts = baseProducts.filter((product) => product.stock < 10);
+        break;
+      case "available-products":
+        // Show all available products (in stock > 0)
+        finalProducts = baseProducts.filter((product) => product.stock > 0);
         break;
       default:
         finalProducts = baseProducts;
@@ -314,10 +284,6 @@ const Inventory = () => {
 
       // Calculate real-time data for selected category from API products
       const categoryProducts = products.filter((p) => {
-        // Handle mapping between API categories and UI categories
-        if (selectedCategory === "Feed & Nutrition") {
-          return p.category === "Feed & Nutrition" || p.category === "Feed";
-        }
         return p.category === selectedCategory;
       });
 
@@ -348,12 +314,6 @@ const Inventory = () => {
       info(`Showing all ${products.length} products`);
     } else {
       const categoryProducts = products.filter((product) => {
-        if (categoryName === "Feed & Nutrition") {
-          return (
-            product.category === "Feed & Nutrition" ||
-            product.category === "Feed"
-          );
-        }
         return product.category === categoryName;
       });
       info(
@@ -384,7 +344,12 @@ const Inventory = () => {
       } else {
         info("No top-selling products found");
       }
-    } else if (filterType === "highest-value") {
+    } else if (filterType === "available-products") {
+      const availableCount = products.filter(
+        (product) => product.stock > 0
+      ).length;
+      info(`Showing ${availableCount} available product(s) in stock`);
+    } else if (filterType === "total-value") {
       info("Products sorted by highest inventory value");
     }
   };
@@ -402,6 +367,8 @@ const Inventory = () => {
         return "Top Selling Products";
       case "low-stock":
         return "Low Stock Items";
+      case "available-products":
+        return "Available Products";
       default:
         return "All Products";
     }
@@ -473,31 +440,70 @@ const Inventory = () => {
         return;
       }
 
-      // Construct supplier object if any supplier data is provided
-      const supplierData = formData.supplierDetails ||
-        selectedProduct.supplierDetails || {
-          name: formData.supplier || selectedProduct.supplier || "",
-          contact_email: "",
-          contact_phone: "",
-          address: "",
-        };
+      // Determine the correct category ID
+      let categoryId;
+      if (formData.categoryId) {
+        // User selected a new category from dropdown
+        categoryId = parseInt(formData.categoryId);
+      } else if (selectedProduct.categoryId) {
+        // Use existing category ID
+        categoryId = selectedProduct.categoryId;
+      } else {
+        // Fallback: find category ID by name
+        const categoryFromName = categories.find(
+          (cat) => cat.name === selectedProduct.category
+        );
+        categoryId = categoryFromName ? categoryFromName.id : 1; // Default to first category if not found
+      }
 
-      // Prepare data for API
+      // Determine the correct supplier ID
+      let supplierId;
+      if (formData.supplierId) {
+        // User selected a new supplier
+        supplierId = parseInt(formData.supplierId);
+      } else if (selectedProduct.supplierDetails?.id) {
+        // Use existing supplier ID
+        supplierId = selectedProduct.supplierDetails.id;
+      } else {
+        // Try to find supplier by name
+        const supplierFromName = suppliers.find(
+          (sup) => sup.name === selectedProduct.supplier
+        );
+        supplierId = supplierFromName ? supplierFromName.id : 1; // Default to first supplier if not found
+      }
+
+      // Construct supplier object for the nested supplier field
+      const selectedSupplier = suppliers.find((s) => s.id === supplierId);
+      const supplierData = selectedSupplier
+        ? {
+            name: selectedSupplier.name,
+            contact_email: selectedSupplier.contact_email || null,
+            contact_phone: selectedSupplier.contact_phone || null,
+            address: selectedSupplier.address || null,
+          }
+        : {
+            name: selectedProduct.supplier || "Unknown",
+            contact_email: null,
+            contact_phone: null,
+            address: null,
+          };
+
+      // Prepare data for API - match the exact format expected
       const updateData = {
         name: productName,
-        description: formData.description || selectedProduct.description,
-        category: formData.category || selectedProduct.category,
-        price: productPrice,
+        description: formData.description || selectedProduct.description || "",
+        category: categoryId, // Must be a number (category ID)
+        price: String(productPrice), // Must be a string
         quantity_in_stock: parseInt(productStock),
-        sku: formData.sku || selectedProduct.sku,
+        sku: formData.sku || selectedProduct.sku || "",
         unit: selectedProduct.unit || "unit",
-        expiry_date: formData.expiryDate || selectedProduct.expiryDate,
-        supplier: supplierData,
-        supplier_id:
-          formData.supplierId || selectedProduct.supplierDetails?.id || 0,
+        expiry_date: formData.expiryDate || selectedProduct.expiryDate || null,
+        supplier: supplierData, // Nested supplier object
+        supplier_id: supplierId, // Required integer
       };
 
       console.log("🚀 Sending update to API:", updateData);
+      console.log("🔍 Category ID:", categoryId, "Supplier ID:", supplierId);
 
       // Call update API
       const response = await inventoryService.updateProduct(
@@ -515,7 +521,15 @@ const Inventory = () => {
                 ...product,
                 name: updateData.name,
                 description: updateData.description,
-                category: updateData.category,
+                category:
+                  typeof updateData.category === "number"
+                    ? categories.find((c) => c.id === updateData.category)
+                        ?.name || updateData.category
+                    : updateData.category,
+                categoryId:
+                  typeof updateData.category === "number"
+                    ? updateData.category
+                    : getCategoryIdByName(updateData.category),
                 price: parseFloat(updateData.price),
                 stock: parseInt(updateData.quantity_in_stock),
                 sku: updateData.sku,
@@ -562,11 +576,21 @@ const Inventory = () => {
         return;
       }
 
+      // Find the selected category object
+      const selectedCategory = categories.find(
+        (c) => c.id === parseInt(productData.category)
+      );
+
+      if (!selectedCategory) {
+        showError("Selected category not found");
+        return;
+      }
+
       // Map component data to EXACT API schema format
       const apiProductData = {
         name: productData.name, // required string
         description: productData.description || "", // optional string
-        category: productData.category, // required string (enum)
+        category: selectedCategory.id, // required category ID (integer)
         price: String(productData.buyingPrice), // required string (decimal)
         quantity_in_stock: parseInt(productData.quantity), // required integer
         sku: productData.sku || `SKU-${Date.now()}`, // optional string
@@ -639,33 +663,35 @@ const Inventory = () => {
     // Handle nested category object
     const actualCategoryName = categoryName?.name || categoryName;
 
-    // First try to find in dynamic categories
-    const dynamicCategory = categories.find(
+    // Find in API categories
+    const apiCategory = categories.find(
       (cat) => cat.name === actualCategoryName
     );
-    if (dynamicCategory) {
-      return dynamicCategory.id;
+    if (apiCategory) {
+      return apiCategory.id;
     }
 
-    // Fallback to static mapping
-    const categoryMap = {
-      "Feed & Nutrition": 1,
-      "Day Old Chick": 2,
-      Equipment: 3,
-      Feed: 1, // Map API category "Feed" to "Feed & Nutrition"
-      Chick: 2,
-      Drugs: 4,
-    };
-    return categoryMap[actualCategoryName] || 1;
+    // If not found, return null or a default value
+    console.warn(`Category not found in API: ${actualCategoryName}`);
+    return null;
+  };
+
+  // Function to refresh categories after CRUD operations
+  const refreshCategories = async () => {
+    try {
+      const result = await categoryService.getCategories();
+      const apiCategories = result.categories || [];
+      setCategories(apiCategories);
+    } catch (error) {
+      console.error("Error refreshing categories:", error);
+    }
   };
 
   // Get categories with dynamic product counts from API data
   const getCategoriesWithCounts = () => {
     return categories.map((category) => {
       const categoryProducts = products.filter(
-        (p) =>
-          p.category === category.name ||
-          (category.name === "Feed & Nutrition" && p.category === "Feed")
+        (p) => p.category === category.name
       );
 
       return {
@@ -851,11 +877,33 @@ const Inventory = () => {
           >
             Add Product
           </button>
-          <button className="btn bg-blue-500 text-gray-100 hover:bg-blue-600 font-medium">
-            Add Category
+          <button
+            className="btn bg-blue-500 text-gray-100 hover:bg-blue-600 font-medium"
+            onClick={() =>
+              document.getElementById("category_management_modal").showModal()
+            }
+          >
+            Manage Categories
           </button>
         </div>
       </div>
+
+      {/* Category Management Modal */}
+      <dialog id="category_management_modal" className="modal">
+        <div className="modal-box bg-white max-w-4xl w-full text-black">
+          <form method="dialog">
+            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2 text-gray-600 hover:text-gray-800">
+              ✕
+            </button>
+          </form>
+          <div className="text-black">
+            <CategoryManagement onCategoryUpdate={refreshCategories} />
+          </div>
+        </div>
+        <form method="dialog" className="modal-backdrop">
+          <button>close</button>
+        </form>
+      </dialog>
 
       {/* Add Product Modal */}
       <dialog id="add_product_modal" className="modal text-black">
@@ -870,7 +918,7 @@ const Inventory = () => {
           <AddProduct
             onSave={handleProductSave}
             onClose={handleProductModalClose}
-            categories={categories.map((cat) => cat.name)}
+            categories={categories}
             suppliers={suppliers}
           />
         </div>
@@ -947,19 +995,20 @@ const Inventory = () => {
                         {selectedProduct.category}
                       </p>
                     ) : (
-                      <select
-                        value={formData.category || selectedProduct.category}
-                        onChange={(e) =>
-                          setFormData({ ...formData, category: e.target.value })
+                      <CategoryDropdown
+                        value={
+                          formData.categoryId || selectedProduct.categoryId
                         }
-                        className="w-full p-2 border border-gray-300 rounded"
-                      >
-                        {categories.map((cat) => (
-                          <option key={cat.name} value={cat.name}>
-                            {cat.name}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            categoryId: e.target.value,
+                          })
+                        }
+                        name="categoryId"
+                        label=""
+                        className="w-full"
+                      />
                     )}
                   </div>
 
@@ -1309,13 +1358,27 @@ const Inventory = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           <FilterCard
             title="Total Products"
             value={currentCategoryData.totalProducts}
-            subtitle="Active items"
+            subtitle="All items"
             filterType="total-products"
             icon="📦"
+          />
+
+          <FilterCard
+            title="Available"
+            value={
+              selectedCategory === "all"
+                ? products.filter((p) => p.stock > 0).length
+                : products.filter(
+                    (p) => p.category === selectedCategory && p.stock > 0
+                  ).length
+            }
+            subtitle="In stock"
+            filterType="available-products"
+            icon="✅"
           />
 
           <FilterCard
