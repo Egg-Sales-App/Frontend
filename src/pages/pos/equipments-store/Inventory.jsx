@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { inventoryService } from "../../../services/inventoryService";
+import { supplierService } from "../../../services/supplierService";
+import { categoryService } from "../../../services/categoryService";
 import EquipmentImage from "../../../assets/equipment.png";
 import FeederImage from "../../../assets/feeder.png";
 import BroilerEquipmentImage from "../../../assets/broilerequipment.png";
@@ -21,6 +23,9 @@ const Inventory = () => {
   const [error, setError] = useState(null);
   const [cartItems, setCartItems] = useState([]);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [suppliers, setSuppliers] = useState([]);
+  const [apiCategories, setApiCategories] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   const handleCheckout = () => {
     setShowCheckout(true);
@@ -35,28 +40,58 @@ const Inventory = () => {
     }
   };
 
-  const [categories, setCategories] = useState([]);
+  // Helper function to map category names to IDs (Equipment focused)
+  const getCategoryIdByName = (categoryName, apiCategories = []) => {
+    // First, try to find the category in the API categories
+    if (apiCategories && apiCategories.length > 0) {
+      const found = apiCategories.find(
+        (cat) =>
+          cat.name &&
+          cat.name.toLowerCase() === (categoryName || "").toLowerCase()
+      );
+      if (found) {
+        return found.id;
+      }
+    }
 
-  // Helper function to map category names to IDs
-  const getCategoryIdByName = (categoryName) => {
+    // Fallback to static mapping for equipment categories
     const categoryMap = {
+      Equipment: 3,
+      "Broiler Equipment": 4,
+      "Feeding Equipment": 5,
+      "Poultry Equipment": 6,
+      // Legacy mappings for any mixed data
       Feed: 1,
       "Feed & Nutrition": 1,
       "Day Old Chick": 2,
-      Equipment: 3,
       Chicks: 2,
       Nutrition: 1,
     };
-    return categoryMap[categoryName] || 1;
+
+    // Try exact match first
+    if (categoryMap[categoryName]) {
+      return categoryMap[categoryName];
+    }
+
+    // Try case-insensitive match
+    const categoryStr = (categoryName || "").toLowerCase();
+    for (const [key, value] of Object.entries(categoryMap)) {
+      if (key.toLowerCase() === categoryStr) {
+        return value;
+      }
+    }
+
+    // Default to Equipment category for equipment store
+    return 3;
   };
 
   // Helper function to extract categories from products
-  const extractCategoriesFromProducts = (products) => {
+  const extractCategoriesFromProducts = (products, apiCategories = []) => {
     const categoryMap = new Map();
 
     products.forEach((product) => {
       const categoryName = product.category;
-      const categoryId = getCategoryIdByName(categoryName);
+      const categoryId = getCategoryIdByName(categoryName, apiCategories);
 
       if (!categoryMap.has(categoryName)) {
         categoryMap.set(categoryName, {
@@ -148,25 +183,9 @@ const Inventory = () => {
     }
   };
 
-  // Enhanced mock data with categories and sales data (fallback only)
+  // Enhanced mock data with equipment categories only (fallback only)
   const mockInventoryData = {
     categories: [
-      {
-        id: 1,
-        name: "Feed & Nutrition",
-        totalProducts: 3,
-        totalValue: 2575,
-        lastWeekSales: 8,
-        lowStockItems: 1,
-      },
-      {
-        id: 2,
-        name: "Day Old Chick",
-        totalProducts: 3,
-        totalValue: 9040,
-        lastWeekSales: 15,
-        lowStockItems: 1,
-      },
       {
         id: 3,
         name: "Equipment",
@@ -175,104 +194,32 @@ const Inventory = () => {
         lastWeekSales: 3,
         lowStockItems: 1,
       },
+      {
+        id: 4,
+        name: "Broiler Equipment",
+        totalProducts: 2,
+        totalValue: 2800,
+        lastWeekSales: 2,
+        lowStockItems: 0,
+      },
+      {
+        id: 5,
+        name: "Feeding Equipment",
+        totalProducts: 2,
+        totalValue: 1800,
+        lastWeekSales: 1,
+        lowStockItems: 1,
+      },
     ],
     products: [
-      // Feed & Nutrition Category
-      {
-        id: 1,
-        name: "Hybrid Feed Premium",
-        category: "Feed & Nutrition",
-        categoryId: 1,
-        stock: 10,
-        img: HybridFeedImage,
-        price: 150,
-        cost: 120,
-        sku: "HF-001",
-        description: "Premium quality hybrid feed for optimal nutrition",
-        weeklySales: 5,
-        isTopSelling: true,
-      },
-      {
-        id: 2,
-        name: "Starter Feed",
-        category: "Feed & Nutrition",
-        categoryId: 1,
-        stock: 25,
-        img: HybridFeedImage,
-        price: 180,
-        cost: 140,
-        sku: "SF-001",
-        description: "Specially formulated for young chicks",
-        weeklySales: 12,
-        isTopSelling: true,
-      },
-      {
-        id: 3,
-        name: "Layer Feed",
-        category: "Feed & Nutrition",
-        categoryId: 1,
-        stock: 5,
-        img: HybridFeedImage,
-        price: 160,
-        cost: 130,
-        sku: "LF-001",
-        description: "High calcium feed for laying hens",
-        weeklySales: 3,
-        isTopSelling: false,
-      },
-
-      // Day Old Chick Category
-      {
-        id: 7,
-        name: "Day Old Chicks",
-        category: "Day Old Chick",
-        categoryId: 3,
-        stock: 8,
-        img: DayOldChicksImage,
-        price: 5,
-        cost: 3,
-        sku: "CH-001",
-        description: "Healthy day-old chicks",
-        weeklySales: 20,
-        isTopSelling: true,
-      },
-      {
-        id: 8,
-        name: "Broiler Chickens",
-        category: "Day Old Chick",
-        categoryId: 3,
-        stock: 20,
-        img: DayOldChicksImage,
-        price: 250,
-        cost: 180,
-        sku: "BR-001",
-        description: "Ready-to-sell broiler chickens",
-        weeklySales: 8,
-        isTopSelling: true,
-      },
-      {
-        id: 9,
-        name: "Layer Hens",
-        category: "Day Old Chick",
-        categoryId: 3,
-        stock: 12,
-        img: DayOldChicksImage,
-        price: 300,
-        cost: 220,
-        sku: "LH-001",
-        description: "Productive laying hens",
-        weeklySales: 4,
-        isTopSelling: false,
-      },
-
       // Equipment Category
       {
         id: 10,
         name: "Feeders",
         category: "Equipment",
-        categoryId: 4,
+        categoryId: 3,
         stock: 15,
-        img: HybridFeedImage,
+        img: FeederImage,
         price: 75,
         cost: 50,
         sku: "FD-001",
@@ -284,9 +231,9 @@ const Inventory = () => {
         id: 11,
         name: "Water Dispensers",
         category: "Equipment",
-        categoryId: 4,
+        categoryId: 3,
         stock: 8,
-        img: HybridFeedImage,
+        img: EquipmentImage,
         price: 85,
         cost: 60,
         sku: "WD-001",
@@ -298,9 +245,9 @@ const Inventory = () => {
         id: 12,
         name: "Incubators",
         category: "Equipment",
-        categoryId: 4,
+        categoryId: 3,
         stock: 2,
-        img: HybridFeedImage,
+        img: EquipmentImage,
         price: 1500,
         cost: 1200,
         sku: "IN-001",
@@ -308,76 +255,247 @@ const Inventory = () => {
         weeklySales: 1,
         isTopSelling: false,
       },
+      {
+        id: 13,
+        name: "Broiler Equipment Set",
+        category: "Broiler Equipment",
+        categoryId: 4,
+        stock: 5,
+        img: BroilerEquipmentImage,
+        price: 800,
+        cost: 600,
+        sku: "BE-001",
+        description: "Complete broiler equipment package",
+        weeklySales: 2,
+        isTopSelling: true,
+      },
+      {
+        id: 14,
+        name: "Heating Lamps",
+        category: "Broiler Equipment",
+        categoryId: 4,
+        stock: 12,
+        img: EquipmentImage,
+        price: 45,
+        cost: 30,
+        sku: "HL-001",
+        description: "Infrared heating lamps for chicks",
+        weeklySales: 8,
+        isTopSelling: true,
+      },
+      {
+        id: 15,
+        name: "Feeding Troughs",
+        category: "Feeding Equipment",
+        categoryId: 5,
+        stock: 20,
+        img: FeederImage,
+        price: 35,
+        cost: 25,
+        sku: "FT-001",
+        description: "Plastic feeding troughs",
+        weeklySales: 5,
+        isTopSelling: false,
+      },
+      {
+        id: 16,
+        name: "Water Bottles",
+        category: "Feeding Equipment",
+        categoryId: 5,
+        stock: 8,
+        img: EquipmentImage,
+        price: 25,
+        cost: 18,
+        sku: "WB-001",
+        description: "Portable water bottles for poultry",
+        weeklySales: 3,
+        isTopSelling: false,
+      },
     ],
   };
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
-        console.log("🔄 Fetching products from API...");
+        console.log("🔄 Fetching data from API...");
 
-        // Fetch products from backend API
-        const response = await inventoryService.getProducts({
-          page: 1,
-          limit: 100, // Get all products for now
-        });
+        // Fetch products, suppliers, and categories in parallel (same as admin inventory)
+        const [productsResponse, suppliersResponse, categoriesResponse] =
+          await Promise.all([
+            inventoryService.getProducts({
+              page: 1,
+              limit: 100, // Get all products for now
+            }),
+            supplierService.getSuppliers({
+              page: 1,
+              limit: 100, // Get all suppliers
+            }),
+            categoryService.getCategories(),
+          ]);
 
-        console.log("📦 API Response:", response);
+        console.log("📦 Products API Response:", productsResponse);
+        console.log("👥 Suppliers API Response:", suppliersResponse);
+        console.log("📂 Categories API Response:", categoriesResponse);
 
-        // inventoryService now handles response format normalization
-        const productsArray = response.products || [];
-
+        // Handle products
+        const productsArray =
+          productsResponse.products || productsResponse || [];
         console.log("📦 Products to map:", productsArray);
 
-        // Map API response to component format
-        const mappedProducts = productsArray.map((product) => ({
-          id: product.id,
-          name: product.name,
-          category:
-            product.category === "Feed" ? "Feed & Nutrition" : product.category, // Normalize category
-          categoryId: getCategoryIdByName(product.category),
-          stock: product.quantity_in_stock,
-          img: getProductImage(product.category, product.name), // Dynamic image selection
-          price: parseFloat(product.price) || 0,
-          cost: parseFloat(product.price) * 0.8 || 0, // Estimate cost as 80% of price
-          sku: product.sku,
-          description: product.description,
-          weeklySales: Math.floor(Math.random() * 20), // Mock weekly sales for now
-          isTopSelling: Math.random() > 0.7, // Mock top selling status
-          unit: product.unit,
-          expiryDate: product.expiry_date,
-          supplier: product.supplier?.name || "Unknown", // Handle supplier object
-          supplierDetails: product.supplier, // Keep full supplier info
-          dateAdded: product.date_added,
-        }));
+        // Log the first few products to understand the data structure
+        if (productsArray.length > 0) {
+          console.log(
+            "🔍 First product structure:",
+            JSON.stringify(productsArray[0], null, 2)
+          );
+          console.log(
+            "🔍 All product names and categories:",
+            productsArray.map((p) => ({
+              name: p.name,
+              category: p.category?.name || p.category,
+              id: p.id,
+            }))
+          );
+        }
 
-        console.log("✅ Mapped products:", mappedProducts);
+        // Handle suppliers
+        const suppliersArray =
+          suppliersResponse.suppliers || suppliersResponse || [];
+        console.log("👥 Suppliers to set:", suppliersArray);
 
-        // Extract categories from products
-        const extractedCategories =
-          extractCategoriesFromProducts(mappedProducts);
-        console.log("📂 Extracted categories:", extractedCategories);
+        // Handle categories
+        const categoriesArray =
+          categoriesResponse.categories || categoriesResponse || [];
+        console.log("📂 API Categories:", categoriesArray);
 
+        // For equipment store: Filter to only show equipment-related products
+        // This is a comprehensive filter that checks multiple criteria
+        const mappedProducts = productsArray
+          .filter((product) => {
+            // Get category name from different possible structures
+            const categoryName =
+              product.category?.name || product.category || "";
+            const categoryStr = categoryName.toLowerCase();
+
+            // Get product name
+            const productName = (product.name || "").toLowerCase();
+
+            // Define equipment keywords to look for
+            const equipmentKeywords = [
+              "equipment",
+              "feeder",
+              "broiler",
+              "incubator",
+              "heating",
+              "lamp",
+              "dispenser",
+              "trough",
+              "waterer",
+              "cage",
+              "coop",
+              "perch",
+              "nest",
+              "roost",
+              "ventilation",
+              "fan",
+              "heater",
+              "thermometer",
+            ];
+
+            // Check if category or product name contains equipment keywords
+            const isEquipment = equipmentKeywords.some(
+              (keyword) =>
+                categoryStr.includes(keyword) || productName.includes(keyword)
+            );
+
+            // Log filtering decision
+            console.log(
+              `${isEquipment ? "✅" : "❌"} Product: "${
+                product.name
+              }" | Category: "${categoryName}" | Equipment: ${isEquipment}`
+            );
+
+            return isEquipment;
+          })
+          .map((product) => {
+            // Get and normalize category name
+            const originalCategory =
+              product.category?.name || product.category || "Equipment";
+            let normalizedCategory = originalCategory;
+
+            // Normalize some common category names to equipment types
+            if (originalCategory.toLowerCase().includes("feeder")) {
+              normalizedCategory = "Feeding Equipment";
+            } else if (originalCategory.toLowerCase().includes("broiler")) {
+              normalizedCategory = "Broiler Equipment";
+            } else if (originalCategory.toLowerCase().includes("incubator")) {
+              normalizedCategory = "Equipment";
+            } else if (!originalCategory.toLowerCase().includes("equipment")) {
+              // If it doesn't contain 'equipment' but made it through the filter,
+              // it's probably equipment, so normalize it
+              normalizedCategory = "Equipment";
+            }
+
+            return {
+              id: product.id,
+              name: product.name,
+              category: normalizedCategory,
+              categoryId: getCategoryIdByName(
+                normalizedCategory,
+                categoriesArray
+              ),
+              stock: product.quantity_in_stock || 0,
+              img: getProductImage(normalizedCategory, product.name), // Dynamic image selection
+              price: parseFloat(product.price) || 0,
+              cost: parseFloat(product.price) * 0.8 || 0, // Estimate cost as 80% of price
+              sku: product.sku || `SKU-${product.id}`,
+              description: product.description || "",
+              weeklySales: Math.floor(Math.random() * 20), // Mock weekly sales for now
+              isTopSelling: Math.random() > 0.7, // Mock top selling status
+              unit: product.unit || "pcs",
+              expiryDate: product.expiry_date,
+              supplier: product.supplier?.name || "Unknown", // Handle supplier object
+              supplierDetails: product.supplier, // Keep full supplier info
+              dateAdded: product.date_added,
+            };
+          });
+
+        console.log("✅ Mapped equipment products:", mappedProducts);
+
+        // Extract categories from equipment products
+        const extractedCategories = extractCategoriesFromProducts(
+          mappedProducts,
+          categoriesArray
+        );
+        console.log("📂 Extracted equipment categories:", extractedCategories);
+
+        // Set all state
         setProducts(mappedProducts);
         setFilteredProducts(mappedProducts);
+        setSuppliers(suppliersArray);
+        setApiCategories(categoriesArray);
         setCategories(extractedCategories);
         setLoading(false);
+
+        console.log("✅ Equipment store data loaded successfully!");
       } catch (err) {
-        console.error("❌ Error fetching products:", err);
-        setError(err.message || "Failed to fetch products");
+        console.error("❌ Error fetching data:", err);
+        setError(err.message || "Failed to fetch data");
         setLoading(false);
 
         // Fallback to mock data if API fails
-        console.log("📋 Falling back to mock data...");
+        console.log("📋 Falling back to equipment mock data...");
         setProducts(mockInventoryData.products);
         setFilteredProducts(mockInventoryData.products);
         setCategories(mockInventoryData.categories);
+        setSuppliers([]);
+        setApiCategories([]);
       }
     };
 
-    fetchProducts();
+    fetchData();
   }, []);
 
   // Filter products by category and additional filters
@@ -513,7 +631,7 @@ const Inventory = () => {
         id: Date.now(), // Temporary ID
         name: productData.name,
         category: productData.category,
-        categoryId: getCategoryIdByName(productData.category),
+        categoryId: getCategoryIdByName(productData.category, apiCategories),
         stock: parseInt(productData.stock) || 0,
         price: parseFloat(productData.price) || 0,
         cost: parseFloat(productData.cost) || 0,
