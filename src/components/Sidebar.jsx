@@ -18,19 +18,53 @@ import {
 const Sidebar = () => {
   const { isCollapsed, isMobile, toggleSidebar } = useSidebar();
 
+  const iconSize = isCollapsed ? 24 : 18;
+
   const menuItems = [
-    { icon: <LayoutDashboard size={18} />, label: "Dashboard", path: "/admin/dashboard" },
-    { icon: <Boxes size={18} />, label: "Inventory", path: "/admin/inventory" },
-    { icon: <FileText size={18} />, label: "Reports", path: "/admin/reports" },
-    { icon: <Truck size={18} />, label: "Suppliers", path: "/admin/suppliers" },
-    { icon: <ShoppingCart size={18} />, label: "Sales", path: "/admin/sales" },
-    { icon: <Store size={18} />, label: "Manage Store", path: "/admin/manage-store" },
-    { icon: <Users size={18} />, label: "Employees", path: "/admin/employees" },
+    {
+      icon: <LayoutDashboard size={iconSize} />,
+      label: "Dashboard",
+      path: "/admin/dashboard",
+    },
+    {
+      icon: <Boxes size={iconSize} />,
+      label: "Inventory",
+      path: "/admin/inventory",
+    },
+    {
+      icon: <FileText size={iconSize} />,
+      label: "Reports",
+      path: "/admin/reports",
+    },
+    {
+      icon: <Truck size={iconSize} />,
+      label: "Suppliers",
+      path: "/admin/suppliers",
+    },
+    {
+      icon: <ShoppingCart size={iconSize} />,
+      label: "Sales",
+      path: "/admin/sales",
+    },
+    {
+      icon: <Store size={iconSize} />,
+      label: "Manage Store",
+      path: "/admin/manage-store",
+    },
+    {
+      icon: <Users size={iconSize} />,
+      label: "Employees",
+      path: "/admin/employees",
+    },
   ];
 
   const footerItems = [
-    { icon: <Settings size={18} />, label: "Settings", path: "/admin/settings" },
-    { icon: <LogOut size={18} />, label: "Logout", path: "/login" },
+    {
+      icon: <Settings size={iconSize} />,
+      label: "Settings",
+      path: "/admin/settings",
+    },
+    { icon: <LogOut size={iconSize} />, label: "Logout", path: "/login" },
   ];
 
   const getLinkClasses = ({ isActive }) => {
@@ -38,7 +72,9 @@ const Sidebar = () => {
       isCollapsed ? "justify-center" : ""
     }`;
     return isActive
-      ? `${base} bg-blue-50 text-blue-600 font-semibold ${!isCollapsed ? "border-r-2 border-blue-600" : ""}`
+      ? `${base} bg-blue-50 text-blue-600 font-semibold ${
+          !isCollapsed ? "border-r-2 border-blue-600" : ""
+        }`
       : `${base} text-gray-700 hover:bg-gray-100 hover:text-blue-600`;
   };
 
@@ -70,7 +106,11 @@ const Sidebar = () => {
                 isCollapsed ? "mx-auto" : ""
               }`}
             >
-              {isCollapsed ? <Menu size={18} /> : <X size={18} />}
+              {isCollapsed ? (
+                <Menu size={20} color="#496961" />
+              ) : (
+                <X size={18} />
+              )}
             </button>
           </div>
 
