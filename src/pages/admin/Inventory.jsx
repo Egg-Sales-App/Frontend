@@ -104,7 +104,7 @@ const Inventory = () => {
     const categoryMap = new Map();
 
     productsData.forEach((product) => {
-      const categoryName = product.category;
+      const categoryName = product.category; // This is now the normalized category name
       if (!categoryMap.has(categoryName)) {
         categoryMap.set(categoryName, {
           id: categoryMap.size + 1,
@@ -153,7 +153,8 @@ const Inventory = () => {
         console.log("👥 Suppliers API Response:", suppliersResponse);
 
         // Handle products
-        const productsArray = productsResponse.products || [];
+        const productsArray =
+          productsResponse.products || productsResponse || [];
         console.log("📦 Products to map:", productsArray);
 
         // Map API response to component format
@@ -161,10 +162,17 @@ const Inventory = () => {
           id: product.id,
           name: product.name,
           category:
-            product.category === "Feed" ? "Feed & Nutrition" : product.category, // Normalize category
-          categoryId: getCategoryIdByName(product.category),
+            product.category?.name === "Feed"
+              ? "Feed & Nutrition"
+              : product.category?.name || product.category, // Handle nested category object
+          categoryId: getCategoryIdByName(
+            product.category?.name || product.category
+          ),
           stock: product.quantity_in_stock,
-          img: getProductImage(product.category, product.name), // Dynamic image selection
+          img: getProductImage(
+            product.category?.name || product.category,
+            product.name
+          ), // Dynamic image selection
           price: parseFloat(product.price) || 0,
           cost: parseFloat(product.price) * 0.8 || 0, // Estimate cost as 80% of price
           sku: product.sku,
@@ -584,8 +592,10 @@ const Inventory = () => {
       const newProduct = {
         id: response.product.id,
         name: response.product.name,
-        category: response.product.category,
-        categoryId: getCategoryIdByName(response.product.category),
+        category: response.product.category?.name || response.product.category,
+        categoryId: getCategoryIdByName(
+          response.product.category?.name || response.product.category
+        ),
         stock: response.product.quantity_in_stock,
         img: HybridFeedImage, // Default image
         price: parseFloat(response.product.price) || 0,
@@ -626,8 +636,13 @@ const Inventory = () => {
 
   // Helper function to get category ID by name
   const getCategoryIdByName = (categoryName) => {
+    // Handle nested category object
+    const actualCategoryName = categoryName?.name || categoryName;
+
     // First try to find in dynamic categories
-    const dynamicCategory = categories.find((cat) => cat.name === categoryName);
+    const dynamicCategory = categories.find(
+      (cat) => cat.name === actualCategoryName
+    );
     if (dynamicCategory) {
       return dynamicCategory.id;
     }
@@ -638,8 +653,10 @@ const Inventory = () => {
       "Day Old Chick": 2,
       Equipment: 3,
       Feed: 1, // Map API category "Feed" to "Feed & Nutrition"
+      Chick: 2,
+      Drugs: 4,
     };
-    return categoryMap[categoryName] || 1;
+    return categoryMap[actualCategoryName] || 1;
   };
 
   // Get categories with dynamic product counts from API data
