@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { useToast } from "../hooks/useToast";
+import { useToast } from "../components/ui/ToastContext";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../services/authService";
 
 const AuthTestPage = () => {
   const { user, logout, isAuthenticated, isLoading } = useAuth();
-  const { showToast } = useToast();
+  const { success, error: showError } = useToast();
   const navigate = useNavigate();
   const [authDetails, setAuthDetails] = useState({
     token: null,
@@ -31,11 +31,11 @@ const AuthTestPage = () => {
     try {
       console.log("🚪 Testing logout from auth test page...");
       await logout();
-      showToast("Logout completed successfully!", "success");
+      success("Logout completed successfully!");
       navigate("/login");
     } catch (error) {
       console.error("❌ Logout test failed:", error);
-      showToast("Logout failed: " + error.message, "error");
+      showError("Logout failed: " + error.message);
     }
   };
 
@@ -43,7 +43,7 @@ const AuthTestPage = () => {
     try {
       console.log("🔄 Testing token refresh...");
       const newToken = await authService.refreshToken();
-      showToast("Token refreshed successfully!", "success");
+      success("Token refreshed successfully!");
 
       // Update displayed token
       setAuthDetails((prev) => ({
@@ -52,7 +52,7 @@ const AuthTestPage = () => {
       }));
     } catch (error) {
       console.error("❌ Token refresh test failed:", error);
-      showToast("Token refresh failed: " + error.message, "error");
+      showError("Token refresh failed: " + error.message);
     }
   };
 
@@ -60,7 +60,7 @@ const AuthTestPage = () => {
     try {
       console.log("👤 Testing get current user...");
       const currentUser = await authService.getCurrentUser();
-      showToast("User data fetched successfully!", "success");
+      success("User data fetched successfully!");
 
       setAuthDetails((prev) => ({
         ...prev,
@@ -68,7 +68,7 @@ const AuthTestPage = () => {
       }));
     } catch (error) {
       console.error("❌ Get current user test failed:", error);
-      showToast("Get current user failed: " + error.message, "error");
+      showError("Get current user failed: " + error.message);
     }
   };
 

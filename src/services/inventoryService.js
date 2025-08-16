@@ -119,7 +119,7 @@ export const inventoryService = {
         sku: productData.sku,
         name: productData.name,
         description: productData.description,
-        category: productData.category,
+        category_id: productData.category, // API expects category_id, not category
         unit: productData.unit || "unit",
         price: parseFloat(productData.price),
         quantity_in_stock: parseInt(productData.quantity_in_stock || 0),
@@ -167,7 +167,7 @@ export const inventoryService = {
       const payload = {
         name: productData.name,
         description: productData.description,
-        category: productData.category,
+        category_id: productData.category, // API expects category_id, not category
         price: productData.price ? productData.price.toString() : "0", // Safely convert to string
         quantity_in_stock: parseInt(productData.quantity_in_stock) || 0,
         sku: productData.sku,

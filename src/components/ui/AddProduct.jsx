@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import CategoryDropdown from "./CategoryDropdown";
 
 const AddProduct = ({ onClose, onSave, categories = [], suppliers = [] }) => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -88,7 +89,7 @@ const AddProduct = ({ onClose, onSave, categories = [], suppliers = [] }) => {
       const productData = {
         name: formData.name, // required string
         description: formData.description, // optional string
-        category: formData.category, // required string (enum)
+        category: parseInt(formData.category), // required category ID (integer)
         buyingPrice: formData.buyingPrice, // will be converted to price string
         quantity: formData.quantity, // will be converted to quantity_in_stock integer
         unit: formData.unit, // required string
@@ -253,22 +254,14 @@ const AddProduct = ({ onClose, onSave, categories = [], suppliers = [] }) => {
               Category
             </label>
             <div className="col-span-2">
-              <select
+              <CategoryDropdown
                 value={formData.category}
                 onChange={(e) => handleInputChange("category", e.target.value)}
-                className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white ${
-                  errors.category
-                    ? "border-red-300 focus:ring-red-500 focus:border-red-500"
-                    : "border-gray-300"
-                }`}
-              >
-                <option value="">Select product category</option>
-                {categoryOptions.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
+                name="category"
+                required
+                placeholder="Select product category"
+                className={errors.category ? "border-red-300" : ""}
+              />
               {errors.category && (
                 <p className="mt-1 text-sm text-red-500">{errors.category}</p>
               )}

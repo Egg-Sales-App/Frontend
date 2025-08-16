@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { authService } from "../../services/authService";
 import { useAuth } from "../../hooks/useAuth";
-import { useToast } from "../../hooks/useToast";
+import { useToast } from "./ToastContext";
 import { useNavigate } from "react-router-dom";
 
 const TokenDebugger = () => {
   const [tokenInfo, setTokenInfo] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
-  const { showToast } = useToast();
+  const { success, error: showError } = useToast();
   const navigate = useNavigate();
 
   const updateTokenInfo = () => {
@@ -30,10 +30,10 @@ const TokenDebugger = () => {
       await authService.refreshToken();
       updateTokenInfo();
       console.log("✅ Manual token refresh successful");
-      showToast("Token refreshed successfully", "success");
+      success("Token refreshed successfully");
     } catch (error) {
       console.error("❌ Manual token refresh failed:", error);
-      showToast(error.message || "Token refresh failed", "error");
+      showError(error.message || "Token refresh failed");
     } finally {
       setRefreshing(false);
     }
@@ -44,13 +44,13 @@ const TokenDebugger = () => {
       console.log("🚪 TokenDebugger logout initiated...");
       const result = await logout();
 
-      showToast(result.message || "Logged out successfully", "success");
+      success(result.message || "Logged out successfully");
       console.log("🎉 Logout successful from TokenDebugger");
 
       navigate("/login", { replace: true });
     } catch (error) {
       console.error("❌ TokenDebugger logout error:", error);
-      showToast(error.message || "Logout failed. Please try again.", "error");
+      showError(error.message || "Logout failed. Please try again.");
     }
   };
 
