@@ -24,9 +24,24 @@ export const ToastProvider = ({ children }) => {
     }, duration);
   }, []);
 
-  const removeToast = useCallback((id) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  }, []);
+  const removeToast = useCallback(
+    (id) => {
+      console.log("🗑️ ToastContext: Removing toast with ID:", id);
+      console.log(
+        "🗑️ Current toasts before removal:",
+        toasts.map((t) => ({ id: t.id, message: t.message }))
+      );
+      setToasts((prev) => {
+        const filtered = prev.filter((t) => t.id !== id);
+        console.log(
+          "🗑️ Toasts after removal:",
+          filtered.map((t) => ({ id: t.id, message: t.message }))
+        );
+        return filtered;
+      });
+    },
+    [toasts]
+  );
 
   const success = useCallback(
     (message, duration) => {

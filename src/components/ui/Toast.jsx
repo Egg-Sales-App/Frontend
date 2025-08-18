@@ -7,6 +7,11 @@ import {
 } from "@heroicons/react/24/solid";
 
 const Toast = ({ toast, onRemove }) => {
+  const handleClose = () => {
+    console.log("🗑️ Closing toast with ID:", toast.id);
+    onRemove(toast.id);
+  };
+
   const getIcon = () => {
     switch (toast.type) {
       case "success":
@@ -40,10 +45,24 @@ const Toast = ({ toast, onRemove }) => {
       {getIcon()}
       <span className="ml-3 flex-1">{toast.message}</span>
       <button
-        onClick={() => onRemove(toast.id)}
-        className="ml-3 text-gray-400 hover:text-gray-600"
+        onClick={handleClose}
+        className="ml-3 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 p-1 rounded transition-colors duration-200"
+        aria-label="Close notification"
+        type="button"
       >
-        ×
+        <svg
+          className="h-4 w-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
       </button>
     </div>
   );
