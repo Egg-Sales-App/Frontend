@@ -13,6 +13,7 @@ import HalfDozenEggsImage from "../../../assets/eggcrate.png";
 import AddProduct from "../../../components/ui/AddProduct";
 import { ShoppingCartIcon } from "@heroicons/react/24/outline"; // or solid if you prefer
 import CheckoutCard from "../../../components/ui/CheckoutCard";
+import { useToast } from "../../../components/ui/ToastContext";
 
 const Inventory = () => {
   const [products, setProducts] = useState([]);
@@ -26,6 +27,9 @@ const Inventory = () => {
   const [suppliers, setSuppliers] = useState([]);
   const [apiCategories, setApiCategories] = useState([]);
   const [categories, setCategories] = useState([]);
+
+  // Add toast functionality
+  const { success, error: showError, warning, info } = useToast();
 
   const handleCheckout = () => {
     setShowCheckout(true);
@@ -480,13 +484,17 @@ const Inventory = () => {
         setLoading(false);
 
         console.log("✅ Equipment store data loaded successfully!");
+        success("Equipment inventory loaded successfully!", 3000);
       } catch (err) {
         console.error("❌ Error fetching data:", err);
         setError(err.message || "Failed to fetch data");
         setLoading(false);
 
+        showError(`Failed to load inventory: ${err.message}`, 5000);
+
         // Fallback to mock data if API fails
         console.log("📋 Falling back to equipment mock data...");
+        warning("Using offline data - some features may be limited", 4000);
         setProducts(mockInventoryData.products);
         setFilteredProducts(mockInventoryData.products);
         setCategories(mockInventoryData.categories);
@@ -821,13 +829,49 @@ const Inventory = () => {
           </div>
         </div>
         {/* Checkout Button with Cart Icon */}
-        <button
-          onClick={handleCheckout} // define this function or link to your checkout route
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-        >
-          <ShoppingCartIcon className="h-5 w-5" />
-          Checkout
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Toast Test Buttons (for development) */}
+          {import.meta.env.MODE === "development" && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => success("Test success message!")}
+                className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+                title="Test Success Toast"
+              >
+                ✓
+              </button>
+              <button
+                onClick={() => showError("Test error message!")}
+                className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                title="Test Error Toast"
+              >
+                ✗
+              </button>
+              <button
+                onClick={() => warning("Test warning message!")}
+                className="px-2 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600"
+                title="Test Warning Toast"
+              >
+                ⚠
+              </button>
+              <button
+                onClick={() => info("Test info message!")}
+                className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+                title="Test Info Toast"
+              >
+                i
+              </button>
+            </div>
+          )}
+
+          <button
+            onClick={handleCheckout} // define this function or link to your checkout route
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            <ShoppingCartIcon className="h-5 w-5" />
+            Checkout
+          </button>
+        </div>
       </div>
 
       {/* Add Product Modal */}
