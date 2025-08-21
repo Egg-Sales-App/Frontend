@@ -18,7 +18,7 @@ import {
 const Sidebar = () => {
   const { isCollapsed, isMobile, toggleSidebar } = useSidebar();
 
-  const iconSize = isCollapsed ? 24 : 18;
+  const iconSize = isCollapsed ? 20 : 20;
 
   const menuItems = [
     {
@@ -68,7 +68,7 @@ const Sidebar = () => {
   ];
 
   const getLinkClasses = ({ isActive }) => {
-    const base = `flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${
+    const base = `flex items-center gap-3 px-1 py-2 rounded-lg transition-all duration-200 ${
       isCollapsed ? "justify-center" : ""
     }`;
     return isActive
