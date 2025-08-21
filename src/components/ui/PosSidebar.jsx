@@ -3,7 +3,6 @@ import { NavLink } from "react-router-dom";
 import { useSidebar } from "../../context/SidebarContext";
 import { useLocation } from "react-router-dom";
 
-
 import {
   LayoutDashboard,
   Boxes,
@@ -18,32 +17,47 @@ import {
 const PosSidebar = () => {
   const { isCollapsed, isMobile, toggleSidebar } = useSidebar();
 
-
   const location = useLocation();
-const storeBasePath = location.pathname.includes("/feeds")
-  ? "/pos/feeds"
-  : "/pos/equipment";
-
+  const storeBasePath = location.pathname.includes("/feeds")
+    ? "/pos/feeds"
+    : "/pos/equipment";
 
   const menuItems = [
-  { icon: <LayoutDashboard size={18} />, label: "Dashboard", path: `${storeBasePath}/dashboard` },
-  { icon: <Boxes size={18} />, label: "Inventory", path: `${storeBasePath}/inventory` },
-  { icon: <FileText size={18} />, label: "Reports", path: `${storeBasePath}/reports` },
-  { icon: <ShoppingCart size={18} />, label: "Sales", path: `${storeBasePath}/sales` },
-];
-
+    {
+      icon: <LayoutDashboard size={20} />,
+      label: "Dashboard",
+      path: `${storeBasePath}/dashboard`,
+    },
+    {
+      icon: <Boxes size={20} />,
+      label: "Inventory",
+      path: `${storeBasePath}/inventory`,
+    },
+    {
+      icon: <FileText size={20} />,
+      label: "Reports",
+      path: `${storeBasePath}/reports`,
+    },
+    {
+      icon: <ShoppingCart size={20} />,
+      label: "Sales",
+      path: `${storeBasePath}/sales`,
+    },
+  ];
 
   const footerItems = [
-    { icon: <Settings size={18} />, label: "Settings", path: "/pos/settings" },
-    { icon: <LogOut size={18} />, label: "Logout", path: "/login" },
+    { icon: <Settings size={20} />, label: "Settings", path: "/pos/settings" },
+    { icon: <LogOut size={20} />, label: "Logout", path: "/login" },
   ];
 
   const getLinkClasses = ({ isActive }) => {
-    const base = `flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${
+    const base = `flex items-center gap-3 px-1 py-2 rounded-lg transition-all duration-200 ${
       isCollapsed ? "justify-center" : ""
     }`;
     return isActive
-      ? `${base} bg-blue-50 text-blue-600 font-semibold ${!isCollapsed ? "border-r-2 border-blue-600" : ""}`
+      ? `${base} bg-blue-50 text-blue-600 font-semibold ${
+          !isCollapsed ? "border-r-2 border-blue-600" : ""
+        }`
       : `${base} text-gray-700 hover:bg-gray-100 hover:text-blue-600`;
   };
 
@@ -66,7 +80,6 @@ const storeBasePath = location.pathname.includes("/feeds")
           <div className="flex items-center justify-between mb-8">
             {!isCollapsed && (
               <div className="text-xl font-bold text-blue-600">POS</div>
-
             )}
             <button
               onClick={toggleSidebar}
@@ -74,7 +87,7 @@ const storeBasePath = location.pathname.includes("/feeds")
                 isCollapsed ? "mx-auto" : ""
               }`}
             >
-              {isCollapsed ? <Menu size={18} /> : <X size={18} />}
+              {isCollapsed ? <Menu size={20} /> : <X size={18} />}
             </button>
           </div>
 
