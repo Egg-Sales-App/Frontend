@@ -1,80 +1,118 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-const NewEmployeeForm = ({ onAdd, onCancel }) => {
+const NewEmployeeForm = ({ employee, onAdd, onCancel }) => {
   const [formData, setFormData] = useState({
-    name: '',
-    gender: '',
-    userId: '',
-    pin: '',
+    username: "",
+    email: "",
+    password: "",
+    department_id: 1, // Default department
   });
+
+  // Pre-populate form when editing
+  useEffect(() => {
+    if (employee) {
+      setFormData({
+        username: employee.user?.username || "",
+        email: employee.user?.email || "",
+        password: "", // Don't pre-populate password for security
+        department_id: employee.department?.id || 1,
+      });
+    }
+  }, [employee]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = () => {
-    const { name, gender, userId, pin } = formData;
-    if (name && gender && userId && pin) {
-      const newEmployee = {
-        ...formData,
-        id: Date.now(), // or use a better ID system
+    const { username, email, password, department_id } = formData;
+
+    // For editing, password is optional
+    if (username && email && (employee || password) && department_id) {
+      const employeeData = {
+        username,
+        email,
+        department_id: parseInt(department_id),
       };
-      onAdd(newEmployee);
-      setFormData({ name: '', gender: '', userId: '', pin: '' });
+
+      // Only include password for new employees
+      if (!employee && password) {
+        employeeData.password = password;
+      }
+
+      onAdd(employeeData);
+      if (!employee) {
+        setFormData({
+          username: "",
+          email: "",
+          password: "",
+          department_id: 1,
+        });
+      }
     } else {
-      alert("Please fill all fields.");
+      alert(
+        `Please fill all required fields${
+          !employee ? " including password" : ""
+        }.`
+      );
     }
   };
 
   return (
     <div className="bg-gray-100 p-6 rounded-lg mb-6">
-      <h3 className="text-lg font-semibold mb-4">Add New Employee</h3>
+      <h3 className="text-lg font-semibold mb-4">
+        {employee ? "Edit Employee" : "Add New Employee"}
+      </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <input
           type="text"
-          name="name"
-          placeholder="Name"
-          value={formData.name}
+          name="username"
+          placeholder="Username"
+          value={formData.username}
           onChange={handleChange}
           className="p-2 border border-gray-300 rounded"
         />
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={formData.email}
+          onChange={handleChange}
+          className="p-2 border border-gray-300 rounded"
+        />
+        {!employee && (
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            className="p-2 border border-gray-300 rounded"
+            required={!employee}
+          />
+        )}
         <select
-          name="gender"
-          value={formData.gender}
+          name="department_id"
+          value={formData.department_id}
           onChange={handleChange}
           className="p-2 border border-gray-300 rounded"
         >
-          <option value="">Select Gender</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
+          <option value={1}>Sales Department</option>
+          <option value={2}>IT Department</option>
+          <option value={3}>HR Department</option>
+          <option value={4}>Finance Department</option>
         </select>
-        <input
-          type="text"
-          name="userId"
-          placeholder="User ID"
-          value={formData.userId}
-          onChange={handleChange}
-          className="p-2 border border-gray-300 rounded"
-        />
-        <input
-          type="password"
-          name="pin"
-          placeholder="Pin"
-          value={formData.pin}
-          onChange={handleChange}
-          className="p-2 border border-gray-300 rounded"
-        />
       </div>
-      <div className="mt-4 flex space-x-3">
+      <div className="flex gap-4 mt-4">
         <button
           onClick={handleSubmit}
-          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
-          Submit
+          {employee ? "Update Employee" : "Add Employee"}
         </button>
         <button
           onClick={onCancel}
-          className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+          className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
         >
           Cancel
         </button>
