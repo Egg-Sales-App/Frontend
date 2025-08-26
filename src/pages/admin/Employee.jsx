@@ -1,45 +1,95 @@
 import React, { useState, useEffect } from "react";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
 import NewEmployeeForm from "../../components/ui/NewEmployeeForm";
+import { employeeService } from "../../services/employeeService";
+import { useToast } from "../../components/ui/ToastContext";
 const Employee = () => {
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState(null);
+  const { success: showSuccess, error: showError } = useToast();
 
   useEffect(() => {
     const fetchEmployees = async () => {
       setLoading(true);
       try {
-        const res = await fetch("/api/employees/");
-        if (!res.ok) throw new Error("Failed to fetch employees");
-        const data = await res.json();
+        const data = await employeeService.getEmployees();
         setEmployees(data);
+        showSuccess("Employees loaded successfully");
       } catch (err) {
+        console.error("Error fetching employees:", err);
+        showError("Failed to load employees");
         setEmployees([]);
       } finally {
         setLoading(false);
       }
     };
     fetchEmployees();
-  }, []);
+  }, [showSuccess, showError]);
 
-  const handleAddEmployee = (newEmployee) => {
-    setEmployees([...employees, newEmployee]);
-    setShowForm(false);
+  const handleAddEmployee = async (newEmployeeData) => {
+    try {
+      setLoading(true);
+      const newEmployee = await employeeService.createEmployee(newEmployeeData);
+      setEmployees([...employees, newEmployee]);
+      setShowForm(false);
+      showSuccess("Employee added successfully");
+    } catch (err) {
+      console.error("Error adding employee:", err);
+      showError("Failed to add employee");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancelForm = () => {
     setShowForm(false);
+    setEditingEmployee(null);
   };
 
-  const handleEdit = (employeeId) => {
-    console.log("Edit employee:", employeeId);
-    // Add edit functionality
+  const handleEdit = async (employee) => {
+    setEditingEmployee(employee);
+    setShowForm(true);
   };
 
-  const handleDelete = (employeeId) => {
-    console.log("Delete employee:", employeeId);
-    // Add delete functionality
+  const handleUpdateEmployee = async (updatedEmployeeData) => {
+    try {
+      setLoading(true);
+      const updatedEmployee = await employeeService.updateEmployee(
+        editingEmployee.id,
+        updatedEmployeeData
+      );
+      setEmployees(
+        employees.map((emp) =>
+          emp.id === editingEmployee.id ? updatedEmployee : emp
+        )
+      );
+      setShowForm(false);
+      setEditingEmployee(null);
+      showSuccess("Employee updated successfully");
+    } catch (err) {
+      console.error("Error updating employee:", err);
+      showError("Failed to update employee");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (employeeId) => {
+    if (window.confirm("Are you sure you want to delete this employee?")) {
+      try {
+        setLoading(true);
+        await employeeService.deleteEmployee(employeeId);
+        setEmployees(employees.filter((emp) => emp.id !== employeeId));
+        showSuccess("Employee deleted successfully");
+      } catch (err) {
+        console.error("Error deleting employee:", err);
+        showError("Failed to delete employee");
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
   return (
@@ -61,13 +111,18 @@ const Employee = () => {
               onClick={() => setShowForm(!showForm)}
               className="btn bg-blue-500 text-white font-medium hover:bg-blue-600"
             >
-              {showForm ? "Cancel" : "Add Employee"}
+              {showForm
+                ? "Cancel"
+                : editingEmployee
+                ? "Edit Employee"
+                : "Add Employee"}
             </button>
           </div>
 
           {showForm && (
             <NewEmployeeForm
-              onAdd={handleAddEmployee}
+              employee={editingEmployee}
+              onAdd={editingEmployee ? handleUpdateEmployee : handleAddEmployee}
               onCancel={handleCancelForm}
             />
           )}
@@ -81,13 +136,13 @@ const Employee = () => {
                       Name
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Gender
+                      Email
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      User ID
+                      Department
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Pin
+                      Role
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
@@ -99,30 +154,38 @@ const Employee = () => {
                     <tr key={employee.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="font-medium text-gray-900">
-                          {employee.name}
+                          {employee.user?.username || "N/A"}
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-900">
+                        {employee.user?.email || "N/A"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                          {employee.department?.name || "No Department"}
+                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            employee.gender === "Male"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-pink-100 text-pink-800"
+                            employee.user?.is_superuser
+                              ? "bg-red-100 text-red-800"
+                              : employee.user?.is_supplier
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
                           }`}
                         >
-                          {employee.gender}
+                          {employee.user?.is_superuser
+                            ? "Admin"
+                            : employee.user?.is_supplier
+                            ? "Supplier"
+                            : "Employee"}
                         </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-900">
-                        {employee.userId}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-900">
-                        {employee.pin}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-3">
                           <button
-                            onClick={() => handleEdit(employee.id)}
+                            onClick={() => handleEdit(employee)}
                             className="text-blue-600 hover:text-blue-900 transition-colors"
                             title="Edit employee"
                           >
