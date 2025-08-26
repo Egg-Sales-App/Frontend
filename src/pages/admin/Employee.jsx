@@ -3,51 +3,24 @@ import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
 import NewEmployeeForm from "../../components/ui/NewEmployeeForm";
 const Employee = () => {
   const [loading, setLoading] = useState(true);
-  const [employees, setEmployees] = useState([
-    {
-      id: 1,
-      name: "Pat Black",
-      gender: "Male",
-      userId: "12345678",
-      pin: "****",
-    },
-    {
-      id: 2,
-      name: "Angel Jones",
-      gender: "Female",
-      userId: "12345677",
-      pin: "****",
-    },
-    {
-      id: 3,
-      name: "Max Edwards",
-      gender: "Female",
-      userId: "12345676",
-      pin: "****",
-    },
-    {
-      id: 4,
-      name: "Bruce Fox",
-      gender: "Male",
-      userId: "12345675",
-      pin: "****",
-    },
-    {
-      id: 5,
-      name: "Devon Fisher",
-      gender: "Male",
-      userId: "12345674",
-      pin: "****",
-    },
-  ]);
+  const [employees, setEmployees] = useState([]);
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timer);
+    const fetchEmployees = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/employees/");
+        if (!res.ok) throw new Error("Failed to fetch employees");
+        const data = await res.json();
+        setEmployees(data);
+      } catch (err) {
+        setEmployees([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEmployees();
   }, []);
 
   const handleAddEmployee = (newEmployee) => {
