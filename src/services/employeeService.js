@@ -1,66 +1,74 @@
 import { apiService } from "./api";
 
 export const employeeService = {
-  // Get all users (employees)
+  // Get all employees
   async getEmployees(params = {}) {
     try {
-      const response = await apiService.get("/users/", {
+      const response = await apiService.get("/employees/", {
         page: params.page || 1,
         page_size: params.limit || 50,
         search: params.search,
-        is_active: params.status === "active" ? true : undefined,
       });
 
-      return {
-        employees: response.results || [],
-        pagination: {
-          page: params.page || 1,
-          limit: params.limit || 50,
-          total: response.count || 0,
-          pages: Math.ceil((response.count || 0) / (params.limit || 50)),
-        },
-        total: response.count || 0,
-      };
+      return response || [];
     } catch (error) {
       throw new Error("Failed to fetch employees");
     }
   },
 
-  // Get single user/employee
+  // Get single employee
   async getEmployee(id) {
     try {
-      const response = await apiService.get(`/users/${id}/`);
+      const response = await apiService.get(`/employees/${id}/`);
       return response;
     } catch (error) {
       throw new Error("Failed to fetch employee");
     }
   },
 
-  // Create new user/employee (admin only)
-  // Create new user/employee (admin only)
+  // Create new employee
   async createEmployee(employeeData) {
     try {
-      const response = await apiService.post("/users/", {
-        username: employeeData.username || employeeData.email,
+      const response = await apiService.post("/employees/", {
+        username: employeeData.username,
         email: employeeData.email,
-        first_name:
-          employeeData.firstName || employeeData.name?.split(" ")[0] || "",
-        last_name:
-          employeeData.lastName ||
-          employeeData.name?.split(" ").slice(1).join(" ") ||
-          "",
-        password: employeeData.password || "DefaultPassword123!",
-        is_supplier: employeeData.role === "supplier" || false,
-        is_active: employeeData.status !== "inactive",
+        password: employeeData.password,
+        department_id: employeeData.department_id,
       });
-
-      return {
-        success: true,
-        employee: response,
-        message: "Employee created successfully",
-      };
+      return response;
     } catch (error) {
-      throw new Error(error.message || "Failed to create employee");
+      throw new Error("Failed to create employee");
+    }
+  },
+
+  // Update employee
+  async updateEmployee(id, employeeData) {
+    try {
+      const response = await apiService.put(`/employees/${id}/`, {
+        user: {
+          username: employeeData.username,
+          email: employeeData.email,
+          is_supplier: employeeData.is_supplier || false,
+          is_superuser: employeeData.is_superuser || false,
+          is_employee: employeeData.is_employee !== false,
+        },
+        department: {
+          name: employeeData.department_name,
+        },
+      });
+      return response;
+    } catch (error) {
+      throw new Error("Failed to update employee");
+    }
+  },
+
+  // Delete employee
+  async deleteEmployee(id) {
+    try {
+      await apiService.delete(`/employees/${id}/`);
+      return true;
+    } catch (error) {
+      throw new Error("Failed to delete employee");
     }
   },
 };
