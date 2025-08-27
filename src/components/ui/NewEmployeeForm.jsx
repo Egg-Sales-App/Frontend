@@ -1,12 +1,35 @@
 import React, { useState, useEffect } from "react";
+import { departmentService } from "../../services/departmentService";
 
 const NewEmployeeForm = ({ employee, onAdd, onCancel }) => {
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
-    department_id: 1, // Default department
+    department_id: "", // Will be set when departments load
   });
+  const [departments, setDepartments] = useState([]);
+  const [loadingDepartments, setLoadingDepartments] = useState(true);
+
+  // Fetch departments on component mount
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const data = await departmentService.getDepartments();
+        setDepartments(data);
+        // Set default department if no employee is being edited
+        if (!employee && data.length > 0) {
+          setFormData((prev) => ({ ...prev, department_id: data[0].id }));
+        }
+      } catch (error) {
+        console.error("Error fetching departments:", error);
+        setDepartments([]);
+      } finally {
+        setLoadingDepartments(false);
+      }
+    };
+    fetchDepartments();
+  }, [employee]);
 
   // Pre-populate form when editing
   useEffect(() => {
@@ -15,7 +38,7 @@ const NewEmployeeForm = ({ employee, onAdd, onCancel }) => {
         username: employee.user?.username || "",
         email: employee.user?.email || "",
         password: "", // Don't pre-populate password for security
-        department_id: employee.department?.id || 1,
+        department_id: employee.department?.id || "",
       });
     }
   }, [employee]);
@@ -60,10 +83,10 @@ const NewEmployeeForm = ({ employee, onAdd, onCancel }) => {
 
   return (
     <div className="bg-gray-100 p-6 rounded-lg mb-6">
-      <h3 className="text-lg font-semibold mb-4">
+      <h3 className="text-lg font-semibold mb-4 text-blue-500">
         {employee ? "Edit Employee" : "Add New Employee"}
       </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700">
         <input
           type="text"
           name="username"
@@ -96,11 +119,22 @@ const NewEmployeeForm = ({ employee, onAdd, onCancel }) => {
           value={formData.department_id}
           onChange={handleChange}
           className="p-2 border border-gray-300 rounded"
+          disabled={loadingDepartments}
         >
-          <option value={1}>Sales Department</option>
-          <option value={2}>IT Department</option>
-          <option value={3}>HR Department</option>
-          <option value={4}>Finance Department</option>
+          {loadingDepartments ? (
+            <option value="">Loading departments...</option>
+          ) : departments.length > 0 ? (
+            <>
+              <option value="">Select a department</option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.name}
+                </option>
+              ))}
+            </>
+          ) : (
+            <option value="">No departments available</option>
+          )}
         </select>
       </div>
       <div className="flex gap-4 mt-4">
