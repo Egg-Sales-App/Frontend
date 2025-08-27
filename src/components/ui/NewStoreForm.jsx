@@ -1,77 +1,88 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
-const NewStoreForm = ({ onCancel, onSubmit }) => {
+const NewStoreForm = ({ store, onCancel, onSubmit }) => {
+  const [formData, setFormData] = useState({
+    name: "",
+  });
+  const [loading, setLoading] = useState(false);
+
+  // Pre-populate form when editing
+  useEffect(() => {
+    if (store) {
+      setFormData({
+        name: store.name || "",
+      });
+    }
+  }, [store]);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!formData.name.trim()) {
+      alert("Please enter a store name.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await onSubmit(formData);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
-    <div className="fixed inset-0 bg-gray-300 bg-opacity-30 flex items-center justify-center z-50">
-      <div className="bg-white w-full max-w-md p-6 rounded-lg shadow-lg relative">
-        <h2 className="text-xl font-semibold text-gray-800 mb-6">New Store</h2>
+    <div className="bg-white w-full max-w-md p-6 rounded-lg shadow-lg">
+      <h2 className="text-xl font-semibold text-gray-800 mb-6">
+        {store ? "Edit Store" : "New Store"}
+      </h2>
 
+      <form onSubmit={handleSubmit}>
         {/* Store Name */}
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-1">
-            Store Name
+        <div className="mb-6">
+          <label className="block text-gray-700 font-medium mb-2">
+            Store Name *
           </label>
           <input
             type="text"
-            placeholder="Enter supplier name"
-            className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="Enter store/department name"
+            className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            required
           />
-        </div>
-
-        {/* Product */}
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-1">Product</label>
-          <input
-            type="text"
-            placeholder="Enter product"
-            className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
-          />
-        </div>
-
-        {/* Address */}
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-1">Address</label>
-          <input
-            type="text"
-            placeholder="Enter Address"
-            className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
-          />
-        </div>
-
-        {/* Contact Number */}
-        <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-1">Contact Number</label>
-          <input
-            type="text"
-            placeholder="Enter supplier contact number"
-            className="w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
-          />
-        </div>
-
-        {/* Image Upload */}
-        <div className="mb-6 text-center border-2 border-dashed border-gray-300 p-6 rounded-lg">
-          <p className="text-gray-500">Drag image here <span className="text-sm text-gray-400">or</span></p>
-          <button className="text-blue-500 hover:underline mt-1">Browse image</button>
+          <p className="text-xs text-gray-500 mt-1">
+            e.g., "Feed Store", "Equipment Store", "Sales Department"
+          </p>
         </div>
 
         {/* Actions */}
         <div className="flex justify-end gap-3">
           <button
+            type="button"
             onClick={onCancel}
-            className="px-4 py-2 bg-gray-100 text-gray-600 rounded hover:bg-gray-200"
+            disabled={loading}
+            className="px-4 py-2 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 disabled:opacity-50"
           >
-            Discard
+            Cancel
           </button>
           <button
-            onClick={onSubmit}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            type="submit"
+            disabled={loading || !formData.name.trim()}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Add Store
+            {loading ? "Saving..." : store ? "Update Store" : "Add Store"}
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
-}
+};
 
 export default NewStoreForm;
