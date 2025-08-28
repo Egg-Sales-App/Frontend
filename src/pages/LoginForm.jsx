@@ -15,6 +15,8 @@ const LoginForm = () => {
 
   // Get the intended destination from state, default to admin dashboard
   const from = location.state?.from?.pathname || "/admin/dashboard";
+  const passwordSetupMessage = location.state?.message;
+  const prefilledEmail = location.state?.email;
 
   // Redirect if already authenticated
   React.useEffect(() => {
@@ -22,6 +24,13 @@ const LoginForm = () => {
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, isLoading, navigate, from]);
+
+  // Show success message from password setup
+  React.useEffect(() => {
+    if (passwordSetupMessage) {
+      success(passwordSetupMessage);
+    }
+  }, [passwordSetupMessage, success]);
 
   const validationRules = {
     email: {
@@ -37,7 +46,7 @@ const LoginForm = () => {
   };
 
   const { values, errors, isSubmitting, handleChange, handleSubmit } = useForm(
-    { email: "", password: "" },
+    { email: prefilledEmail || "", password: "" },
     validationRules
   );
 
