@@ -146,6 +146,25 @@ const NewEmployeeForm = ({ employee, onAdd, onCancel }) => {
           )}
         </select>
       </div>
+      
+      {/* Password Setup Info for New Employees */}
+      {!employee && (
+        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-start gap-2">
+            <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center mt-0.5">
+              <span className="text-white text-xs">ℹ</span>
+            </div>
+            <div className="text-sm">
+              <p className="text-blue-800 font-medium mb-1">Password Setup</p>
+              <p className="text-blue-700">
+                The employee will receive an email with a secure link to set up their password. 
+                No password is required during employee creation.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="flex gap-4 mt-4">
         <button
           onClick={handleSubmit}

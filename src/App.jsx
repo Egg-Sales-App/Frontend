@@ -8,6 +8,7 @@ import { AuthProvider } from "./hooks/useAuth";
 import { ToastProvider } from "./components/ui/ToastContext"; // ✅ ADD THIS
 import SignupForm from "./pages/SignUpForm";
 import LoginForm from "./pages/LoginForm";
+import SetEmployeePassword from "./pages/SetEmployeePassword";
 import Dashboard from "./pages/admin/Dashboard";
 import Employee from "./pages/admin/Employee";
 import Inventory from "./pages/admin/Inventory";
@@ -81,6 +82,7 @@ function App() {
                 {/* Public Routes */}
                 <Route path="/signup" element={<SignupForm />} />
                 <Route path="/login" element={<LoginForm />} />
+                <Route path="/set-employee-password" element={<SetEmployeePassword />} />
 
                 {/* Default Route - Role-based redirect */}
                 <Route
