@@ -5,7 +5,6 @@ const NewEmployeeForm = ({ employee, onAdd, onCancel }) => {
   const [formData, setFormData] = useState({
     username: "",
     email: "",
-    password: "",
     department_id: "", // Will be set when departments load
   });
   const [departments, setDepartments] = useState([]);
@@ -37,7 +36,6 @@ const NewEmployeeForm = ({ employee, onAdd, onCancel }) => {
       setFormData({
         username: employee.user?.username || "",
         email: employee.user?.email || "",
-        password: "", // Don't pre-populate password for security
         department_id: employee.department?.id || "",
       });
     }
@@ -48,36 +46,26 @@ const NewEmployeeForm = ({ employee, onAdd, onCancel }) => {
   };
 
   const handleSubmit = () => {
-    const { username, email, password, department_id } = formData;
+    const { username, email, department_id } = formData;
 
-    // For editing, password is optional
-    if (username && email && (employee || password) && department_id) {
+    // For editing
+    if (username && email && employee && department_id) {
       const employeeData = {
         username,
         email,
         department_id: parseInt(department_id),
       };
 
-      // Only include password for new employees
-      if (!employee && password) {
-        employeeData.password = password;
-      }
-
       onAdd(employeeData);
       if (!employee) {
         setFormData({
           username: "",
           email: "",
-          password: "",
           department_id: 1,
         });
       }
     } else {
-      alert(
-        `Please fill all required fields${
-          !employee ? " including password" : ""
-        }.`
-      );
+      alert(`Please fill all required fields.`);
     }
   };
 
@@ -103,17 +91,6 @@ const NewEmployeeForm = ({ employee, onAdd, onCancel }) => {
           onChange={handleChange}
           className="p-2 border border-gray-300 rounded"
         />
-        {!employee && (
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            className="p-2 border border-gray-300 rounded"
-            required={!employee}
-          />
-        )}
         <select
           name="department_id"
           value={formData.department_id}
