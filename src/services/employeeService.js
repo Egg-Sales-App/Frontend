@@ -26,6 +26,30 @@ export const employeeService = {
     }
   },
 
+  // Get user by email (for password setup)
+  async getUserByEmail(email) {
+    try {
+      const response = await apiService.get("/users/", {
+        search: email,
+      });
+
+      let user = null;
+      if (response.results && response.results.length > 0) {
+        user = response.results.find((u) => u.email === email);
+      } else if (Array.isArray(response)) {
+        user = response.find((u) => u.email === email);
+      }
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      return user;
+    } catch (error) {
+      throw new Error("Failed to fetch user");
+    }
+  },
+
   // Create new employee
   async createEmployee(employeeData) {
     try {
@@ -77,9 +101,30 @@ export const employeeService = {
       const response = await apiService.get("/verify-email/", {
         token: token,
       });
+
+      // Extract email from response - it might be in different places
+      let email = response.email || response.user?.email;
+
+      // If email is not in response, try to decode from token
+      if (!email && token) {
+        try {
+          // Token format: "email".timestamp.signature
+          const tokenParts = token.split(".");
+          if (tokenParts.length >= 1) {
+            // Decode base64 encoded email (remove quotes)
+            const decodedEmail = atob(tokenParts[0]).replace(/"/g, "");
+            if (decodedEmail.includes("@")) {
+              email = decodedEmail;
+            }
+          }
+        } catch (decodeError) {
+          console.warn("Could not decode email from token:", decodeError);
+        }
+      }
+
       return {
         valid: true,
-        email: response.email || response.user?.email || "Unknown",
+        email: email || "Unknown",
         message: response.message || "Email verified successfully",
       };
     } catch (error) {
@@ -103,14 +148,16 @@ export const employeeService = {
 
       // Get the user by email to find their ID
       const usersResponse = await apiService.get("/users/", {
-        search: tokenValidation.email
+        search: tokenValidation.email,
       });
-      
+
       let user = null;
       if (usersResponse.results && usersResponse.results.length > 0) {
-        user = usersResponse.results.find(u => u.email === tokenValidation.email);
+        user = usersResponse.results.find(
+          (u) => u.email === tokenValidation.email
+        );
       } else if (Array.isArray(usersResponse)) {
-        user = usersResponse.find(u => u.email === tokenValidation.email);
+        user = usersResponse.find((u) => u.email === tokenValidation.email);
       }
 
       if (!user) {
@@ -119,22 +166,24 @@ export const employeeService = {
 
       // Update the user's password
       const updateResponse = await apiService.patch(`/users/${user.id}/`, {
-        password: data.password
+        password: data.password,
       });
 
       return {
         success: true,
         message: "Password set successfully",
-        user: updateResponse
+        user: updateResponse,
       };
     } catch (error) {
-      if (error.message === "Invalid token" || error.message === "User not found") {
+      if (
+        error.message === "Invalid token" ||
+        error.message === "User not found"
+      ) {
         throw error;
       }
       if (error.response?.status === 400) {
         throw new Error(
-          error.response?.data?.message ||
-            "Password requirements not met"
+          error.response?.data?.message || "Password requirements not met"
         );
       } else if (error.response?.status === 404) {
         throw new Error("User not found");
