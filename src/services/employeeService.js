@@ -70,4 +70,30 @@ export const employeeService = {
       throw new Error("Failed to delete employee");
     }
   },
+
+  // Validate password setup token
+  async validatePasswordToken(token) {
+    try {
+      const response = await apiService.post("/employees/validate-password-token/", {
+        token
+      });
+      return response;
+    } catch (error) {
+      throw new Error("Invalid or expired token");
+    }
+  },
+
+  // Set employee password using token
+  async setEmployeePassword(data) {
+    try {
+      const response = await apiService.post("/employees/set-password/", {
+        token: data.token,
+        password: data.password,
+        confirm_password: data.confirmPassword
+      });
+      return response;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Failed to set password");
+    }
+  },
 };
