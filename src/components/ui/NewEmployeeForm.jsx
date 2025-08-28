@@ -5,10 +5,11 @@ const NewEmployeeForm = ({ employee, onAdd, onCancel }) => {
   const [formData, setFormData] = useState({
     username: "",
     email: "",
-    department_id: "", // Will be set when departments load
+    department_id: "",
   });
   const [departments, setDepartments] = useState([]);
   const [loadingDepartments, setLoadingDepartments] = useState(true);
+  const [submitting, setSubmitting] = useState(false); // Added loading state
 
   // Fetch departments on component mount
   useEffect(() => {
@@ -16,7 +17,6 @@ const NewEmployeeForm = ({ employee, onAdd, onCancel }) => {
       try {
         const data = await departmentService.getDepartments();
         setDepartments(data);
-        // Set default department if no employee is being edited
         if (!employee && data.length > 0) {
           setFormData((prev) => ({ ...prev, department_id: data[0].id }));
         }
@@ -38,34 +38,60 @@ const NewEmployeeForm = ({ employee, onAdd, onCancel }) => {
         email: employee.user?.email || "",
         department_id: employee.department?.id || "",
       });
+    } else {
+      // Reset form for new employee
+      setFormData({
+        username: "",
+        email: "",
+        department_id: departments.length > 0 ? departments[0].id : "",
+      });
     }
-  }, [employee]);
+  }, [employee, departments]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const { username, email, department_id } = formData;
 
-    // For editing
-    if (username && email && employee && department_id) {
+    // Improved validation
+    if (!username.trim()) {
+      alert("Username is required");
+      return;
+    }
+    if (!email.trim()) {
+      alert("Email is required");
+      return;
+    }
+    if (!department_id) {
+      alert("Please select a department");
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
       const employeeData = {
-        username,
-        email,
+        username: username.trim(),
+        email: email.trim(),
         department_id: parseInt(department_id),
       };
+      await onAdd(employeeData);
 
-      onAdd(employeeData);
+      // Reset form only for new employees
       if (!employee) {
         setFormData({
           username: "",
           email: "",
-          department_id: 1,
+          department_id: "",
         });
       }
-    } else {
-      alert(`Please fill all required fields.`);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      // Error will be handled by parent component via toast
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -78,31 +104,37 @@ const NewEmployeeForm = ({ employee, onAdd, onCancel }) => {
         <input
           type="text"
           name="username"
-          placeholder="Username"
+          placeholder="Username *"
           value={formData.username}
           onChange={handleChange}
-          className="p-2 border border-gray-300 rounded"
+          className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          disabled={submitting}
+          required
         />
         <input
           type="email"
           name="email"
-          placeholder="Email"
+          placeholder="Email *"
           value={formData.email}
           onChange={handleChange}
-          className="p-2 border border-gray-300 rounded"
+          className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          autoComplete="email"
+          disabled={submitting}
+          required
         />
         <select
           name="department_id"
           value={formData.department_id}
           onChange={handleChange}
-          className="p-2 border border-gray-300 rounded"
-          disabled={loadingDepartments}
+          className="p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          disabled={loadingDepartments || submitting}
+          required
         >
           {loadingDepartments ? (
             <option value="">Loading departments...</option>
           ) : departments.length > 0 ? (
             <>
-              <option value="">Select a department</option>
+              <option value="">Select a department *</option>
               {departments.map((dept) => (
                 <option key={dept.id} value={dept.id}>
                   {dept.name}
@@ -117,13 +149,18 @@ const NewEmployeeForm = ({ employee, onAdd, onCancel }) => {
       <div className="flex gap-4 mt-4">
         <button
           onClick={handleSubmit}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          disabled={submitting || loadingDepartments}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
+          {submitting && (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          )}
           {employee ? "Update Employee" : "Add Employee"}
         </button>
         <button
           onClick={onCancel}
-          className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+          disabled={submitting}
+          className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 disabled:opacity-50"
         >
           Cancel
         </button>
