@@ -32,7 +32,6 @@ export const employeeService = {
       const response = await apiService.post("/employees/", {
         username: employeeData.username,
         email: employeeData.email,
-        password: employeeData.password,
         department_id: employeeData.department_id,
       });
       return response;
