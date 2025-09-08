@@ -22,16 +22,11 @@ import AuthTestPage from "./pages/AuthTestPage";
 import { SidebarProvider } from "./context/SidebarContext";
 import AdminLayout from "./components/layout/AdminLayout";
 import POSLayout from "./components/layout/POSLayout";
-import POSEquipmentsSales from "./pages/pos/equipments-store/Sales";
-import POSEquipmentsInventory from "./pages/pos/equipments-store/Inventory";
-import POSEquipmentsReports from "./pages/pos/equipments-store/Reports";
-import POSEquipmentsDashboard from "./pages/pos/equipments-store/Dashboard";
+import POSEquipmentsSales from "./pages/pos/Sales";
+import POSEquipmentsInventory from "./pages/pos/Inventory";
+import POSEquipmentsReports from "./pages/pos/Reports";
+import POSEquipmentsDashboard from "./pages/pos/Dashboard";
 
-import POSFeedsSales from "./pages/pos/feeds-and-eggs-store/Sales";
-import POSFeedsInventory from "./pages/pos/feeds-and-eggs-store/Inventory";
-import POSFeedsReports from "./pages/pos/feeds-and-eggs-store/Reports";
-import POSFeedsDashboard from "./pages/pos/feeds-and-eggs-store/Dashboard";
-import StoreSelector from "./pages/StoreSelector"; // ✅ ADD THIS
 import { Navigate } from "react-router-dom";
 import SupplierDetails from "./pages/admin/SupplierDetails"; // ✅ ADD THIS
 
@@ -112,19 +107,9 @@ function App() {
                   <Route path="employees" element={<Employee />} />
                 </Route>
 
-                {/* POS Base Redirect - Protected */}
+                {/* POS- Protected */}
                 <Route
                   path="/pos"
-                  element={
-                    <ProtectedRoute>
-                      <StoreSelector />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* POS - Equipment Store - Protected */}
-                <Route
-                  path="/pos/equipment"
                   element={
                     <ProtectedRoute>
                       <POSLayout />
@@ -141,21 +126,6 @@ function App() {
                   />
                   <Route path="sales" element={<POSEquipmentsSales />} />
                   <Route path="reports" element={<POSEquipmentsReports />} />
-                </Route>
-
-                {/* POS - Feeds and Eggs Store - Protected */}
-                <Route
-                  path="/pos/feeds"
-                  element={
-                    <ProtectedRoute>
-                      <POSLayout />
-                    </ProtectedRoute>
-                  }
-                >
-                  <Route path="dashboard" element={<POSFeedsDashboard />} />
-                  <Route path="inventory" element={<POSFeedsInventory />} />
-                  <Route path="sales" element={<POSFeedsSales />} />
-                  <Route path="reports" element={<POSFeedsReports />} />
                 </Route>
 
                 {/* Supplier Details - Protected and require admin role */}
