@@ -19,24 +19,14 @@ const PosSidebar = () => {
 
   const location = useLocation();
   const storeBasePath = location.pathname.includes("/feeds")
-    ? "/pos/feeds"
-    : "/pos/equipment";
+    ? "/pos"
+    : "/pos";
 
   const menuItems = [
-    {
-      icon: <LayoutDashboard size={20} />,
-      label: "Dashboard",
-      path: `${storeBasePath}/dashboard`,
-    },
     {
       icon: <Boxes size={20} />,
       label: "Inventory",
       path: `${storeBasePath}/inventory`,
-    },
-    {
-      icon: <FileText size={20} />,
-      label: "Reports",
-      path: `${storeBasePath}/reports`,
     },
     {
       icon: <ShoppingCart size={20} />,
