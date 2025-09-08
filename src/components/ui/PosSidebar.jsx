@@ -36,7 +36,6 @@ const PosSidebar = () => {
   ];
 
   const footerItems = [
-    { icon: <Settings size={20} />, label: "Settings", path: "/pos/settings" },
     { icon: <LogOut size={20} />, label: "Logout", path: "/login" },
   ];
 
