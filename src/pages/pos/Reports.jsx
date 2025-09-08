@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import ProfitRevenueCard from "../../../components/ui/ProfitRevenueCard";
-import BestSellingProductCard from "../../../components/ui/BestSellingProductCard";
+import ProfitRevenueCard from "../../components/ui/ProfitRevenueCard";
+import BestSellingProductCard from "../../components/ui/BestSellingProductCard";
 
 const Reports = () => {
   // ✅ Add loading state

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { inventoryService } from "../../../services/inventoryService";
-import { supplierService } from "../../../services/supplierService";
-import { categoryService } from "../../../services/categoryService";
+import { inventoryService } from "../../services/inventoryService";
+import { supplierService } from "../../services/supplierService";
+import { categoryService } from "../../services/categoryService";
 import EquipmentImage from "../../../assets/equipment.png";
 import FeederImage from "../../../assets/feeder.png";
 import BroilerEquipmentImage from "../../../assets/broilerequipment.png";
@@ -10,10 +10,10 @@ import DayOldChicksImage from "../../../assets/dayoldchicks.png";
 import DewormerImage from "../../../assets/dewormer.png";
 import ChickenFeedImage from "../../../assets/chicken_feed.png";
 import HalfDozenEggsImage from "../../../assets/eggcrate.png";
-import AddProduct from "../../../components/ui/AddProduct";
+import AddProduct from "../../components/ui/AddProduct";
 import { ShoppingCartIcon } from "@heroicons/react/24/outline"; // or solid if you prefer
-import CheckoutCard from "../../../components/ui/CheckoutCard";
-import { useToast } from "../../../components/ui/ToastContext";
+import CheckoutCard from "../../components/ui/CheckoutCard";
+import { useToast } from "../../components/ui/ToastContext";
 
 const Inventory = () => {
   const [products, setProducts] = useState([]);

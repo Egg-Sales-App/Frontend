@@ -1,10 +1,10 @@
 import React, { useMemo, useEffect, useState } from "react";
-import SalesSummary from "../../../components/SalesSummary";
-import { useApi } from "../../../hooks/useApi";
-import { inventoryService } from "../../../services/inventoryService";
-import { salesService } from "../../../services/salesService";
-import { reportsService } from "../../../services/reportsService";
-import { useToast } from "../../../components/ui/ToastContext";
+import SalesSummary from "../../components/SalesSummary";
+import { useApi } from "../../hooks/useApi";
+import { inventoryService } from "../../services/inventoryService";
+import { salesService } from "../../services/salesService";
+import { reportsService } from "../../services/reportsService";
+import { useToast } from "../../components/ui/ToastContext";
 
 import chickenFeed from "../../../assets/chicken_feed.png";
 import broilers from "../../../assets/broilers.jpeg";
