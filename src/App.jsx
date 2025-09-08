@@ -3,9 +3,9 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ErrorBoundary from "./components/common/ErrorBoundary";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 import RoleBasedRedirect from "./components/common/RoleBasedRedirect";
-import ToastContainer from "./components/ui/ToastContainer"; // ✅ ADD THIS
+import ToastContainer from "./components/ui/ToastContainer";
 import { AuthProvider } from "./hooks/useAuth";
-import { ToastProvider } from "./components/ui/ToastContext"; // ✅ ADD THIS
+import { ToastProvider } from "./components/ui/ToastContext";
 import SignupForm from "./pages/SignUpForm";
 import LoginForm from "./pages/LoginForm";
 import SetEmployeePassword from "./pages/SetEmployeePassword";
@@ -23,12 +23,10 @@ import { SidebarProvider } from "./context/SidebarContext";
 import AdminLayout from "./components/layout/AdminLayout";
 import POSLayout from "./components/layout/POSLayout";
 import POSEquipmentsSales from "./pages/pos/Sales";
-import POSEquipmentsInventory from "./pages/pos/Inventory";
-import POSEquipmentsReports from "./pages/pos/Reports";
-import POSEquipmentsDashboard from "./pages/pos/Dashboard";
+import POSInventory from "./pages/pos/Inventory";
 
 import { Navigate } from "react-router-dom";
-import SupplierDetails from "./pages/admin/SupplierDetails"; // ✅ ADD THIS
+import SupplierDetails from "./pages/admin/SupplierDetails";
 
 function App() {
   return (
@@ -50,7 +48,8 @@ function App() {
                   />
                 )}
 
-                {/* Comprehensive API Integration Test */}
+                {/* Comprehensive API    { icon: <LogOut size={20} />, label: "Logout", path: "/login" },
+ Integration Test */}
                 {import.meta.env.MODE === "development" && (
                   <Route
                     path="/integration-test"
@@ -117,15 +116,10 @@ function App() {
                   }
                 >
                   <Route
-                    path="dashboard"
-                    element={<POSEquipmentsDashboard />}
-                  />
-                  <Route
                     path="inventory"
-                    element={<POSEquipmentsInventory />}
+                    element={<POSInventory />}
                   />
-                  <Route path="sales" element={<POSEquipmentsSales />} />
-                  <Route path="reports" element={<POSEquipmentsReports />} />
+                  <Route path="sales" element={<POSSales />} />
                 </Route>
 
                 {/* Supplier Details - Protected and require admin role */}
