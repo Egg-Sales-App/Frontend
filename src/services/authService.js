@@ -66,7 +66,7 @@ export const authService = {
         // Determine redirect path based on user role
         const redirectTo = userProfile.is_superuser
           ? "/admin/dashboard"
-          : "/pos";
+          : "/pos/inventory";
         console.log(
           `🎯 Redirect path determined: ${redirectTo} (superuser: ${userProfile.is_superuser})`
         );

@@ -22,7 +22,7 @@ import AuthTestPage from "./pages/AuthTestPage";
 import { SidebarProvider } from "./context/SidebarContext";
 import AdminLayout from "./components/layout/AdminLayout";
 import POSLayout from "./components/layout/POSLayout";
-import POSEquipmentsSales from "./pages/pos/Sales";
+import POSSales from "./pages/pos/Sales";
 import POSInventory from "./pages/pos/Inventory";
 
 import { Navigate } from "react-router-dom";
