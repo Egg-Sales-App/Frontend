@@ -16,30 +16,15 @@ export const authService = {
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("user_data");
     localStorage.removeItem("user"); // Also remove user data stored by getCurrentUser
-    console.log("🧹 All authentication data cleared from localStorage");
   },
 
   // Login with email/username and password
   async login(credentials) {
     try {
-      console.log("🔐 Attempting login with credentials:", {
-        username: credentials.email || credentials.username,
-        hasPassword: !!credentials.password,
-      });
-
       // Use Django's JWT token endpoint
       const response = await apiService.post("/token/", {
         username: credentials.email || credentials.username,
         password: credentials.password,
-      });
-
-      console.log("✅ Backend login response:", {
-        hasAccess: !!response.access,
-        hasRefresh: !!response.refresh,
-        tokenPreview: response.access
-          ? `${response.access.substring(0, 20)}...`
-          : null,
-        fullResponse: response,
       });
 
       if (response.access) {
@@ -48,28 +33,15 @@ export const authService = {
         // Store refresh token
         if (response.refresh) {
           localStorage.setItem("refresh_token", response.refresh);
-          console.log("💾 Refresh token stored successfully");
         }
 
         // Get user profile after login
-        console.log("👤 Fetching user profile...");
         const userProfile = await this.getCurrentUser();
-        console.log("✅ User profile retrieved:", {
-          id: userProfile.id,
-          username: userProfile.username,
-          email: userProfile.email,
-          isStaff: userProfile.is_staff,
-          isSuperuser: userProfile.is_superuser,
-          role: userProfile.role,
-        });
 
         // Determine redirect path based on user role
         const redirectTo = userProfile.is_superuser
           ? "/admin/dashboard"
           : "/pos/inventory";
-        console.log(
-          `🎯 Redirect path determined: ${redirectTo} (superuser: ${userProfile.is_superuser})`
-        );
 
         const loginResult = {
           success: true,
@@ -79,14 +51,6 @@ export const authService = {
           message: "Login successful",
           redirectTo: redirectTo,
         };
-
-        console.log("🎉 Login completed successfully:", {
-          userId: userProfile.id,
-          username: userProfile.username,
-          hasToken: !!loginResult.token,
-          redirectTo: redirectTo,
-        });
-
         return loginResult;
       }
 
@@ -140,13 +104,6 @@ export const authService = {
   // Register new user
   async register(userData) {
     try {
-      console.log("📝 Attempting user registration:", {
-        username: userData.username || userData.email,
-        email: userData.email,
-        hasPassword: !!userData.password,
-        isSupplier: userData.isSupplier || false,
-      });
-
       const registrationData = {
         username: userData.username || userData.email,
         email: userData.email,
@@ -160,12 +117,6 @@ export const authService = {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(registrationData),
-      });
-
-      console.log("📡 Registration response status:", {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
       });
 
       if (!response.ok) {
@@ -227,11 +178,6 @@ export const authService = {
       }
 
       const data = await response.json().catch(() => ({ success: true }));
-      console.log("✅ Registration successful:", {
-        hasUser: !!data.user,
-        message: data.message,
-        fullResponse: data,
-      });
 
       return {
         success: true,
@@ -252,27 +198,13 @@ export const authService = {
   // Logout user
   async logout() {
     try {
-      console.log("🚪 Starting logout process...");
-
       const refreshToken = localStorage.getItem("refresh_token");
       const authToken = this.getAuthToken();
 
-      console.log("📊 Logout state:", {
-        hasAuthToken: !!authToken,
-        hasRefreshToken: !!refreshToken,
-      });
-
       // Call backend logout endpoint to invalidate server-side session
       try {
-        console.log("🌐 Calling backend logout endpoint...");
-        console.log("🔧 Config debug:", {
-          DJANGO_BASE_URL: config.DJANGO_BASE_URL,
-          API_BASE_URL: config.API_BASE_URL,
-        });
-
         // Use Django allauth logout endpoint
         const logoutUrl = `${config.DJANGO_BASE_URL}/accounts/logout/`;
-        console.log("🔗 Django allauth Logout URL:", logoutUrl);
 
         const csrfResponse = await fetch(logoutUrl, {
           method: "GET",
@@ -288,7 +220,6 @@ export const authService = {
           );
           if (csrfMatch) {
             csrfToken = csrfMatch[1];
-            console.log("🔐 CSRF token extracted from HTML form");
           }
 
           // Also try to get from cookies as backup
@@ -298,7 +229,6 @@ export const authService = {
 
           if (csrfCookie && !csrfToken) {
             csrfToken = csrfCookie.split("=")[1];
-            console.log("🔐 CSRF token obtained from cookie");
           }
         }
 
@@ -313,52 +243,21 @@ export const authService = {
             body: formData,
           });
 
-          console.log("📡 Logout response:", {
-            status: logoutResponse.status,
-            statusText: logoutResponse.statusText,
-            ok: logoutResponse.ok,
-          });
-
           if (logoutResponse.ok) {
-            console.log("✅ Server-side logout successful");
           } else {
-            console.warn(
-              "⚠️ Server logout returned non-OK status, but continuing..."
-            );
           }
         } else {
-          console.warn(
-            "⚠️ Could not obtain CSRF token, skipping server logout"
-          );
         }
-      } catch (backendError) {
-        console.warn(
-          "⚠️ Backend logout failed, but continuing with client-side logout:",
-          {
-            message: backendError.message,
-          }
-        );
-        // Continue with client-side logout even if backend fails
-      }
+      } catch (backendError) {}
 
       // Clear all local storage data - kill the session
-      console.log("🧹 Clearing local authentication data...");
       this.removeAuthToken();
-
-      console.log("✅ Logout completed successfully");
-
       return {
         success: true,
         message: "Logged out successfully",
       };
     } catch (error) {
-      console.error("❌ Logout error:", {
-        message: error.message,
-        name: error.name,
-      });
-
       // Force clear local data even if there's an error
-      console.log("🧹 Force clearing local data due to logout error...");
       this.removeAuthToken();
 
       return {
@@ -371,8 +270,6 @@ export const authService = {
   // Get current user profile
   async getCurrentUser() {
     try {
-      console.log("👤 Fetching current user profile...");
-
       // Try user endpoints based on API documentation
       const endpoints = [
         "/users/", // Get all users (we'll need to filter current user)
@@ -383,15 +280,10 @@ export const authService = {
 
       for (const endpoint of endpoints) {
         try {
-          console.log(`🔍 Trying user endpoint: ${endpoint}`);
           let userData = await apiService.get(endpoint);
 
           // Handle case where /users/ returns an array
           if (Array.isArray(userData)) {
-            console.log(
-              `📋 Endpoint ${endpoint} returned array with ${userData.length} users`
-            );
-
             // Try to find current user from token
             const token = this.getAuthToken(); // Use the proper method to get token
             if (token) {
@@ -399,21 +291,11 @@ export const authService = {
                 const payload = JSON.parse(atob(token.split(".")[1]));
                 const currentUserId = payload.user_id;
 
-                console.log(
-                  "🔍 Looking for user with ID:",
-                  currentUserId,
-                  "in array of",
-                  userData.length,
-                  "users"
-                );
-
                 // Find user in the array by ID
                 const currentUser = userData.find(
                   (user) => user.id === currentUserId
                 );
                 if (currentUser) {
-                  console.log("✅ Found current user in array:", currentUser);
-
                   // Store user role information
                   const userWithRole = {
                     ...currentUser,
@@ -436,19 +318,8 @@ export const authService = {
             } else {
               throw new Error("No authentication token available");
             }
-
-            // Remove the fallback that was causing wrong user selection
-            // if (userData.length > 0) {
-            //   const fallbackUser = {
-            //     ...userData[0],
-            //     role: userData[0].is_superuser ? "admin" : "pos",
-            //   };
-            //   localStorage.setItem("user", JSON.stringify(fallbackUser));
-            //   return fallbackUser;
-            // }
           } else {
             // Single user object returned
-            console.log(`✅ Endpoint ${endpoint} returned user:`, userData);
             const userWithRole = {
               ...userData,
               role: userData.is_superuser ? "admin" : "pos",
@@ -457,26 +328,18 @@ export const authService = {
             return userWithRole;
           }
 
-          console.log(`✅ Successfully fetched user from ${endpoint}`);
           return userData;
         } catch (error) {
-          console.warn(`❌ Failed to fetch from ${endpoint}:`, error.message);
           lastError = error;
           continue;
         }
       }
 
       // If all endpoints fail, try to get user from stored token
-      console.log(
-        "⚠️ All user endpoints failed, attempting token-based user creation"
-      );
       const token = this.getAuthToken(); // Use proper method to get token
       if (token) {
         try {
           const payload = JSON.parse(atob(token.split(".")[1]));
-          console.warn(
-            "⚠️ Using fallback user data from token - this should not happen in production"
-          );
           const fallbackUser = {
             id: payload.user_id,
             username: payload.username || "Unknown",
@@ -505,41 +368,22 @@ export const authService = {
   // Refresh authentication token
   async refreshToken() {
     try {
-      console.log("🔄 Attempting to refresh authentication token...");
-
       const refreshToken = localStorage.getItem("refresh_token");
       if (!refreshToken) {
         console.error("❌ No refresh token available");
         throw new Error("No refresh token available");
       }
-
-      console.log("📡 Sending refresh token request...");
       const response = await apiService.post("/token/refresh/", {
         refresh: refreshToken,
       });
 
-      console.log("✅ Token refresh response:", {
-        hasAccess: !!response.access,
-        accessTokenPreview: response.access
-          ? `${response.access.substring(0, 20)}...`
-          : null,
-      });
-
       if (response.access) {
         apiService.setAuthToken(response.access);
-        console.log("💾 New access token stored successfully");
         return response.access;
       }
 
-      console.error("❌ Token refresh failed - no access token in response");
       throw new Error("Token refresh failed");
     } catch (error) {
-      console.error("❌ Token refresh error:", {
-        message: error.message,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-      });
-
       // Enhanced error messages for token refresh
       let errorMessage = "Session expired. Please login again.";
 
@@ -553,7 +397,6 @@ export const authService = {
       }
 
       // If refresh fails, logout user
-      console.log("🚪 Token refresh failed, initiating logout...");
       this.logout();
 
       const refreshError = new Error(errorMessage);
@@ -623,7 +466,6 @@ export const authService = {
   isAuthenticated() {
     const token = this.getAuthToken();
     if (!token) {
-      console.log("🔍 No auth token found");
       return false;
     }
 
@@ -633,23 +475,13 @@ export const authService = {
       const currentTime = Math.floor(Date.now() / 1000);
       const isExpired = payload.exp < currentTime;
 
-      console.log("🔍 Token validation:", {
-        userId: payload.user_id,
-        exp: payload.exp,
-        currentTime: currentTime,
-        isExpired: isExpired,
-        expiresIn: payload.exp - currentTime,
-      });
-
       if (isExpired) {
-        console.log("⏰ Token is expired, removing...");
         this.removeAuthToken();
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error("❌ Token validation error:", error);
       this.removeAuthToken();
       return false;
     }
