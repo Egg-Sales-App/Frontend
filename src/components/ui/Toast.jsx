@@ -6,12 +6,31 @@ import {
   InformationCircleIcon,
 } from "@heroicons/react/24/solid";
 
+/**
+ * Toast Component
+ * ----------------
+ * Renders a notification (toast) with different styles and icons
+ * depending on the notification type: success, error, warning, or info.
+ *
+ * Props:
+ *  - toast: { id: string|number, type: string, message: string }
+ *      Represents the toast data to render.
+ *      type can be: "success" | "error" | "warning" | "info" (default).
+ *  - onRemove: (id) => void
+ *      Callback function to remove the toast by its ID.
+ */
 const Toast = ({ toast, onRemove }) => {
+  /**
+   * Handles closing the toast by invoking the onRemove callback.
+   */
   const handleClose = () => {
     console.log("🗑️ Closing toast with ID:", toast.id);
     onRemove(toast.id);
   };
 
+  /**
+   * Returns the appropriate icon based on the toast type.
+   */
   const getIcon = () => {
     switch (toast.type) {
       case "success":
@@ -25,6 +44,11 @@ const Toast = ({ toast, onRemove }) => {
     }
   };
 
+  /**
+   * Returns Tailwind utility classes to style
+   * the toast background, border, and text color
+   * based on the toast type.
+   */
   const getStyles = () => {
     switch (toast.type) {
       case "success":
@@ -42,8 +66,13 @@ const Toast = ({ toast, onRemove }) => {
     <div
       className={`flex items-center p-4 rounded-lg border shadow-sm ${getStyles()}`}
     >
+      {/* Notification Icon */}
       {getIcon()}
+
+      {/* Notification Message */}
       <span className="ml-3 flex-1">{toast.message}</span>
+
+      {/* Close Button */}
       <button
         onClick={handleClose}
         className="ml-3 text-gray-400 hover:text-gray-600 focus:outline-none focus:text-gray-600 p-1 rounded transition-colors duration-200"

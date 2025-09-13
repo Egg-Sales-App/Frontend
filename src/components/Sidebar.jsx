@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { useSidebar } from "../context/SidebarContext";
+import { useSidebar } from "../context/SidebarContext"; // Custom hook for sidebar state/context
 import {
   LayoutDashboard,
   Boxes,
@@ -13,64 +13,38 @@ import {
   LogOut,
   Menu,
   X,
-} from "lucide-react";
+} from "lucide-react"; // Icon library
 
 const Sidebar = () => {
+  // Get sidebar state and toggle function from context
   const { isCollapsed, isMobile, toggleSidebar } = useSidebar();
 
+  // Icon size (can later be dynamic if needed)
   const iconSize = isCollapsed ? 20 : 20;
 
+  // Main navigation items
   const menuItems = [
-    {
-      icon: <LayoutDashboard size={iconSize} />,
-      label: "Dashboard",
-      path: "/admin/dashboard",
-    },
-    {
-      icon: <Boxes size={iconSize} />,
-      label: "Inventory",
-      path: "/admin/inventory",
-    },
-    {
-      icon: <FileText size={iconSize} />,
-      label: "Reports",
-      path: "/admin/reports",
-    },
-    {
-      icon: <Truck size={iconSize} />,
-      label: "Suppliers",
-      path: "/admin/suppliers",
-    },
-    {
-      icon: <ShoppingCart size={iconSize} />,
-      label: "Sales",
-      path: "/admin/sales",
-    },
-    {
-      icon: <Store size={iconSize} />,
-      label: "Manage Store",
-      path: "/admin/manage-store",
-    },
-    {
-      icon: <Users size={iconSize} />,
-      label: "Employees",
-      path: "/admin/employees",
-    },
+    { icon: <LayoutDashboard size={iconSize} />, label: "Dashboard", path: "/admin/dashboard" },
+    { icon: <Boxes size={iconSize} />, label: "Inventory", path: "/admin/inventory" },
+    { icon: <FileText size={iconSize} />, label: "Reports", path: "/admin/reports" },
+    { icon: <Truck size={iconSize} />, label: "Suppliers", path: "/admin/suppliers" },
+    { icon: <ShoppingCart size={iconSize} />, label: "Sales", path: "/admin/sales" },
+    { icon: <Store size={iconSize} />, label: "Manage Store", path: "/admin/manage-store" },
+    { icon: <Users size={iconSize} />, label: "Employees", path: "/admin/employees" },
   ];
 
+  // Footer items (settings + logout)
   const footerItems = [
-    {
-      icon: <Settings size={iconSize} />,
-      label: "Settings",
-      path: "/admin/settings",
-    },
+    { icon: <Settings size={iconSize} />, label: "Settings", path: "/admin/settings" },
     { icon: <LogOut size={iconSize} />, label: "Logout", path: "/login" },
   ];
 
+  // Function to dynamically style active vs inactive links
   const getLinkClasses = ({ isActive }) => {
     const base = `flex items-center gap-3 px-1 py-2 rounded-lg transition-all duration-200 ${
       isCollapsed ? "justify-center" : ""
     }`;
+
     return isActive
       ? `${base} bg-blue-50 text-blue-600 font-semibold ${
           !isCollapsed ? "border-r-2 border-blue-600" : ""
@@ -80,6 +54,7 @@ const Sidebar = () => {
 
   return (
     <>
+      {/* Mobile overlay (dark background when sidebar is open) */}
       {isMobile && !isCollapsed && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-10 md:hidden"
@@ -87,19 +62,23 @@ const Sidebar = () => {
         />
       )}
 
+      {/* Sidebar container */}
       <aside
         className={`fixed top-0 left-0 z-20 h-screen bg-white shadow-lg flex flex-col justify-between transition-all duration-300 ease-in-out ${
           isCollapsed ? "w-16" : "w-52"
         } ${isMobile && isCollapsed ? "-translate-x-full" : "translate-x-0"}`}
       >
-        {/* Header */}
+        {/* -------- Header Section -------- */}
         <div className="p-4">
           <div className="flex items-center justify-between mb-8">
+            {/* Logo (hidden when collapsed) */}
             {!isCollapsed && (
               <div className="bg-[#f4faf8] px-3 py-2 rounded-md text-[#496961] font-black font-[Lato] text-base hover:text-blue-600">
                 LOGO
               </div>
             )}
+
+            {/* Collapse/Expand button */}
             <button
               onClick={toggleSidebar}
               className={`p-1 rounded-lg bg-gray-300 hover:bg-blue-500 transition-colors ${
@@ -114,14 +93,14 @@ const Sidebar = () => {
             </button>
           </div>
 
-          {/* Menu */}
+          {/* -------- Main Menu -------- */}
           <ul className="space-y-2 text-sm font-medium">
             {menuItems.map((item, idx) => (
               <li key={idx}>
                 <NavLink
                   to={item.path}
                   className={getLinkClasses}
-                  title={isCollapsed ? item.label : ""}
+                  title={isCollapsed ? item.label : ""} // Tooltip when collapsed
                 >
                   {item.icon}
                   {!isCollapsed && <span>{item.label}</span>}
@@ -131,7 +110,7 @@ const Sidebar = () => {
           </ul>
         </div>
 
-        {/* Footer */}
+        {/* -------- Footer Menu -------- */}
         <div className="p-4">
           <ul className="space-y-2 text-sm font-medium">
             {footerItems.map((item, idx) => (
@@ -150,7 +129,7 @@ const Sidebar = () => {
         </div>
       </aside>
 
-      {/* Toggle Button on Mobile */}
+      {/* Floating toggle button (only visible on mobile when collapsed) */}
       {isMobile && isCollapsed && (
         <button
           onClick={toggleSidebar}
