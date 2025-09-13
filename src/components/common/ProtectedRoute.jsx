@@ -28,7 +28,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
       "🚫 Non-admin user trying to access admin route, redirecting to POS"
     );
     // Non-admin trying to access admin routes - redirect to POS
-    return <Navigate to="/pos" replace />;
+    return <Navigate to="/pos/inventory" replace />;
   }
 
   return children;
