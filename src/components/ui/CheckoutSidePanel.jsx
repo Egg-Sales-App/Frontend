@@ -253,10 +253,10 @@ const CheckoutSidePanel = ({
 
   return (
     <>
-      {/* Overlay */}
+      {/* Overlay with blur effect */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
           onClick={onClose}
         />
       )}
@@ -269,10 +269,13 @@ const CheckoutSidePanel = ({
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b bg-blue-600 text-white">
-            <h2 className="text-lg font-semibold">Checkout</h2>
-            <button onClick={onClose} className="p-1 hover:bg-blue-700 rounded">
-              <XMarkIcon className="h-5 w-5" />
+          <div className="flex items-center justify-between p-4 border-b bg-gray-900 text-white">
+            <h2 className="text-xl font-bold">Checkout</h2>
+            <button
+              onClick={onClose}
+              className="p-1 hover:bg-gray-800 rounded transition-colors"
+            >
+              <XMarkIcon className="h-6 w-6" />
             </button>
           </div>
 
@@ -280,45 +283,53 @@ const CheckoutSidePanel = ({
           <div className="flex-1 overflow-y-auto p-4">
             {/* Customer Information */}
             <div className="mb-6">
-              <h3 className="font-medium mb-3">Customer Information</h3>
+              <h3 className="font-semibold text-gray-900 mb-3">
+                Customer Information
+              </h3>
               <div className="space-y-3">
-                <input
-                  type="text"
-                  placeholder="Customer Name *"
-                  value={customerInfo.name}
-                  onChange={(e) =>
-                    setCustomerInfo((prev) => ({
-                      ...prev,
-                      name: e.target.value,
-                    }))
-                  }
-                  className="w-full p-2 border rounded-md"
-                  disabled={orderCompleted}
-                />
-                <input
-                  type="tel"
-                  placeholder="Phone Number"
-                  value={customerInfo.phone}
-                  onChange={(e) =>
-                    setCustomerInfo((prev) => ({
-                      ...prev,
-                      phone: e.target.value,
-                    }))
-                  }
-                  className="w-full p-2 border rounded-md"
-                  disabled={orderCompleted}
-                />
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Customer Name *"
+                    value={customerInfo.name}
+                    onChange={(e) =>
+                      setCustomerInfo((prev) => ({
+                        ...prev,
+                        name: e.target.value,
+                      }))
+                    }
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                    disabled={orderCompleted}
+                  />
+                </div>
+                <div>
+                  <input
+                    type="tel"
+                    placeholder="Phone Number *"
+                    value={customerInfo.phone}
+                    onChange={(e) =>
+                      setCustomerInfo((prev) => ({
+                        ...prev,
+                        phone: e.target.value,
+                      }))
+                    }
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                    disabled={orderCompleted}
+                  />
+                </div>
               </div>
             </div>
 
             {/* Cart Items */}
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-medium">Cart Items ({items.length})</h3>
+                <h3 className="font-semibold text-gray-900">
+                  Cart Items ({items.length})
+                </h3>
                 {items.length > 0 && !orderCompleted && (
                   <button
                     onClick={onClearCart}
-                    className="text-red-600 text-sm hover:text-red-800"
+                    className="text-red-600 text-sm hover:text-red-800 font-medium"
                   >
                     Clear All
                   </button>
@@ -326,26 +337,28 @@ const CheckoutSidePanel = ({
               </div>
 
               {items.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">
+                <p className="text-gray-500 text-center py-8 italic">
                   Your cart is empty
                 </p>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {items.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border"
                     >
                       <div className="flex-1">
-                        <p className="font-medium text-sm">{item.name}</p>
-                        <p className="text-xs text-gray-600">
+                        <p className="font-semibold text-gray-900 text-sm">
+                          {item.name}
+                        </p>
+                        <p className="text-sm text-gray-600 font-medium">
                           GHS {parseFloat(item.price).toFixed(2)}
                         </p>
                       </div>
                       {!orderCompleted && (
                         <button
                           onClick={() => onRemoveItem(item.id)}
-                          className="text-red-600 hover:text-red-800 p-1"
+                          className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded transition-colors"
                         >
                           <TrashIcon className="h-4 w-4" />
                         </button>
@@ -359,17 +372,21 @@ const CheckoutSidePanel = ({
             {/* Order Summary */}
             {items.length > 0 && (
               <div className="mb-6 border-t pt-4">
-                <h3 className="font-medium mb-3">Order Summary</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
+                <h3 className="font-semibold text-gray-900 mb-3">
+                  Order Summary
+                </h3>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between text-gray-700">
                     <span>Subtotal:</span>
-                    <span>GHS {subtotal.toFixed(2)}</span>
+                    <span className="font-medium">
+                      GHS {subtotal.toFixed(2)}
+                    </span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-gray-700">
                     <span>Tax (12.5%):</span>
-                    <span>GHS {tax.toFixed(2)}</span>
+                    <span className="font-medium">GHS {tax.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between font-bold text-lg border-t pt-2">
+                  <div className="flex justify-between font-bold text-lg border-t pt-3 text-gray-900">
                     <span>Total:</span>
                     <span>GHS {total.toFixed(2)}</span>
                   </div>
@@ -380,29 +397,31 @@ const CheckoutSidePanel = ({
             {/* Payment Method Selection */}
             {items.length > 0 && !orderCompleted && (
               <div className="mb-6">
-                <h3 className="font-medium mb-3">Payment Method</h3>
-                <div className="space-y-2">
+                <h3 className="font-semibold text-gray-900 mb-3">
+                  Payment Method
+                </h3>
+                <div className="space-y-3">
                   <button
                     onClick={() => setPaymentMethod("cash")}
-                    className={`w-full p-3 border rounded-lg flex items-center gap-3 ${
+                    className={`w-full p-4 border rounded-lg flex items-center gap-3 transition-all ${
                       paymentMethod === "cash"
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-300"
+                        ? "border-blue-500 bg-blue-50 text-blue-900"
+                        : "border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"
                     }`}
                   >
                     <BanknotesIcon className="h-5 w-5" />
-                    <span>Cash Payment</span>
+                    <span className="font-medium">Cash Payment</span>
                   </button>
                   <button
                     onClick={() => setPaymentMethod("mobile_money")}
-                    className={`w-full p-3 border rounded-lg flex items-center gap-3 ${
+                    className={`w-full p-4 border rounded-lg flex items-center gap-3 transition-all ${
                       paymentMethod === "mobile_money"
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-300"
+                        ? "border-blue-500 bg-blue-50 text-blue-900"
+                        : "border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"
                     }`}
                   >
                     <CreditCardIcon className="h-5 w-5" />
-                    <span>Mobile Money</span>
+                    <span className="font-medium">Mobile Money</span>
                   </button>
                 </div>
               </div>
@@ -410,33 +429,50 @@ const CheckoutSidePanel = ({
 
             {/* Cash Payment Form */}
             {paymentMethod === "cash" && !paymentConfirmed && (
-              <div className="mb-6">
-                <h3 className="font-medium mb-3">Cash Payment</h3>
-                <div className="space-y-3">
-                  <input
-                    type="number"
-                    placeholder="Amount Received"
-                    value={cashAmount}
-                    onChange={(e) => setCashAmount(e.target.value)}
-                    className="w-full p-2 border rounded-md"
-                    step="0.01"
-                  />
+              <div className="mb-6 bg-gray-50 p-4 rounded-lg border">
+                <h3 className="font-semibold text-gray-900 mb-4">
+                  Cash Payment
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Amount Received
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="Enter cash amount received"
+                      value={cashAmount}
+                      onChange={(e) => setCashAmount(e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                      step="0.01"
+                    />
+                  </div>
                   {cashAmount && (
-                    <div className="text-sm">
-                      <p>Total: GHS {total.toFixed(2)}</p>
-                      <p
-                        className={
-                          balance >= 0 ? "text-green-600" : "text-red-600"
-                        }
-                      >
-                        Balance: GHS {balance.toFixed(2)}
-                      </p>
+                    <div className="bg-white p-3 rounded border">
+                      <div className="text-sm space-y-1">
+                        <p className="text-gray-700">
+                          <span className="font-medium">Total Due:</span> GHS{" "}
+                          {total.toFixed(2)}
+                        </p>
+                        <p
+                          className={`font-semibold ${
+                            balance >= 0 ? "text-green-600" : "text-red-600"
+                          }`}
+                        >
+                          <span className="font-medium">Change:</span> GHS{" "}
+                          {balance.toFixed(2)}
+                        </p>
+                      </div>
                     </div>
                   )}
                   <button
                     onClick={handleCashPayment}
-                    disabled={!cashAmount || parseFloat(cashAmount) < total}
-                    className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={
+                      !cashAmount ||
+                      parseFloat(cashAmount) < total ||
+                      isProcessingPayment
+                    }
+                    className="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
                   >
                     Confirm Cash Payment
                   </button>
@@ -446,21 +482,34 @@ const CheckoutSidePanel = ({
 
             {/* Mobile Money Form */}
             {paymentMethod === "mobile_money" && !paymentConfirmed && (
-              <div className="mb-6">
-                <h3 className="font-medium mb-3">Mobile Money Payment</h3>
-                <div className="space-y-3">
-                  <p className="text-sm text-gray-600">
-                    Total Amount: GHS {total.toFixed(2)}
-                  </p>
+              <div className="mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <h3 className="font-semibold text-gray-900 mb-4">
+                  Mobile Money Payment
+                </h3>
+                <div className="space-y-4">
+                  <div className="bg-white p-3 rounded border">
+                    <p className="text-sm font-medium text-gray-700">
+                      <span className="font-semibold">Total Amount:</span> GHS{" "}
+                      {total.toFixed(2)}
+                    </p>
+                    <p className="text-xs text-gray-600 mt-1">
+                      You will be redirected to complete payment via Paystack
+                    </p>
+                  </div>
                   <button
                     onClick={handleMobileMoneyPayment}
                     disabled={isProcessingPayment || !customerInfo.phone}
-                    className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
                   >
                     {isProcessingPayment
-                      ? "Processing..."
+                      ? "Processing Payment..."
                       : "Pay with Mobile Money"}
                   </button>
+                  {!customerInfo.phone && (
+                    <p className="text-xs text-red-600">
+                      Please enter customer phone number above
+                    </p>
+                  )}
                 </div>
               </div>
             )}
@@ -468,14 +517,16 @@ const CheckoutSidePanel = ({
             {/* Payment Confirmed */}
             {paymentConfirmed && !orderCompleted && (
               <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex items-center gap-2 text-green-700 mb-3">
-                  <CheckCircleIcon className="h-5 w-5" />
-                  <span className="font-medium">Payment Confirmed</span>
+                <div className="flex items-center gap-3 text-green-800 mb-4">
+                  <CheckCircleIcon className="h-6 w-6" />
+                  <span className="font-semibold text-lg">
+                    Payment Confirmed
+                  </span>
                 </div>
                 <button
                   onClick={handleCompleteOrder}
                   disabled={isProcessingPayment}
-                  className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
+                  className="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 disabled:opacity-50 font-medium transition-colors"
                 >
                   {isProcessingPayment
                     ? "Completing Order..."
@@ -487,13 +538,15 @@ const CheckoutSidePanel = ({
             {/* Order Completed */}
             {orderCompleted && (
               <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-center gap-2 text-blue-700 mb-3">
-                  <CheckCircleIcon className="h-5 w-5" />
-                  <span className="font-medium">Order Completed!</span>
+                <div className="flex items-center gap-3 text-blue-800 mb-4">
+                  <CheckCircleIcon className="h-6 w-6" />
+                  <span className="font-semibold text-lg">
+                    Order Completed Successfully!
+                  </span>
                 </div>
                 <button
                   onClick={handlePrintReceipt}
-                  className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 flex items-center justify-center gap-2"
+                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 flex items-center justify-center gap-2 font-medium transition-colors"
                 >
                   <PrinterIcon className="h-5 w-5" />
                   Print Receipt
