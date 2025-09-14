@@ -177,23 +177,23 @@ const Inventory = () => {
         setLoading(false);
 
         // Show success message only if we have data
-        if (mappedProducts.length > 0) {
-          info(
-            `Loaded ${mappedProducts.length} products and ${suppliersArray.length} suppliers`
-          );
+        // if (mappedProducts.length > 0) {
+        //   info(
+        //     `Loaded ${mappedProducts.length} products and ${suppliersArray.length} suppliers`
+        //   );
 
-          // Check for low stock items and notify
-          const lowStockItems = mappedProducts.filter(
-            (product) => product.stock < 10
-          );
-          if (lowStockItems.length > 0) {
-            setTimeout(() => {
-              showError(
-                `⚠️ Warning: ${lowStockItems.length} product(s) have low stock (<10 units)`
-              );
-            }, 2000); // Show after 2 seconds to not overwhelm the user
-          }
-        }
+        //   // Check for low stock items and notify
+        //   const lowStockItems = mappedProducts.filter(
+        //     (product) => product.stock < 10
+        //   );
+        //   if (lowStockItems.length > 0) {
+        //     setTimeout(() => {
+        //       showError(
+        //         `⚠️ Warning: ${lowStockItems.length} product(s) have low stock (<10 units)`
+        //       );
+        //     }, 2000); // Show after 2 seconds to not overwhelm the user
+        //   }
+        // }
       } catch (err) {
         console.error("❌ Error fetching data:", err);
         setError(err.message);
