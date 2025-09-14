@@ -193,8 +193,8 @@ const SetEmployeePassword = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="text-center mb-2">
+          <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-2">
             <Shield size={32} className="text-blue-600" />
           </div>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">
@@ -223,7 +223,7 @@ const SetEmployeePassword = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
+                className="w-full text-gray-900 px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
                 placeholder="Enter your new password"
                 disabled={submitting}
                 required
@@ -253,7 +253,7 @@ const SetEmployeePassword = () => {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 ${
+                className={`w-full text-gray-900 px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 ${
                   formData.confirmPassword && !passwordsMatch
                     ? "border-red-300 bg-red-50"
                     : "border-gray-300"
