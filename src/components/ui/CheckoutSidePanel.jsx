@@ -269,7 +269,7 @@ const CheckoutSidePanel = ({
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b bg-gray-900 text-white">
+          <div className="flex items-center justify-between p-4 border-b bg-blue-600 text-white">
             <h2 className="text-xl font-bold">Checkout</h2>
             <button
               onClick={onClose}
