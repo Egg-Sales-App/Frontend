@@ -12,7 +12,7 @@ import ChickenFeedImage from "../../assets/chicken_feed.png";
 import HalfDozenEggsImage from "../../assets/eggcrate.png";
 import AddProduct from "../../components/ui/AddProduct";
 import { ShoppingCartIcon } from "@heroicons/react/24/outline"; // or solid if you prefer
-import CheckoutCard from "../../components/ui/CheckoutCard";
+import CheckoutSidePanel from "../../components/ui/CheckoutSidePanel";
 import { useToast } from "../../components/ui/ToastContext";
 
 const Inventory = () => {
