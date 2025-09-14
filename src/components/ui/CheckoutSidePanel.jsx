@@ -29,11 +29,15 @@ const CheckoutSidePanel = ({
   const { success, error: showError, info } = useToast();
 
   // Calculate totals
-  const subtotal = items.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0);
+  const subtotal = items.reduce(
+    (sum, item) => sum + (parseFloat(item.price) || 0),
+    0
+  );
   const taxRate = 0.125; // 12.5% VAT
   const tax = subtotal * taxRate;
   const total = subtotal + tax;
-  const balance = paymentMethod === "cash" ? parseFloat(cashAmount || 0) - total : 0;
+  const balance =
+    paymentMethod === "cash" ? parseFloat(cashAmount || 0) - total : 0;
 
   // Reset states when panel closes
   useEffect(() => {
@@ -65,8 +69,8 @@ const CheckoutSidePanel = ({
     setIsProcessingPayment(true);
     try {
       // Simulate Paystack integration
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
       // Here you would integrate with actual Paystack API
       // const paystackResponse = await paystackService.initializePayment({
       //   amount: total * 100, // Paystack expects amount in kobo
@@ -92,15 +96,15 @@ const CheckoutSidePanel = ({
 
     try {
       setIsProcessingPayment(true);
-      
+
       // Create order object
       const orderData = {
         customer_name: customerInfo.name,
         customer_phone: customerInfo.phone,
-        items: items.map(item => ({
+        items: items.map((item) => ({
           product_id: item.id,
           quantity: 1, // Assuming quantity 1 for now
-          price: parseFloat(item.price)
+          price: parseFloat(item.price),
         })),
         total_amount: total,
         payment_method: paymentMethod,
@@ -110,13 +114,12 @@ const CheckoutSidePanel = ({
 
       // Here you would call your backend API
       // const response = await orderService.createOrder(orderData);
-      
+
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
       setOrderCompleted(true);
       success("Order completed successfully!");
-      
     } catch (error) {
       showError("Failed to complete order. Please try again.");
     } finally {
@@ -136,19 +139,27 @@ const CheckoutSidePanel = ({
       Phone: ${customerInfo.phone}
       
       ITEMS:
-      ${items.map(item => `${item.name} - GHS ${parseFloat(item.price).toFixed(2)}`).join('\n')}
+      ${items
+        .map(
+          (item) => `${item.name} - GHS ${parseFloat(item.price).toFixed(2)}`
+        )
+        .join("\n")}
       
       Subtotal: GHS ${subtotal.toFixed(2)}
       Tax (12.5%): GHS ${tax.toFixed(2)}
       Total: GHS ${total.toFixed(2)}
       
-      Payment Method: ${paymentMethod === 'cash' ? 'Cash' : 'Mobile Money'}
-      ${paymentMethod === 'cash' ? `Amount Paid: GHS ${cashAmount}\nBalance: GHS ${balance.toFixed(2)}` : ''}
+      Payment Method: ${paymentMethod === "cash" ? "Cash" : "Mobile Money"}
+      ${
+        paymentMethod === "cash"
+          ? `Amount Paid: GHS ${cashAmount}\nBalance: GHS ${balance.toFixed(2)}`
+          : ""
+      }
       
       Thank you for your business!
     `;
 
-    const printWindow = window.open('', '_blank');
+    const printWindow = window.open("", "_blank");
     printWindow.document.write(`
       <html>
         <head><title>Receipt</title></head>
@@ -159,7 +170,7 @@ const CheckoutSidePanel = ({
     `);
     printWindow.document.close();
     printWindow.print();
-    
+
     // Close panel and clear cart after printing
     setTimeout(() => {
       onClearCart();
@@ -171,24 +182,23 @@ const CheckoutSidePanel = ({
     <>
       {/* Overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40"
           onClick={onClose}
         />
       )}
-      
+
       {/* Side Panel */}
-      <div className={`fixed right-0 top-0 h-full w-96 bg-white shadow-2xl transform transition-transform duration-300 z-50 ${
-        isOpen ? 'translate-x-0' : 'translate-x-full'
-      }`}>
+      <div
+        className={`fixed right-0 top-0 h-full w-96 bg-white shadow-2xl transform transition-transform duration-300 z-50 ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b bg-blue-600 text-white">
             <h2 className="text-lg font-semibold">Checkout</h2>
-            <button
-              onClick={onClose}
-              className="p-1 hover:bg-blue-700 rounded"
-            >
+            <button onClick={onClose} className="p-1 hover:bg-blue-700 rounded">
               <XMarkIcon className="h-5 w-5" />
             </button>
           </div>
@@ -203,7 +213,12 @@ const CheckoutSidePanel = ({
                   type="text"
                   placeholder="Customer Name *"
                   value={customerInfo.name}
-                  onChange={(e) => setCustomerInfo(prev => ({...prev, name: e.target.value}))}
+                  onChange={(e) =>
+                    setCustomerInfo((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                    }))
+                  }
                   className="w-full p-2 border rounded-md"
                   disabled={orderCompleted}
                 />
@@ -211,7 +226,12 @@ const CheckoutSidePanel = ({
                   type="tel"
                   placeholder="Phone Number"
                   value={customerInfo.phone}
-                  onChange={(e) => setCustomerInfo(prev => ({...prev, phone: e.target.value}))}
+                  onChange={(e) =>
+                    setCustomerInfo((prev) => ({
+                      ...prev,
+                      phone: e.target.value,
+                    }))
+                  }
                   className="w-full p-2 border rounded-md"
                   disabled={orderCompleted}
                 />
@@ -231,16 +251,23 @@ const CheckoutSidePanel = ({
                   </button>
                 )}
               </div>
-              
+
               {items.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">Your cart is empty</p>
+                <p className="text-gray-500 text-center py-8">
+                  Your cart is empty
+                </p>
               ) : (
                 <div className="space-y-2">
                   {items.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                    >
                       <div className="flex-1">
                         <p className="font-medium text-sm">{item.name}</p>
-                        <p className="text-xs text-gray-600">GHS {parseFloat(item.price).toFixed(2)}</p>
+                        <p className="text-xs text-gray-600">
+                          GHS {parseFloat(item.price).toFixed(2)}
+                        </p>
                       </div>
                       {!orderCompleted && (
                         <button
@@ -285,7 +312,9 @@ const CheckoutSidePanel = ({
                   <button
                     onClick={() => setPaymentMethod("cash")}
                     className={`w-full p-3 border rounded-lg flex items-center gap-3 ${
-                      paymentMethod === "cash" ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                      paymentMethod === "cash"
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-300"
                     }`}
                   >
                     <BanknotesIcon className="h-5 w-5" />
@@ -294,7 +323,9 @@ const CheckoutSidePanel = ({
                   <button
                     onClick={() => setPaymentMethod("mobile_money")}
                     className={`w-full p-3 border rounded-lg flex items-center gap-3 ${
-                      paymentMethod === "mobile_money" ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                      paymentMethod === "mobile_money"
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-300"
                     }`}
                   >
                     <CreditCardIcon className="h-5 w-5" />
@@ -320,7 +351,11 @@ const CheckoutSidePanel = ({
                   {cashAmount && (
                     <div className="text-sm">
                       <p>Total: GHS {total.toFixed(2)}</p>
-                      <p className={balance >= 0 ? 'text-green-600' : 'text-red-600'}>
+                      <p
+                        className={
+                          balance >= 0 ? "text-green-600" : "text-red-600"
+                        }
+                      >
                         Balance: GHS {balance.toFixed(2)}
                       </p>
                     </div>
@@ -349,7 +384,9 @@ const CheckoutSidePanel = ({
                     disabled={isProcessingPayment || !customerInfo.phone}
                     className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isProcessingPayment ? "Processing..." : "Pay with Mobile Money"}
+                    {isProcessingPayment
+                      ? "Processing..."
+                      : "Pay with Mobile Money"}
                   </button>
                 </div>
               </div>
@@ -367,7 +404,9 @@ const CheckoutSidePanel = ({
                   disabled={isProcessingPayment}
                   className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 disabled:opacity-50"
                 >
-                  {isProcessingPayment ? "Completing Order..." : "Complete Order"}
+                  {isProcessingPayment
+                    ? "Completing Order..."
+                    : "Complete Order"}
                 </button>
               </div>
             )}

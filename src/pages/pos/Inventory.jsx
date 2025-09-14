@@ -995,14 +995,15 @@ const Inventory = () => {
           </div>
         </div>
       )}
-      {showCheckout && (
-        <CheckoutCard
-          items={cartItems}
-          onClose={() => setShowCheckout(false)}
-          onRemoveItem={handleRemoveFromCart}
-          onClearCart={handleClearCart}
-        />
-      )}
+
+      {/* Checkout Side Panel */}
+      <CheckoutSidePanel
+        items={cartItems}
+        isOpen={showCheckout}
+        onClose={() => setShowCheckout(false)}
+        onRemoveItem={handleRemoveFromCart}
+        onClearCart={handleClearCart}
+      />
     </>
   );
 };
