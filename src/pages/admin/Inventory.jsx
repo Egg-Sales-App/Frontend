@@ -754,7 +754,7 @@ const Inventory = () => {
         </button>
         <button
           onClick={() => handleViewProduct(product)}
-          className="btn btn-sm bg-green-500 hover:bg-green-600 text-white"
+          className="btn btn-sm border-0 bg-green-500 hover:bg-green-600 text-white"
         >
           View
         </button>
@@ -878,7 +878,7 @@ const Inventory = () => {
             Add Product
           </button>
           <button
-            className="btn bg-blue-500 text-gray-100 hover:bg-blue-600 font-medium"
+            className="btn border-0 bg-blue-500 text-gray-100 hover:bg-blue-600 font-medium"
             onClick={() =>
               document.getElementById("category_management_modal").showModal()
             }
@@ -1305,13 +1305,13 @@ const Inventory = () => {
                     <>
                       <button
                         onClick={() => setModalMode("edit")}
-                        className="btn bg-blue-500 hover:bg-blue-600 text-white flex-1"
+                        className="btn border-0 bg-blue-500 hover:bg-blue-600 text-white flex-1"
                       >
                         Edit Product
                       </button>
                       <button
                         onClick={() => handleDeleteProduct(selectedProduct.id)}
-                        className="btn bg-red-500 hover:bg-red-600 text-white"
+                        className="btn border-0 bg-red-500 hover:bg-red-600 text-white"
                       >
                         Delete
                       </button>
@@ -1326,7 +1326,7 @@ const Inventory = () => {
                       </button>
                       <button
                         onClick={handleSaveProductChanges}
-                        className="btn bg-green-500 hover:bg-green-600 text-white flex-1"
+                        className="btn border-0 bg-green-500 hover:bg-green-600 text-white flex-1"
                       >
                         Save Changes
                       </button>
