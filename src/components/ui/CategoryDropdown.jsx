@@ -2,6 +2,15 @@ import React, { useState, useEffect } from "react";
 import { categoryService } from "../../services/categoryService";
 import { useToast } from "./ToastContext";
 
+/**
+ * CategoryDropdown Component
+ * --------------------------
+ * A reusable dropdown for selecting product categories.
+ * - Fetches category data from the backend (via categoryService).
+ * - Shows a loading state while fetching.
+ * - Handles empty state (no categories available).
+ * - Notifies parent component when categories are loaded.
+ */
 const CategoryDropdown = ({
   value,
   onChange,
@@ -17,17 +26,19 @@ const CategoryDropdown = ({
   const [loading, setLoading] = useState(true);
   const { error: showError } = useToast();
 
+  // Fetch categories on initial mount
   useEffect(() => {
     fetchCategories();
   }, []);
 
+  // Fetch categories from service
   const fetchCategories = async () => {
     try {
       setLoading(true);
       const result = await categoryService.getCategories();
       setCategories(result.categories);
 
-      // Notify parent component of categories loaded
+      // Optionally notify parent that categories are loaded
       if (onCategoriesLoad) {
         onCategoriesLoad(result.categories);
       }
@@ -39,11 +50,12 @@ const CategoryDropdown = ({
     }
   };
 
-  // Function to refresh categories (can be called by parent)
+  // Allow parent to trigger a refresh
   const refreshCategories = () => {
     fetchCategories();
   };
 
+  // Handle user selection
   const handleChange = (e) => {
     const selectedValue = e.target.value;
     onChange({
@@ -56,19 +68,23 @@ const CategoryDropdown = ({
 
   return (
     <div className={`space-y-1 ${className}`}>
+      {/* Label (optional) */}
       {label && (
         <label className="block text-sm font-medium text-gray-700">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}
 
+      {/* Dropdown */}
       <select
         name={name}
         value={value || ""}
         onChange={handleChange}
         required={required}
         disabled={disabled || loading}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm 
+                   focus:outline-none focus:ring-blue-500 focus:border-blue-500 
+                   disabled:bg-gray-100 disabled:cursor-not-allowed"
       >
         <option value="">
           {loading ? "Loading categories..." : placeholder}
@@ -80,6 +96,7 @@ const CategoryDropdown = ({
         ))}
       </select>
 
+      {/* Empty state */}
       {categories.length === 0 && !loading && (
         <p className="text-sm text-gray-500 mt-1">
           No categories available. Please add categories first.
@@ -89,11 +106,21 @@ const CategoryDropdown = ({
   );
 };
 
-// Helper hook for managing category dropdown
+/**
+ * useCategoryDropdown Hook
+ * -------------------------
+ * A helper hook for loading and working with categories programmatically.
+ * Provides:
+ * - categories (state)
+ * - loading status
+ * - functions to load categories
+ * - helpers to get category by id or name
+ */
 export const useCategoryDropdown = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Load categories
   const loadCategories = async () => {
     try {
       setLoading(true);
@@ -108,6 +135,7 @@ export const useCategoryDropdown = () => {
     }
   };
 
+  // Helpers for quick lookups
   const getCategoryById = (id) => {
     return categories.find((cat) => cat.id === parseInt(id));
   };

@@ -4,21 +4,32 @@ import { useToast } from "../ui/ToastContext";
 import FormInput from "../ui/FormInput";
 import LoadingSpinner from "../ui/LoadingSpinner";
 
+/**
+ * CategoryManagement Component
+ * -----------------------------
+ * Provides CRUD operations for product categories:
+ * - Fetches category list from backend
+ * - Allows adding, editing, and deleting categories
+ * - Displays categories in a table with actions
+ * - Notifies parent component of updates (via onCategoryUpdate)
+ */
 const CategoryManagement = ({ onCategoryUpdate }) => {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-  });
+  const [categories, setCategories] = useState([]); // list of categories
+  const [loading, setLoading] = useState(false); // loading state for API actions
+  const [showAddForm, setShowAddForm] = useState(false); // toggle add/edit form
+  const [editingCategory, setEditingCategory] = useState(null); // category being edited
+  const [formData, setFormData] = useState({ name: "", description: "" }); // form state
+
   const { success, error: showError } = useToast();
 
+  // Load categories on mount
   useEffect(() => {
     fetchCategories();
   }, []);
 
+  /**
+   * Fetch categories from the backend
+   */
   const fetchCategories = async () => {
     try {
       setLoading(true);
@@ -32,9 +43,13 @@ const CategoryManagement = ({ onCategoryUpdate }) => {
     }
   };
 
+  /**
+   * Handle form submission (create or update category)
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Basic validation
     if (!formData.name.trim()) {
       showError("Category name is required");
       return;
@@ -56,7 +71,7 @@ const CategoryManagement = ({ onCategoryUpdate }) => {
       resetForm();
       fetchCategories();
 
-      // Notify parent component of category update
+      // Inform parent about the update
       if (onCategoryUpdate) {
         onCategoryUpdate();
       }
@@ -67,6 +82,9 @@ const CategoryManagement = ({ onCategoryUpdate }) => {
     }
   };
 
+  /**
+   * Handle edit action (populate form with existing data)
+   */
   const handleEdit = (category) => {
     setEditingCategory(category);
     setFormData({
@@ -76,6 +94,9 @@ const CategoryManagement = ({ onCategoryUpdate }) => {
     setShowAddForm(true);
   };
 
+  /**
+   * Handle delete action (with confirmation)
+   */
   const handleDelete = async (categoryId, categoryName) => {
     if (!window.confirm(`Are you sure you want to delete "${categoryName}"?`)) {
       return;
@@ -87,7 +108,7 @@ const CategoryManagement = ({ onCategoryUpdate }) => {
       success("Category deleted successfully");
       fetchCategories();
 
-      // Notify parent component of category update
+      // Inform parent about the update
       if (onCategoryUpdate) {
         onCategoryUpdate();
       }
@@ -98,12 +119,18 @@ const CategoryManagement = ({ onCategoryUpdate }) => {
     }
   };
 
+  /**
+   * Reset form state and close form
+   */
   const resetForm = () => {
     setFormData({ name: "", description: "" });
     setEditingCategory(null);
     setShowAddForm(false);
   };
 
+  /**
+   * Handle input changes in the form
+   */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -112,12 +139,14 @@ const CategoryManagement = ({ onCategoryUpdate }) => {
     }));
   };
 
+  // Show loader if fetching initial data
   if (loading && categories.length === 0) {
     return <LoadingSpinner />;
   }
 
   return (
     <div className="category-management text-black">
+      {/* Header section */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">
           Category Management
@@ -158,7 +187,9 @@ const CategoryManagement = ({ onCategoryUpdate }) => {
                 onChange={handleInputChange}
                 placeholder="Enter category description (optional)"
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-800 placeholder-gray-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm 
+                           focus:outline-none focus:ring-blue-500 focus:border-blue-500 
+                           text-gray-800 placeholder-gray-500"
               />
             </div>
             <div className="flex gap-2">
