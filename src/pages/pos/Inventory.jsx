@@ -33,7 +33,6 @@ const Inventory = () => {
 
   const handleCheckout = () => {
     setShowCheckout(true);
-    console.log("Checkout clicked!");
   };
 
   const handleAddToCart = (product) => {
@@ -41,7 +40,22 @@ const Inventory = () => {
     const exists = cartItems.find((item) => item.id === product.id);
     if (!exists) {
       setCartItems((prev) => [...prev, product]);
+      // Show success toast with product name
+      success(`${product.name} added to cart!`);
+    } else {
+      // Show info toast if item already exists
+      info(`${product.name} is already in your cart`);
     }
+  };
+
+  const handleRemoveFromCart = (productId) => {
+    setCartItems((prev) => prev.filter((item) => item.id !== productId));
+    info("Item removed from cart");
+  };
+
+  const handleClearCart = () => {
+    setCartItems([]);
+    info("Cart cleared");
   };
 
   // Helper function to map category names to IDs (Equipment focused)
@@ -713,7 +727,7 @@ const Inventory = () => {
       <div className="flex gap-2 mt-4">
         <button
           onClick={() => handleAddToCart(product)}
-          className="btn btn-sm bg-green-500 hover:bg-green-600 text-white"
+          className="btn btn-sm bg-green-500 hover:bg-green-600 border-none text-white"
         >
           Add to cart
         </button>
@@ -828,48 +842,28 @@ const Inventory = () => {
             ))}
           </div>
         </div>
-        {/* Checkout Button with Cart Icon */}
+        {/* Checkout Button with Cart Icon and Badge */}
         <div className="flex items-center gap-3">
-          {/* Toast Test Buttons (for development) */}
-          {import.meta.env.MODE === "development" && (
-            <div className="flex gap-2">
-              <button
-                onClick={() => success("Test success message!")}
-                className="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
-                title="Test Success Toast"
-              >
-                ✓
-              </button>
-              <button
-                onClick={() => showError("Test error message!")}
-                className="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
-                title="Test Error Toast"
-              >
-                ✗
-              </button>
-              <button
-                onClick={() => warning("Test warning message!")}
-                className="px-2 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600"
-                title="Test Warning Toast"
-              >
-                ⚠
-              </button>
-              <button
-                onClick={() => info("Test info message!")}
-                className="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                title="Test Info Toast"
-              >
-                i
-              </button>
-            </div>
-          )}
-
           <button
             onClick={handleCheckout} // define this function or link to your checkout route
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            className={`relative flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-all duration-200 ${
+              cartItems.length > 0
+                ? "bg-green-600 hover:bg-green-700 shadow-lg transform hover:scale-105"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
-            <ShoppingCartIcon className="h-5 w-5" />
-            Checkout
+            <div className="relative">
+              <ShoppingCartIcon className="h-5 w-5" />
+              {/* Cart Badge */}
+              {cartItems.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center min-w-[20px] animate-bounce">
+                  {cartItems.length > 99 ? "99+" : cartItems.length}
+                </span>
+              )}
+            </div>
+            <span className="font-medium">
+              {cartItems.length > 0 ? `Cart (${cartItems.length})` : "Cart"}
+            </span>
           </button>
         </div>
       </div>
@@ -1005,6 +999,8 @@ const Inventory = () => {
         <CheckoutCard
           items={cartItems}
           onClose={() => setShowCheckout(false)}
+          onRemoveItem={handleRemoveFromCart}
+          onClearCart={handleClearCart}
         />
       )}
     </>
