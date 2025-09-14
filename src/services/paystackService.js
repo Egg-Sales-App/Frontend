@@ -1,5 +1,4 @@
 // Paystack integration service
-const PAYSTACK_PUBLIC_KEY = "pk_test_your_paystack_public_key"; // Replace with your actual public key
 
 export const paystackService = {
   // Initialize payment with Paystack
@@ -11,7 +10,7 @@ export const paystackService = {
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${PAYSTACK_PUBLIC_KEY}`,
+            Authorization: `Bearer ${VITE_PAYSTACK_PUBLIC_KEY}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
@@ -61,7 +60,7 @@ export const paystackService = {
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${PAYSTACK_PUBLIC_KEY}`,
+            Authorization: `Bearer ${VITE_PAYSTACK_PUBLIC_KEY}`,
           },
         }
       );
@@ -88,7 +87,7 @@ export const paystackService = {
   // Open Paystack popup for payment
   openPaymentPopup({ amount, email, phone, reference, onSuccess, onClose }) {
     const handler = PaystackPop.setup({
-      key: PAYSTACK_PUBLIC_KEY,
+      key: VITE_PAYSTACK_PUBLIC_KEY,
       email: email,
       amount: amount, // Amount in kobo
       ref: reference,
