@@ -146,33 +146,18 @@ export const employeeService = {
         throw new Error("Invalid token");
       }
 
-      // Get the user by email to find their ID
-      const usersResponse = await apiService.get("/users/", {
-        search: tokenValidation.email,
-      });
-
-      let user = null;
-      if (usersResponse.results && usersResponse.results.length > 0) {
-        user = usersResponse.results.find(
-          (u) => u.email === tokenValidation.email
-        );
-      } else if (Array.isArray(usersResponse)) {
-        user = usersResponse.find((u) => u.email === tokenValidation.email);
-      }
-
-      if (!user) {
-        throw new Error("User not found");
-      }
-
-      // Update the user's password
-      const updateResponse = await apiService.patch(`/users/${user.id}/`, {
+      // Use the dedicated employee set-password endpoint
+      const response = await apiService.post("/employees/set-password/", {
+        token: data.token,
         password: data.password,
+        confirm_password: data.confirmPassword,
+        email: tokenValidation.email,
       });
 
       return {
         success: true,
         message: "Password set successfully",
-        user: updateResponse,
+        user: response,
       };
     } catch (error) {
       if (
@@ -185,6 +170,8 @@ export const employeeService = {
         throw new Error(
           error.response?.data?.message || "Password requirements not met"
         );
+      } else if (error.response?.status === 403) {
+        throw new Error("Invalid credentials or token expired");
       } else if (error.response?.status === 404) {
         throw new Error("User not found");
       }
