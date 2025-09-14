@@ -8,6 +8,7 @@ import {
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 import { useToast } from "./ToastContext";
+import { orderService } from "../../services/orderService";
 
 const CheckoutSidePanel = ({
   items = [],
@@ -50,14 +51,48 @@ const CheckoutSidePanel = ({
     }
   }, [isOpen]);
 
-  const handleCashPayment = () => {
+  const createOrder = async (paymentMethod, paymentStatus = "completed") => {
+    try {
+      const orderData = {
+        customer_name: customerInfo.name,
+        customer_phone: customerInfo.phone,
+        order_date: new Date().toISOString(),
+        total_amount: total,
+        payment_method: paymentMethod,
+        payment_status: paymentStatus,
+        items: items.map(item => ({
+          product_id: item.id,
+          quantity: item.quantity || 1,
+          unit_price: item.price,
+          total_price: item.price * (item.quantity || 1),
+        })),
+      };
+
+      const response = await orderService.createOrder(orderData);
+      return response;
+    } catch (error) {
+      console.error("Order creation failed:", error);
+      throw error;
+    }
+  };
+
+  const handleCashPayment = async () => {
     const amount = parseFloat(cashAmount);
     if (amount < total) {
       showError("Insufficient cash amount!");
       return;
     }
-    setPaymentConfirmed(true);
-    success(`Payment confirmed! Balance: GHS ${balance.toFixed(2)}`);
+
+    setIsProcessingPayment(true);
+    try {
+      const order = await createOrder("cash");
+      setPaymentConfirmed(true);
+      success(`Payment confirmed! Order #${order.ref_code} created. Balance: GHS ${balance.toFixed(2)}`);
+    } catch (error) {
+      showError("Failed to create order. Please try again.");
+    } finally {
+      setIsProcessingPayment(false);
+    }
   };
 
   const handleMobileMoneyPayment = async () => {
@@ -79,8 +114,11 @@ const CheckoutSidePanel = ({
       //   reference: `pos_${Date.now()}`
       // });
 
+      // Create order in database
+      const order = await createOrder("mobile_money");
+      
       setPaymentConfirmed(true);
-      success("Mobile money payment confirmed!");
+      success(`Mobile money payment confirmed! Order #${order.ref_code} created.`);
     } catch (error) {
       showError("Payment failed. Please try again.");
     } finally {
