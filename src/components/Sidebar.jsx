@@ -24,18 +24,50 @@ const Sidebar = () => {
 
   // Main navigation items
   const menuItems = [
-    { icon: <LayoutDashboard size={iconSize} />, label: "Dashboard", path: "/admin/dashboard" },
-    { icon: <Boxes size={iconSize} />, label: "Inventory", path: "/admin/inventory" },
-    { icon: <FileText size={iconSize} />, label: "Reports", path: "/admin/reports" },
-    { icon: <Truck size={iconSize} />, label: "Suppliers", path: "/admin/suppliers" },
-    { icon: <ShoppingCart size={iconSize} />, label: "Sales", path: "/admin/sales" },
-    { icon: <Store size={iconSize} />, label: "Manage Store", path: "/admin/manage-store" },
-    { icon: <Users size={iconSize} />, label: "Employees", path: "/admin/employees" },
+    {
+      icon: <LayoutDashboard size={iconSize} />,
+      label: "Dashboard",
+      path: "/admin/dashboard",
+    },
+    {
+      icon: <Boxes size={iconSize} />,
+      label: "Inventory",
+      path: "/admin/inventory",
+    },
+    {
+      icon: <FileText size={iconSize} />,
+      label: "Reports",
+      path: "/admin/reports",
+    },
+    {
+      icon: <Truck size={iconSize} />,
+      label: "Suppliers",
+      path: "/admin/suppliers",
+    },
+    {
+      icon: <ShoppingCart size={iconSize} />,
+      label: "Sales",
+      path: "/admin/sales",
+    },
+    {
+      icon: <Store size={iconSize} />,
+      label: "Manage Store",
+      path: "/admin/manage-store",
+    },
+    {
+      icon: <Users size={iconSize} />,
+      label: "Employees",
+      path: "/admin/employees",
+    },
   ];
 
   // Footer items (settings + logout)
   const footerItems = [
-    { icon: <Settings size={iconSize} />, label: "Settings", path: "/admin/settings" },
+    {
+      icon: <Settings size={iconSize} />,
+      label: "Settings",
+      path: "/admin/settings",
+    },
     { icon: <LogOut size={iconSize} />, label: "Logout", path: "/login" },
   ];
 
@@ -71,10 +103,9 @@ const Sidebar = () => {
         {/* -------- Header Section -------- */}
         <div className="p-4">
           <div className="flex items-center justify-between mb-8">
-            {/* Logo (hidden when collapsed) */}
             {!isCollapsed && (
-              <div className="bg-[#f4faf8] px-3 py-2 rounded-md text-[#496961] font-black font-[Lato] text-base hover:text-blue-600">
-                LOGO
+              <div className="bg-blue-100 px-3 py-2 rounded-md text-blue-600 font-black text-base hover:text-blue-600">
+                ADMIN
               </div>
             )}
 
