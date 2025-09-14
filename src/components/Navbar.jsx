@@ -21,14 +21,8 @@ const Navbar = () => {
   // Handle user logout with feedback and redirection
   const handleLogout = async () => {
     try {
-      console.log("🚪 User initiated logout from navbar");
-
       // Call logout service
       const result = await logout();
-
-      // Show success toast (message from backend or default)
-      addToast(result.message || "Logged out successfully", "success");
-      console.log("🎉 Logout successful, redirecting to login...");
 
       // Redirect user to login page after logout
       navigate("/login", { replace: true });
@@ -82,9 +76,17 @@ const Navbar = () => {
         {/* RIGHT SECTION - Notifications & Profile Menu */}
         <div className="flex gap-4 items-center">
           {/* Notification Bell Icon */}
-          <div className="indicator">
+          {/* <div className="indicator">
             <Bell className="text-gray-500" />
             <span className="badge badge-xs badge-primary indicator-item"></span>
+          </div> */}
+
+          {/* Welcome Message */}
+          <div className="indicator">
+            <span className="text-gray-700 font-bold">Welcome back,</span>{" "}
+            <span className="font-semibold text-gray-800 ml-1">
+              {user?.username || "User"}!
+            </span>
           </div>
 
           {/* Profile Avatar & Dropdown Menu */}
