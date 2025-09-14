@@ -9,6 +9,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { useToast } from "./ToastContext";
 import { orderService } from "../../services/orderService";
+import { paystackService } from "../../services/paystackService";
 
 const CheckoutSidePanel = ({
   items = [],
@@ -60,7 +61,7 @@ const CheckoutSidePanel = ({
         total_amount: total,
         payment_method: paymentMethod,
         payment_status: paymentStatus,
-        items: items.map(item => ({
+        items: items.map((item) => ({
           product_id: item.id,
           quantity: item.quantity || 1,
           unit_price: item.price,
@@ -87,7 +88,11 @@ const CheckoutSidePanel = ({
     try {
       const order = await createOrder("cash");
       setPaymentConfirmed(true);
-      success(`Payment confirmed! Order #${order.ref_code} created. Balance: GHS ${balance.toFixed(2)}`);
+      success(
+        `Payment confirmed! Order #${
+          order.ref_code
+        } created. Balance: GHS ${balance.toFixed(2)}`
+      );
     } catch (error) {
       showError("Failed to create order. Please try again.");
     } finally {
@@ -103,24 +108,54 @@ const CheckoutSidePanel = ({
 
     setIsProcessingPayment(true);
     try {
-      // Simulate Paystack integration
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      const reference = paystackService.generateReference();
+      const email = `${customerInfo.phone}@pos.ashford.com`;
 
-      // Here you would integrate with actual Paystack API
-      // const paystackResponse = await paystackService.initializePayment({
-      //   amount: total * 100, // Paystack expects amount in kobo
-      //   email: `${customerInfo.phone}@placeholder.com`,
-      //   phone: customerInfo.phone,
-      //   reference: `pos_${Date.now()}`
-      // });
+      // Initialize Paystack payment
+      const paymentData = await paystackService.initializePayment({
+        amount: total * 100, // Convert to kobo
+        email: email,
+        phone: customerInfo.phone,
+        reference: reference,
+      });
 
-      // Create order in database
-      const order = await createOrder("mobile_money");
-      
-      setPaymentConfirmed(true);
-      success(`Mobile money payment confirmed! Order #${order.ref_code} created.`);
+      // Open Paystack popup
+      paystackService.openPaymentPopup({
+        amount: total * 100,
+        email: email,
+        phone: customerInfo.phone,
+        reference: reference,
+        onSuccess: async (response) => {
+          try {
+            // Verify payment
+            const verification = await paystackService.verifyPayment(
+              response.reference
+            );
+
+            if (
+              verification.status &&
+              verification.gateway_response === "Successful"
+            ) {
+              // Create order in database
+              const order = await createOrder("mobile_money", "completed");
+              setPaymentConfirmed(true);
+              success(
+                `Mobile money payment successful! Order #${order.ref_code} created.`
+              );
+            } else {
+              showError("Payment verification failed. Please contact support.");
+            }
+          } catch (error) {
+            showError("Payment verification failed. Please try again.");
+          }
+        },
+        onClose: () => {
+          showError("Payment was cancelled");
+        },
+      });
     } catch (error) {
-      showError("Payment failed. Please try again.");
+      console.error("Payment error:", error);
+      showError("Payment initialization failed. Please try again.");
     } finally {
       setIsProcessingPayment(false);
     }
