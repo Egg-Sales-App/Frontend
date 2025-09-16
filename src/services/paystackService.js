@@ -1,5 +1,5 @@
 // Paystack integration service
-import { api } from "./api";
+import { apiService } from "./api";
 
 const PAYSTACK_PUBLIC_KEY =
   import.meta.env.VITE_PAYSTACK_PUBLIC_KEY ||
@@ -10,7 +10,7 @@ export const paystackService = {
   async initializePayment({ amount, email, phone, reference, callback_url }) {
     try {
       // Send to your backend API instead of directly to Paystack
-      const response = await api.post("/payments/initialize/", {
+      const response = await apiService.post("/payments/initialize/", {
         amount: amount, // Amount in kobo (multiply by 100)
         email: email,
         phone: phone,
@@ -43,75 +43,9 @@ export const paystackService = {
       }
     } catch (error) {
       console.error("Paystack initialization error:", error);
-
-      // Fallback to direct Paystack call if backend is not ready
-      console.warn(
-        "Falling back to direct Paystack integration (NOT RECOMMENDED FOR PRODUCTION)"
+      throw new Error(
+        "Payment system is currently unavailable. Please try cash payment or contact support."
       );
-      return await this.initializePaymentDirect({
-        amount,
-        email,
-        phone,
-        reference,
-        callback_url,
-      });
-    }
-  },
-
-  // Direct Paystack initialization (FALLBACK ONLY - NOT SECURE)
-  async initializePaymentDirect({
-    amount,
-    email,
-    phone,
-    reference,
-    callback_url,
-  }) {
-    try {
-      // Note: This should be moved to backend for production
-      const response = await fetch(
-        "https://api.paystack.co/transaction/initialize",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer sk_test_your_secret_key`, // This should be on backend!
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            amount: amount,
-            email: email,
-            reference: reference,
-            callback_url: callback_url,
-            metadata: {
-              phone: phone,
-              custom_fields: [
-                {
-                  display_name: "Phone Number",
-                  variable_name: "phone",
-                  value: phone,
-                },
-              ],
-            },
-            channels: ["mobile_money", "card"],
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (data.status) {
-        return {
-          status: true,
-          data: data.data,
-          authorization_url: data.data.authorization_url,
-          access_code: data.data.access_code,
-          reference: data.data.reference,
-        };
-      } else {
-        throw new Error(data.message || "Payment initialization failed");
-      }
-    } catch (error) {
-      console.error("Direct Paystack initialization error:", error);
-      throw error;
     }
   },
 
@@ -119,7 +53,7 @@ export const paystackService = {
   async verifyPayment(reference) {
     try {
       // Send to your backend API instead of directly to Paystack
-      const response = await api.get(`/payments/verify/${reference}/`);
+      const response = await apiService.get(`/payments/verify/${reference}/`);
 
       if (response.status) {
         return {
@@ -134,44 +68,9 @@ export const paystackService = {
       }
     } catch (error) {
       console.error("Backend payment verification error:", error);
-
-      // Fallback to direct verification if backend is not ready
-      console.warn(
-        "Falling back to direct Paystack verification (NOT RECOMMENDED FOR PRODUCTION)"
+      throw new Error(
+        "Payment verification failed. Please contact support with your transaction reference."
       );
-      return await this.verifyPaymentDirect(reference);
-    }
-  },
-
-  // Direct Paystack verification (FALLBACK ONLY - NOT SECURE)
-  async verifyPaymentDirect(reference) {
-    try {
-      const response = await fetch(
-        `https://api.paystack.co/transaction/verify/${reference}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer sk_test_your_secret_key`, // This should be on backend!
-          },
-        }
-      );
-
-      const data = await response.json();
-
-      if (data.status) {
-        return {
-          status: true,
-          data: data.data,
-          gateway_response: data.data.gateway_response,
-          paid_at: data.data.paid_at,
-          amount: data.data.amount / 100, // Convert from kobo to cedis
-        };
-      } else {
-        throw new Error(data.message || "Payment verification failed");
-      }
-    } catch (error) {
-      console.error("Direct Paystack verification error:", error);
-      throw error;
     }
   },
 
@@ -212,8 +111,8 @@ export const paystackService = {
   },
 };
 
-// Note: For production, you should:
-// 1. Replace the public key with your actual Paystack public key
-// 2. Handle payments through your backend API for security
+// Note: For production, ensure that:
+// 1. Backend payment endpoints are properly implemented
+// 2. Paystack secret key is securely stored on backend
 // 3. Include the Paystack inline JS library in your HTML:
 //    <script src="https://js.paystack.co/v1/inline.js"></script>
