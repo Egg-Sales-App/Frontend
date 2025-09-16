@@ -31,31 +31,181 @@ const Inventory = () => {
   // Add toast functionality
   const { success, error: showError, warning, info } = useToast();
 
+  // Calculate total quantity in cart
+  const totalCartQuantity = cartItems.reduce(
+    (sum, item) => sum + (item.cartQuantity || 1),
+    0
+  );
+
   const handleCheckout = () => {
     setShowCheckout(true);
   };
 
   const handleAddToCart = (product) => {
+    // Check available quantity
+    if (product.stock <= 0) {
+      showError(`${product.name} is out of stock!`);
+      return;
+    }
+
     // Check if already in cart
-    const exists = cartItems.find((item) => item.id === product.id);
-    if (!exists) {
-      setCartItems((prev) => [...prev, product]);
-      // Show success toast with product name
-      success(`${product.name} added to cart!`);
+    const existingItemIndex = cartItems.findIndex(
+      (item) => item.id === product.id
+    );
+
+    if (existingItemIndex !== -1) {
+      // Item exists, check if we can add one more
+      const currentCartQuantity = cartItems[existingItemIndex].cartQuantity;
+      const availableStock = product.stock;
+
+      if (availableStock <= 0) {
+        showError(`Cannot add more ${product.name}. No more stock available.`);
+        return;
+      }
+
+      // Update quantity in cart
+      setCartItems((prev) =>
+        prev.map((item, index) =>
+          index === existingItemIndex
+            ? { ...item, cartQuantity: currentCartQuantity + 1 }
+            : item
+        )
+      );
+
+      // Update product quantity in inventory (with safety check)
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === product.id
+            ? {
+                ...p,
+                stock: Math.max(0, p.stock - 1),
+              }
+            : p
+        )
+      );
+
+      success(`Added another ${product.name} to cart!`);
     } else {
-      // Show info toast if item already exists
-      info(`${product.name} is already in your cart`);
+      // New item, add to cart with quantity 1
+      const cartItem = {
+        ...product,
+        cartQuantity: 1,
+        originalStock: product.stock,
+      };
+
+      setCartItems((prev) => [...prev, cartItem]);
+
+      // Update product quantity in inventory (with safety check)
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === product.id
+            ? {
+                ...p,
+                stock: Math.max(0, p.stock - 1),
+              }
+            : p
+        )
+      );
+
+      success(`${product.name} added to cart!`);
     }
   };
 
   const handleRemoveFromCart = (productId) => {
+    const cartItem = cartItems.find((item) => item.id === productId);
+    if (cartItem) {
+      // Restore quantity to inventory
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === productId
+            ? {
+                ...p,
+                stock: p.stock + cartItem.cartQuantity,
+              }
+            : p
+        )
+      );
+    }
+
     setCartItems((prev) => prev.filter((item) => item.id !== productId));
     info("Item removed from cart");
   };
 
   const handleClearCart = () => {
+    // Restore all quantities to inventory
+    cartItems.forEach((cartItem) => {
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === cartItem.id
+            ? {
+                ...p,
+                stock: p.stock + cartItem.cartQuantity,
+              }
+            : p
+        )
+      );
+    });
+
     setCartItems([]);
     info("Cart cleared");
+  };
+
+  // New functions for quantity management in cart
+  const handleIncreaseQuantity = (productId) => {
+    const cartItem = cartItems.find((item) => item.id === productId);
+    const product = products.find((p) => p.id === productId);
+
+    if (product && product.stock <= 0) {
+      showError(`No more ${product.name} available in stock!`);
+      return;
+    }
+
+    setCartItems((prev) =>
+      prev.map((item) =>
+        item.id === productId
+          ? { ...item, cartQuantity: item.cartQuantity + 1 }
+          : item
+      )
+    );
+
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.id === productId
+          ? {
+              ...p,
+              stock: Math.max(0, p.stock - 1),
+            }
+          : p
+      )
+    );
+  };
+
+  const handleDecreaseQuantity = (productId) => {
+    const cartItem = cartItems.find((item) => item.id === productId);
+
+    if (cartItem.cartQuantity <= 1) {
+      handleRemoveFromCart(productId);
+      return;
+    }
+
+    setCartItems((prev) =>
+      prev.map((item) =>
+        item.id === productId
+          ? { ...item, cartQuantity: item.cartQuantity - 1 }
+          : item
+      )
+    );
+
+    setProducts((prev) =>
+      prev.map((p) => (p.id === productId ? { ...p, stock: p.stock + 1 } : p))
+    );
+  };
+
+  // Handle successful order completion (clear cart without restoring inventory)
+  const handleOrderComplete = () => {
+    setCartItems([]);
+    setShowCheckout(false);
+    success("Order completed successfully!");
   };
 
   // Helper function to map category names to IDs (Equipment focused)
@@ -847,7 +997,7 @@ const Inventory = () => {
           <button
             onClick={handleCheckout} // define this function or link to your checkout route
             className={`relative flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-all duration-200 ${
-              cartItems.length > 0
+              totalCartQuantity > 0
                 ? "bg-green-600 hover:bg-green-700 shadow-lg transform hover:scale-105"
                 : "bg-blue-600 hover:bg-blue-700"
             }`}
@@ -855,14 +1005,16 @@ const Inventory = () => {
             <div className="relative">
               <ShoppingCartIcon className="h-5 w-5" />
               {/* Cart Badge */}
-              {cartItems.length > 0 && (
+              {totalCartQuantity > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center min-w-[20px] animate-bounce">
-                  {cartItems.length > 99 ? "99+" : cartItems.length}
+                  {totalCartQuantity > 99 ? "99+" : totalCartQuantity}
                 </span>
               )}
             </div>
             <span className="font-medium">
-              {cartItems.length > 0 ? `Cart (${cartItems.length})` : "Cart"}
+              {cartItems.length > 0
+                ? `Cart (${cartItems.length} items, ${totalCartQuantity} qty)`
+                : "Cart"}
             </span>
           </button>
         </div>
@@ -1003,6 +1155,9 @@ const Inventory = () => {
         onClose={() => setShowCheckout(false)}
         onRemoveItem={handleRemoveFromCart}
         onClearCart={handleClearCart}
+        onIncreaseQuantity={handleIncreaseQuantity}
+        onDecreaseQuantity={handleDecreaseQuantity}
+        onOrderComplete={handleOrderComplete}
       />
     </>
   );
