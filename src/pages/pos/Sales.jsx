@@ -35,7 +35,6 @@ const Sales = () => {
       }
 
       const orderItems = await response.json();
-      console.log("📊 All orders fetched:", orderItems);
 
       // Filter orders to show only those created by the current user
       const userOrders = orderItems.filter(
@@ -47,9 +46,6 @@ const Sales = () => {
       const sortedUserOrders = userOrders.sort(
         (a, b) => new Date(b.order_date) - new Date(a.order_date)
       );
-
-      console.log("📊 User-specific orders:", sortedUserOrders);
-      console.log("📊 Current user:", user?.username);
 
       // Calculate statistics from real data
       const calculateStats = (orders) => {
