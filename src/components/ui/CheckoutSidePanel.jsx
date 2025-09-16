@@ -182,7 +182,7 @@ const CheckoutSidePanel = ({
         customer_phone: customerInfo.phone,
         items: items.map((item) => ({
           product_id: item.id,
-          quantity: 1, // Assuming quantity 1 for now
+          quantity: item.cartQuantity || 1, // Use actual cart quantity
           price: parseFloat(item.price),
         })),
         total_amount: total,
@@ -223,7 +223,7 @@ const CheckoutSidePanel = ({
       ITEMS:
       ${items
         .map(
-          (item) => `${item.name} - GHS ${parseFloat(item.price).toFixed(2)}`
+          (item) => `${item.name} x${item.cartQuantity || 1} - GHS ${parseFloat(item.price).toFixed(2)} each - Total: GHS ${(parseFloat(item.price) * (item.cartQuantity || 1)).toFixed(2)}`
         )
         .join("\n")}
       
@@ -606,9 +606,29 @@ const CheckoutSidePanel = ({
 
                   <button
                     onClick={() => {
+                      handlePrintReceipt();
+                      // Auto-close after printing
+                      setTimeout(() => {
+                        onClearCart();
+                        onClose();
+                        if (onOrderComplete) {
+                          onOrderComplete(true);
+                        }
+                      }, 1000);
+                    }}
+                    className="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 flex items-center justify-center gap-2 font-medium transition-colors"
+                  >
+                    <PrinterIcon className="h-5 w-5" />
+                    Print & Close
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      // Clear the cart and close panel
+                      onClearCart();
                       onClose();
                       if (onOrderComplete) {
-                        onOrderComplete(true); // Pass true to close and clear cart
+                        onOrderComplete(true); // Pass true to indicate final cleanup
                       }
                     }}
                     className="w-full bg-gray-600 text-white py-3 px-4 rounded-md hover:bg-gray-700 flex items-center justify-center gap-2 font-medium transition-colors"
