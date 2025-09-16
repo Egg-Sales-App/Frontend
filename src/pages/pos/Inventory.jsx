@@ -146,10 +146,10 @@ const Inventory = () => {
           )
         );
       });
-      info("Cart cleared - inventory restored");
+      info("Cart cleared");
     } else {
       // Don't restore inventory (for completed orders)
-      info("Cart cleared - inventory changes are permanent");
+      info("Cart cleared");
     }
 
     setCartItems([]);
@@ -216,9 +216,7 @@ const Inventory = () => {
       setCartItems([]);
       setShowCheckout(false);
 
-      if (paymentCompleted) {
-        success("Order completed! Inventory has been permanently updated.");
-      } else {
+      if (!paymentCompleted) {
         info("Checkout cancelled. Inventory restored.");
       }
     }
