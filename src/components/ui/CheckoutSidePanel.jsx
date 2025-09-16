@@ -1008,31 +1008,13 @@ const CheckoutSidePanel = ({
                   </span>
                 </div>
 
-                <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={handlePrintReceipt}
-                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 flex items-center justify-center gap-2 font-medium transition-colors"
+                    className="bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 flex items-center justify-center gap-2 font-medium transition-colors"
                   >
                     <PrinterIcon className="h-5 w-5" />
-                    Print Receipt
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      handlePrintReceipt();
-                      // Auto-close after printing
-                      setTimeout(() => {
-                        onClearCart();
-                        onClose();
-                        if (onOrderComplete) {
-                          onOrderComplete(true);
-                        }
-                      }, 1000);
-                    }}
-                    className="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 flex items-center justify-center gap-2 font-medium transition-colors"
-                  >
-                    <PrinterIcon className="h-5 w-5" />
-                    Print & Close
+                    Print
                   </button>
 
                   <button
@@ -1044,10 +1026,10 @@ const CheckoutSidePanel = ({
                         onOrderComplete(true); // Pass true to indicate final cleanup
                       }
                     }}
-                    className="w-full bg-gray-600 text-white py-3 px-4 rounded-md hover:bg-gray-700 flex items-center justify-center gap-2 font-medium transition-colors"
+                    className="bg-gray-600 text-white py-3 px-4 rounded-md hover:bg-gray-700 flex items-center justify-center gap-2 font-medium transition-colors"
                   >
                     <XMarkIcon className="h-5 w-5" />
-                    Close & Finish
+                    Close
                   </button>
                 </div>
               </div>
