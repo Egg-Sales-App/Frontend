@@ -3,3 +3,9 @@ node_modules/
 
 # Environment variables
 .env
+
+.pdf
+.pptx
+.docx
+.ppt
+.md
