@@ -201,11 +201,14 @@ const Inventory = () => {
     );
   };
 
-  // Handle successful order completion (clear cart without restoring inventory)
-  const handleOrderComplete = () => {
-    setCartItems([]);
-    setShowCheckout(false);
-    success("Order completed successfully!");
+  // Handle successful order completion
+  const handleOrderComplete = (shouldClearAndClose = false) => {
+    if (shouldClearAndClose) {
+      // Only clear cart when user explicitly clicks "Close & Finish"
+      setCartItems([]);
+      setShowCheckout(false);
+    }
+    // If shouldClearAndClose is false, do nothing - keep cart visible for receipt
   };
 
   // Helper function to map category names to IDs (Equipment focused)
