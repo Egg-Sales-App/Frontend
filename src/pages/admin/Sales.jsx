@@ -114,6 +114,11 @@ const Sales = () => {
           employeeSales[employeeUsername].totalRevenue += orderTotal;
         });
 
+        // Sort orders by date descending (latest first)
+        const sortedOrders = orders.sort(
+          (a, b) => new Date(b.order_date) - new Date(a.order_date)
+        );
+
         // Get top 5 products by quantity sold
         const topProducts = Object.values(productSales)
           .sort((a, b) => b.totalQuantity - a.totalQuantity)
@@ -125,7 +130,7 @@ const Sales = () => {
           .slice(0, 5);
 
         setSalesData({
-          orders,
+          orders: sortedOrders,
           totalOrders: orders.length,
           totalRevenue,
           totalQuantity,

@@ -84,7 +84,12 @@ const SalesDashboard = ({ userFilter = null }) => {
         };
       });
 
-      setOrders(transformedOrders);
+      // Sort orders by date in descending order (latest first)
+      const sortedOrders = transformedOrders.sort(
+        (a, b) => b.rawDate - a.rawDate
+      );
+
+      setOrders(sortedOrders);
     } catch (err) {
       console.error("Error fetching orders:", err);
       setError("Failed to load orders data");

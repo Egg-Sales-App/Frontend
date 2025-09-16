@@ -43,7 +43,12 @@ const Sales = () => {
           order.created_by && order.created_by.username === user?.username
       );
 
-      console.log("📊 User-specific orders:", userOrders);
+      // Sort user orders by date descending (latest first)
+      const sortedUserOrders = userOrders.sort(
+        (a, b) => new Date(b.order_date) - new Date(a.order_date)
+      );
+
+      console.log("📊 User-specific orders:", sortedUserOrders);
       console.log("📊 Current user:", user?.username);
 
       // Calculate statistics from real data
@@ -99,7 +104,7 @@ const Sales = () => {
         };
       };
 
-      const stats = calculateStats(userOrders);
+      const stats = calculateStats(sortedUserOrders);
       setSalesData(stats);
     } catch (err) {
       console.error("❌ Error fetching order items:", err);
