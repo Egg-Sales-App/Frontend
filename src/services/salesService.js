@@ -114,6 +114,32 @@ export const salesService = {
     }
   },
 
+  // Get all order items for sales analysis
+  async getOrderItems(params = {}) {
+    try {
+      const response = await apiService.get("/order-items/", {
+        page: params.page || 1,
+        page_size: params.limit || 100,
+        ordering: params.ordering || "-id",
+      });
+
+      return {
+        orderItems: response.results || response || [],
+        pagination: {
+          page: params.page || 1,
+          limit: params.limit || 100,
+          total: response.count || response.length || 0,
+          pages: Math.ceil(
+            (response.count || response.length || 0) / (params.limit || 100)
+          ),
+        },
+        total: response.count || response.length || 0,
+      };
+    } catch (error) {
+      throw new Error("Failed to fetch order items");
+    }
+  },
+
   // Update order payment status
   async updatePaymentStatus(orderId, isPaid = true) {
     try {

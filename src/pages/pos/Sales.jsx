@@ -34,7 +34,7 @@ const Sales = () => {
                   Total Sales
                 </h3>
                 <p className="text-gray-700 text-lg font-semibold">37</p>
-                <p className="text-sm text-gray-500 mt-2">Last 7 days</p>
+                <p className="text-sm text-gray-700 mt-2">Last 7 days</p>
               </div>
 
               {/* Total Received */}
@@ -46,7 +46,7 @@ const Sales = () => {
                   <span>32</span>
                   <span>GHS 30,368</span>
                 </div>
-                <div className="flex justify-between text-sm text-gray-500 mt-2">
+                <div className="flex justify-between text-sm text-gray-700 mt-2">
                   <span>Last 7 days</span>
                   <span>Revenue</span>
                 </div>
@@ -61,7 +61,7 @@ const Sales = () => {
                   <span>5</span>
                   <span>GHS 80</span>
                 </div>
-                <div className="flex justify-between text-sm text-gray-500 mt-2">
+                <div className="flex justify-between text-sm text-gray-700 mt-2">
                   <span>Last 7 days</span>
                   <span>Cost</span>
                 </div>

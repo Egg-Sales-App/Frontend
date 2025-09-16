@@ -1,115 +1,52 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { salesService } from "../../services/salesService";
+import LoadingSpinner from "./LoadingSpinner";
 
 const SalesDashboard = () => {
-  const orders = [
-    // Weekly orders
-    {
-      id: 7535,
-      product: "Day Old Chicks",
-      value: "GHS 120",
-      quantity: "43 Packets",
-      date: "11/12/22",
-      payment: "Momo",
-      status: "Delayed",
-      period: "weekly",
-    },
-    {
-      id: 5724,
-      product: "Broilers",
-      value: "GHS 220",
-      quantity: "22 Packets",
-      date: "21/12/22",
-      payment: "Card",
-      status: "Out for delivery",
-      period: "weekly",
-    },
-    {
-      id: 2775,
-      product: "Layers",
-      value: "GHS 150",
-      quantity: "36 Packets",
-      date: "5/12/22",
-      payment: "Cash",
-      status: "Returned",
-      period: "weekly",
-    },
-    {
-      id: 2275,
-      product: "Dewormers",
-      value: "GHS 1202",
-      quantity: "14 Packets",
-      date: "8/12/22",
-      payment: "Card",
-      status: "Out for delivery",
-      period: "weekly",
-    },
-    {
-      id: 2427,
-      product: "Eggs",
-      value: "GHS 190",
-      quantity: "5 Packets",
-      date: "9/1/23",
-      payment: "Cash",
-      status: "Delayed",
-      period: "weekly",
-    },
-
-    // Daily orders
-    {
-      id: 2578,
-      product: "Hoe",
-      value: "GHS 130",
-      quantity: "10 Packets",
-      date: "9/1/23",
-      payment: "Card",
-      status: "Out for delivery",
-      period: "daily",
-    },
-    {
-      id: 2757,
-      product: "Garden Fork",
-      value: "GHS 180",
-      quantity: "23 Packets",
-      date: "15/12/23",
-      payment: "Cash",
-      status: "Returned",
-      period: "daily",
-    },
-    {
-      id: 3757,
-      product: "Antibiotic",
-      value: "GHS 10",
-      quantity: "43 Packets",
-      date: "6/6/23",
-      payment: "Card",
-      status: "Confirmed",
-      period: "daily",
-    },
-    {
-      id: 2474,
-      product: "Respiratory Herbs",
-      value: "GHS 1205",
-      quantity: "41 Packets",
-      date: "11/11/22",
-      payment: "Momo",
-      status: "Delayed",
-      period: "daily",
-    },
-    {
-      id: 3010,
-      product: "Chick Booster",
-      value: "GHS 160",
-      quantity: "30 Packets",
-      date: "1/6/23",
-      payment: "Momo",
-      status: "Confirmed",
-      period: "daily",
-    },
-  ];
-
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [period, setPeriod] = useState("weekly");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+
+  useEffect(() => {
+    fetchOrdersData();
+  }, []);
+
+  const fetchOrdersData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await salesService.getOrderItems();
+
+      // Transform the API data to match our table format
+      const transformedOrders = data.map((item) => {
+        const orderDate = new Date(item.order.created_at);
+        const today = new Date();
+        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+        return {
+          id: item.order.id,
+          product: item.product.name,
+          value: `GHS ${item.subtotal}`,
+          quantity: `${item.quantity} ${item.product.unit || "Items"}`,
+          date: orderDate.toLocaleDateString("en-GB"),
+          payment: item.order.payment_method || "Cash",
+          status: item.order.status || "Confirmed",
+          period: orderDate >= weekAgo ? "weekly" : "daily", // Items from last 7 days are weekly
+          rawDate: orderDate,
+        };
+      });
+
+      setOrders(transformedOrders);
+    } catch (err) {
+      console.error("Error fetching orders:", err);
+      setError("Failed to load orders data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredOrders = orders.filter((order) => order.period === period);
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
@@ -135,157 +72,188 @@ const SalesDashboard = () => {
   return (
     <div className="p-6 bg-white rounded-lg shadow-md w-full h-full mx-auto">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl text-blue-500 font-semibold">Sales</h2>
+        <h2 className="text-2xl text-blue-600 font-semibold">Sales</h2>
         <div className="flex gap-2">
           <button
             onClick={() => handlePeriodChange("daily")}
             className={`px-4 py-2 rounded ${
               period === "daily"
                 ? "bg-blue-500 text-white"
-                : "bg-gray-100 text-gray-700"
+                : "bg-gray-100 text-gray-800"
             }`}
           >
-            Today
+            All Time
           </button>
           <button
             onClick={() => handlePeriodChange("weekly")}
             className={`px-4 py-2 rounded ${
               period === "weekly"
                 ? "bg-blue-500 text-white"
-                : "bg-gray-100 text-gray-700"
+                : "bg-gray-100 text-gray-800"
             }`}
           >
-            This Week
+            Recent
           </button>
         </div>
       </div>
 
-      {/* Table Container */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-200">
-          {/* Table Header */}
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Product
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Order Value
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Quantity
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Order ID
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Date
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Payment
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-            </tr>
-          </thead>
-
-          {/* Table Body */}
-          <tbody className="bg-white divide-y divide-gray-200">
-            {paginatedOrders.map((order) => (
-              <tr key={order.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {order.product}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  {order.value}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  {order.quantity}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  #{order.id}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  {order.date}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                    {order.payment}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      order.status === "Out for delivery"
-                        ? "bg-green-100 text-green-800"
-                        : order.status === "Delayed"
-                        ? "bg-orange-100 text-orange-800"
-                        : order.status === "Confirmed"
-                        ? "bg-blue-100 text-blue-800"
-                        : order.status === "Returned"
-                        ? "bg-gray-100 text-gray-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {order.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Empty State */}
-      {paginatedOrders.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-gray-400 text-4xl mb-4">📊</div>
-          <p className="text-gray-500 text-lg">No orders found</p>
-          <p className="text-gray-400 text-sm">
-            Try switching to a different time period
-          </p>
+      {/* Loading State */}
+      {loading && (
+        <div className="flex justify-center items-center py-12">
+          <LoadingSpinner />
+          <span className="ml-3 text-gray-800">Loading sales data...</span>
         </div>
       )}
 
-      {/* Pagination Controls */}
-      <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
-        <div className="text-sm text-gray-700">
-          Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-          {Math.min(currentPage * itemsPerPage, filteredOrders.length)} of{" "}
-          {filteredOrders.length} results
-        </div>
-
-        <div className="flex items-center gap-2">
+      {/* Error State */}
+      {error && (
+        <div className="text-center py-12">
+          <div className="text-red-400 text-4xl mb-4">⚠️</div>
+          <p className="text-red-600 text-lg font-medium">{error}</p>
           <button
-            onClick={handlePrevious}
-            disabled={currentPage === 1}
-            className={`px-4 py-2 rounded-lg border transition-colors ${
-              currentPage === 1
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
-                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-            }`}
+            onClick={fetchOrdersData}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
-            Previous
-          </button>
-
-          <span className="text-sm text-gray-600 px-4">
-            Page {currentPage} of {totalPages}
-          </span>
-
-          <button
-            onClick={handleNext}
-            disabled={currentPage === totalPages}
-            className={`px-4 py-2 rounded-lg border transition-colors ${
-              currentPage === totalPages
-                ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
-                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-            }`}
-          >
-            Next
+            Retry
           </button>
         </div>
-      </div>
+      )}
+
+      {/* Table Container - Only show when not loading and no error */}
+      {!loading && !error && (
+        <>
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white border border-gray-200">
+              {/* Table Header */}
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
+                    Product
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
+                    Order Value
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
+                    Quantity
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
+                    Order ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
+                    Payment
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
+                    Status
+                  </th>
+                </tr>
+              </thead>
+
+              {/* Table Body */}
+              <tbody className="bg-white divide-y divide-gray-200">
+                {paginatedOrders.map((order) => (
+                  <tr key={order.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {order.product}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                      {order.value}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                      {order.quantity}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                      #{order.id}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                      {order.date}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-900">
+                        {order.payment}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          order.status === "completed" ||
+                          order.status === "delivered"
+                            ? "bg-green-100 text-green-800"
+                            : order.status === "pending" ||
+                              order.status === "processing"
+                            ? "bg-orange-100 text-orange-800"
+                            : order.status === "confirmed"
+                            ? "bg-blue-100 text-blue-800"
+                            : order.status === "cancelled" ||
+                              order.status === "returned"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {order.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Empty State */}
+          {paginatedOrders.length === 0 && (
+            <div className="text-center py-12">
+              <div className="text-gray-400 text-4xl mb-4">📊</div>
+              <p className="text-gray-700 text-lg">No orders found</p>
+              <p className="text-gray-600 text-sm">
+                Try switching to a different time period
+              </p>
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {filteredOrders.length > 0 && (
+            <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200">
+              <div className="text-sm text-gray-800">
+                Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+                {Math.min(currentPage * itemsPerPage, filteredOrders.length)} of{" "}
+                {filteredOrders.length} results
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handlePrevious}
+                  disabled={currentPage === 1}
+                  className={`px-4 py-2 rounded-lg border transition-colors ${
+                    currentPage === 1
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                      : "bg-white text-gray-800 border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  Previous
+                </button>
+
+                <span className="text-sm text-gray-700 px-4">
+                  Page {currentPage} of {totalPages}
+                </span>
+
+                <button
+                  onClick={handleNext}
+                  disabled={currentPage === totalPages}
+                  className={`px-4 py-2 rounded-lg border transition-colors ${
+                    currentPage === totalPages
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                      : "bg-white text-gray-800 border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };
