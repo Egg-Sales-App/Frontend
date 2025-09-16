@@ -251,7 +251,7 @@ const Sales = () => {
             <div className="overflow-x-auto">
               <table className="table w-full">
                 <thead>
-                  <tr>
+                  <tr className="text-blue-600">
                     <th>Rank</th>
                     <th>Product Name</th>
                     <th>Category</th>
@@ -267,14 +267,16 @@ const Sales = () => {
                       <td>
                         <span className="badge badge-primary">{index + 1}</span>
                       </td>
-                      <td className="font-semibold">{product.name}</td>
+                      <td className="font-semibold text-gray-800">
+                        {product.name}
+                      </td>
                       <td>
-                        <span className="badge badge-outline">
+                        <span className="badge badge-outline text-gray-800">
                           {product.category}
                         </span>
                       </td>
                       <td className="text-sm text-gray-700">{product.sku}</td>
-                      <td className="font-medium">
+                      <td className="font-medium text-blue-600">
                         {product.totalQuantity} units
                       </td>
                       <td className="font-medium text-green-600">
@@ -299,68 +301,6 @@ const Sales = () => {
               {salesData.topProducts.length === 0 && (
                 <div className="text-center py-8 text-gray-700">
                   No sales data available
-                </div>
-              )}
-            </div>
-          </section>
-
-          {/* Top Employees Section */}
-          <section className="w-full p-3 mb-5 bg-white rounded-lg shadow-md">
-            <h2 className="text-xl font-medium text-gray-800 mb-4">
-              Top Performing Employees
-            </h2>
-
-            <div className="overflow-x-auto">
-              <table className="table w-full">
-                <thead>
-                  <tr>
-                    <th>Rank</th>
-                    <th>Employee</th>
-                    <th>Email</th>
-                    <th>Total Orders</th>
-                    <th>Total Revenue</th>
-                    <th>Avg Order Value</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {salesData.topEmployees.map((employee, index) => (
-                    <tr key={employee.username}>
-                      <td>
-                        <span className="badge badge-secondary">
-                          {index + 1}
-                        </span>
-                      </td>
-                      <td className="font-semibold text-blue-600">
-                        {employee.username}
-                      </td>
-                      <td className="text-sm text-gray-600">
-                        {employee.email}
-                      </td>
-                      <td className="font-medium">{employee.totalOrders}</td>
-                      <td className="font-medium text-green-600">
-                        GHS{" "}
-                        {employee.totalRevenue.toLocaleString("en-US", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </td>
-                      <td className="text-sm text-gray-700">
-                        GHS{" "}
-                        {(
-                          employee.totalRevenue / employee.totalOrders
-                        ).toLocaleString("en-US", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              {salesData.topEmployees.length === 0 && (
-                <div className="text-center py-8 text-gray-700">
-                  No employee sales data available
                 </div>
               )}
             </div>
