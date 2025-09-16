@@ -200,12 +200,8 @@ const CheckoutSidePanel = ({
       setOrderCompleted(true);
       success("Order completed successfully!");
 
-      // Call the order completion handler to clear cart without restoring inventory
-      if (onOrderComplete) {
-        setTimeout(() => {
-          onOrderComplete();
-        }, 2000); // Give time for user to see the success message
-      }
+      // Don't clear cart or close panel - let user print receipt first
+      // Cart will be cleared only when user clicks "Close & Finish"
     } catch (error) {
       showError("Failed to complete order. Please try again.");
     } finally {
@@ -257,11 +253,7 @@ const CheckoutSidePanel = ({
     printWindow.document.close();
     printWindow.print();
 
-    // Close panel and clear cart after printing
-    setTimeout(() => {
-      onClearCart();
-      onClose();
-    }, 1000);
+    success("Receipt sent to printer!");
   };
 
   return (
@@ -595,20 +587,36 @@ const CheckoutSidePanel = ({
 
             {/* Order Completed */}
             {orderCompleted && (
-              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-center gap-3 text-blue-800 mb-4">
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-3 text-green-800 mb-4">
                   <CheckCircleIcon className="h-6 w-6" />
                   <span className="font-semibold text-lg">
                     Order Completed Successfully!
                   </span>
                 </div>
-                <button
-                  onClick={handlePrintReceipt}
-                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 flex items-center justify-center gap-2 font-medium transition-colors"
-                >
-                  <PrinterIcon className="h-5 w-5" />
-                  Print Receipt
-                </button>
+
+                <div className="space-y-3">
+                  <button
+                    onClick={handlePrintReceipt}
+                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 flex items-center justify-center gap-2 font-medium transition-colors"
+                  >
+                    <PrinterIcon className="h-5 w-5" />
+                    Print Receipt
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      onClose();
+                      if (onOrderComplete) {
+                        onOrderComplete(true); // Pass true to close and clear cart
+                      }
+                    }}
+                    className="w-full bg-gray-600 text-white py-3 px-4 rounded-md hover:bg-gray-700 flex items-center justify-center gap-2 font-medium transition-colors"
+                  >
+                    <XMarkIcon className="h-5 w-5" />
+                    Close & Finish
+                  </button>
+                </div>
               </div>
             )}
           </div>
