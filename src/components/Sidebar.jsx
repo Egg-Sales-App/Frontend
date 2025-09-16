@@ -63,11 +63,11 @@ const Sidebar = () => {
 
   // Footer items (settings + logout)
   const footerItems = [
-    {
-      icon: <Settings size={iconSize} />,
-      label: "Settings",
-      path: "/admin/settings",
-    },
+    // {
+    //   icon: <Settings size={iconSize} />,
+    //   label: "Settings",
+    //   path: "/admin/settings",
+    // },
     { icon: <LogOut size={iconSize} />, label: "Logout", path: "/login" },
   ];
 
@@ -143,7 +143,7 @@ const Sidebar = () => {
 
         {/* -------- Footer Menu -------- */}
         <div className="p-4">
-          <ul className="space-y-2 text-sm font-medium">
+          <ul className="space-y-2 text-sm font-medium bg-red-300 rounded-md">
             {footerItems.map((item, idx) => (
               <li key={idx}>
                 <NavLink
