@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from "react";
+import { config } from "../../config/environment";
+import Sidebar from "../../components/Sidebar";
+import MetricCard from "../../components/ui/MetricCard";
+import BestSellingProductCard from "../../components/ui/BestSellingProductCard";
+import ProfitRevenueCard from "../../components/ui/ProfitRevenueCard";
 import SalesDashboard from "../../components/ui/SalesDashboard";
-import { salesService } from "../../services/salesService";
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import ErrorBoundary from "../../components/common/ErrorBoundary";
 
 const Sales = () => {
   const [loading, setLoading] = useState(true);
   const [salesData, setSalesData] = useState({
-    orderItems: [],
-    totalSales: 0,
+    orders: [],
+    totalOrders: 0,
     totalRevenue: 0,
     totalQuantity: 0,
     topProducts: [],
@@ -25,40 +31,48 @@ const Sales = () => {
         setLoading(true);
         setError(null);
 
-        // Fetch order items from the API
-        const response = await salesService.getOrderItems({
-          limit: 1000, // Get all order items for comprehensive stats
+        const response = await fetch(`${config.DJANGO_BASE_URL}/orders/`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(config.TOKEN_KEY)}`,
+          },
         });
 
-        console.log("📊 Order items response:", response);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-        const orderItems = response.orderItems || [];
+        const orders = await response.json();
+        console.log("📊 Orders fetched:", orders);
 
-        // Calculate statistics from order items
-        const totalRevenue = orderItems.reduce((sum, item) => {
-          return sum + parseFloat(item.price_at_purchase) * item.quantity;
-        }, 0);
-
-        const totalQuantity = orderItems.reduce((sum, item) => {
-          return sum + item.quantity;
-        }, 0);
-
-        // Group by product to find top selling products
+        // Calculate statistics from orders
+        let totalRevenue = 0;
+        let totalQuantity = 0;
         const productSales = {};
-        orderItems.forEach((item) => {
-          const productName = item.product.name;
-          if (!productSales[productName]) {
-            productSales[productName] = {
-              name: productName,
-              category: item.product.category.name,
-              totalQuantity: 0,
-              totalRevenue: 0,
-              sku: item.product.sku,
-            };
-          }
-          productSales[productName].totalQuantity += item.quantity;
-          productSales[productName].totalRevenue +=
-            parseFloat(item.price_at_purchase) * item.quantity;
+
+        orders.forEach((order) => {
+          order.items.forEach((item) => {
+            // Calculate totals
+            const itemTotal =
+              parseFloat(item.price_at_purchase) * item.quantity;
+            totalRevenue += itemTotal;
+            totalQuantity += item.quantity;
+
+            // Track product sales
+            const productName = item.product.name;
+            if (!productSales[productName]) {
+              productSales[productName] = {
+                name: productName,
+                category: item.product.category.name,
+                totalQuantity: 0,
+                totalRevenue: 0,
+                sku: item.product.sku,
+              };
+            }
+            productSales[productName].totalQuantity += item.quantity;
+            productSales[productName].totalRevenue += itemTotal;
+          });
         });
 
         // Get top 5 products by quantity sold
@@ -67,14 +81,14 @@ const Sales = () => {
           .slice(0, 5);
 
         setSalesData({
-          orderItems,
-          totalSales: orderItems.length,
+          orders,
+          totalOrders: orders.length,
           totalRevenue,
           totalQuantity,
           topProducts,
           stats: {
-            totalSales: orderItems.length,
-            totalReceived: orderItems.length, // All order items are received/completed
+            totalSales: orders.length,
+            totalReceived: orders.filter((order) => order.is_paid).length,
             totalReturned: 0, // No returns data in the API yet
             totalRevenue,
           },

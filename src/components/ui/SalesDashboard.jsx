@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { salesService } from "../../services/salesService";
 import LoadingSpinner from "./LoadingSpinner";
+import { config } from "../../config/environment";
 
 const SalesDashboard = () => {
   const [orders, setOrders] = useState([]);
@@ -18,24 +18,57 @@ const SalesDashboard = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await salesService.getOrderItems();
+
+      const response = await fetch(`${config.DJANGO_BASE_URL}/orders/`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem(config.TOKEN_KEY)}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const orderItems = await response.json();
+      console.log("📊 SalesDashboard - Order items fetched:", orderItems);
 
       // Transform the API data to match our table format
-      const transformedOrders = data.map((item) => {
-        const orderDate = new Date(item.order.created_at);
+      const transformedOrders = orderItems.map((order) => {
+        const orderDate = new Date(order.order_date);
         const today = new Date();
         const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
 
+        // Calculate order total
+        const orderTotal = order.items.reduce((total, item) => {
+          return total + parseFloat(item.price_at_purchase) * item.quantity;
+        }, 0);
+
+        // Get main product name (first item) or combine if multiple
+        const productNames = order.items.map((item) => item.product.name);
+        const displayProduct =
+          productNames.length > 1
+            ? `${productNames[0]} + ${productNames.length - 1} more`
+            : productNames[0];
+
+        // Calculate total quantity
+        const totalQuantity = order.items.reduce(
+          (total, item) => total + item.quantity,
+          0
+        );
+
         return {
-          id: item.order.id,
-          product: item.product.name,
-          value: `GHS ${item.subtotal}`,
-          quantity: `${item.quantity} ${item.product.unit || "Items"}`,
+          id: order.id,
+          product: displayProduct,
+          value: `GHS ${orderTotal.toFixed(2)}`,
+          quantity: `${totalQuantity} Items`,
           date: orderDate.toLocaleDateString("en-GB"),
-          payment: item.order.payment_method || "Cash",
-          status: item.order.status || "Confirmed",
-          period: orderDate >= weekAgo ? "weekly" : "daily", // Items from last 7 days are weekly
+          payment: order.is_paid ? "Paid" : "Pending",
+          status: order.is_paid ? "Completed" : "Pending",
+          period: orderDate >= weekAgo ? "weekly" : "daily",
           rawDate: orderDate,
+          orderDetails: order, // Keep full order for reference
         };
       });
 
