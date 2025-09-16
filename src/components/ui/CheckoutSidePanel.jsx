@@ -210,50 +210,446 @@ const CheckoutSidePanel = ({
   };
 
   const handlePrintReceipt = () => {
-    const receiptContent = `
-      ASHFORD ENTERPRISE
-      Poultry Store Receipt
-      
-      Date: ${new Date().toLocaleDateString()}
-      Time: ${new Date().toLocaleTimeString()}
-      
-      Customer: ${customerInfo.name}
-      Phone: ${customerInfo.phone}
-      
-      ITEMS:
-      ${items
-        .map(
-          (item) => `${item.name} x${item.cartQuantity || 1} - GHS ${parseFloat(item.price).toFixed(2)} each - Total: GHS ${(parseFloat(item.price) * (item.cartQuantity || 1)).toFixed(2)}`
-        )
-        .join("\n")}
-      
-      Subtotal: GHS ${subtotal.toFixed(2)}
-      Tax (12.5%): GHS ${tax.toFixed(2)}
-      Total: GHS ${total.toFixed(2)}
-      
-      Payment Method: ${paymentMethod === "cash" ? "Cash" : "Mobile Money"}
-      ${
-        paymentMethod === "cash"
-          ? `Amount Paid: GHS ${cashAmount}\nBalance: GHS ${balance.toFixed(2)}`
-          : ""
-      }
-      
-      Thank you for your business!
+    const currentDate = new Date();
+    const receiptNumber = `RCP-${currentDate.getFullYear()}${String(
+      currentDate.getMonth() + 1
+    ).padStart(2, "0")}${String(currentDate.getDate()).padStart(
+      2,
+      "0"
+    )}-${String(currentDate.getHours()).padStart(2, "0")}${String(
+      currentDate.getMinutes()
+    ).padStart(2, "0")}${String(currentDate.getSeconds()).padStart(2, "0")}`;
+
+    const receiptHTML = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Receipt - ${receiptNumber}</title>
+          <meta charset="UTF-8">
+          <style>
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            
+            body {
+              font-family: 'Arial', sans-serif;
+              background: #f8fafc;
+              padding: 20px;
+              color: #333;
+            }
+            
+            .receipt-container {
+              max-width: 400px;
+              margin: 0 auto;
+              background: white;
+              border-radius: 12px;
+              overflow: hidden;
+              box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+              border: 1px solid #e2e8f0;
+            }
+            
+            .receipt-header {
+              background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+              color: white;
+              padding: 30px 20px;
+              text-align: center;
+              position: relative;
+              overflow: hidden;
+            }
+            
+            .receipt-header::before {
+              content: '';
+              position: absolute;
+              top: -50%;
+              left: -50%;
+              width: 200%;
+              height: 200%;
+              background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+              animation: shimmer 3s infinite;
+            }
+            
+            @keyframes shimmer {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+            
+            .company-name {
+              font-size: 28px;
+              font-weight: bold;
+              margin-bottom: 8px;
+              text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+              position: relative;
+              z-index: 1;
+            }
+            
+            .company-tagline {
+              font-size: 14px;
+              opacity: 0.9;
+              margin-bottom: 15px;
+              position: relative;
+              z-index: 1;
+            }
+            
+            .receipt-title {
+              font-size: 16px;
+              font-weight: 600;
+              background: rgba(255,255,255,0.2);
+              padding: 8px 20px;
+              border-radius: 20px;
+              display: inline-block;
+              position: relative;
+              z-index: 1;
+            }
+            
+            .receipt-body {
+              padding: 25px;
+            }
+            
+            .receipt-info {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 15px;
+              margin-bottom: 25px;
+              padding: 15px;
+              background: #f8fafc;
+              border-radius: 8px;
+              border-left: 4px solid #3b82f6;
+            }
+            
+            .info-item {
+              display: flex;
+              flex-direction: column;
+            }
+            
+            .info-label {
+              font-size: 12px;
+              color: #64748b;
+              font-weight: 600;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              margin-bottom: 4px;
+            }
+            
+            .info-value {
+              font-size: 14px;
+              color: #1e293b;
+              font-weight: 500;
+            }
+            
+            .customer-section {
+              margin-bottom: 25px;
+              padding: 15px;
+              background: #eff6ff;
+              border-radius: 8px;
+              border: 1px solid #bfdbfe;
+            }
+            
+            .customer-title {
+              font-size: 14px;
+              font-weight: 600;
+              color: #1e40af;
+              margin-bottom: 10px;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+            
+            .customer-info {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 10px;
+            }
+            
+            .items-section {
+              margin-bottom: 25px;
+            }
+            
+            .items-title {
+              font-size: 16px;
+              font-weight: 600;
+              color: #1e293b;
+              margin-bottom: 15px;
+              padding-bottom: 8px;
+              border-bottom: 2px solid #3b82f6;
+            }
+            
+            .item-row {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: 12px 0;
+              border-bottom: 1px solid #e2e8f0;
+            }
+            
+            .item-row:last-child {
+              border-bottom: none;
+            }
+            
+            .item-details {
+              flex: 1;
+            }
+            
+            .item-name {
+              font-weight: 600;
+              color: #1e293b;
+              margin-bottom: 2px;
+            }
+            
+            .item-meta {
+              font-size: 12px;
+              color: #64748b;
+            }
+            
+            .item-total {
+              font-weight: 600;
+              color: #059669;
+            }
+            
+            .totals-section {
+              border-top: 2px solid #e2e8f0;
+              padding-top: 20px;
+              margin-top: 20px;
+            }
+            
+            .total-row {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: 8px 0;
+            }
+            
+            .total-label {
+              font-weight: 500;
+              color: #475569;
+            }
+            
+            .total-value {
+              font-weight: 600;
+              color: #1e293b;
+            }
+            
+            .grand-total {
+              background: #3b82f6;
+              color: white;
+              padding: 15px;
+              border-radius: 8px;
+              margin-top: 15px;
+              font-size: 18px;
+              font-weight: bold;
+              text-align: center;
+            }
+            
+            .payment-section {
+              margin-top: 20px;
+              padding: 15px;
+              background: #f0fdf4;
+              border-radius: 8px;
+              border: 1px solid #bbf7d0;
+            }
+            
+            .payment-title {
+              font-size: 14px;
+              font-weight: 600;
+              color: #166534;
+              margin-bottom: 10px;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+            
+            .receipt-footer {
+              text-align: center;
+              margin-top: 30px;
+              padding-top: 20px;
+              border-top: 1px dashed #cbd5e1;
+            }
+            
+            .footer-message {
+              font-size: 14px;
+              color: #64748b;
+              margin-bottom: 10px;
+            }
+            
+            .footer-contact {
+              font-size: 12px;
+              color: #94a3b8;
+            }
+            
+            @media print {
+              body {
+                background: white;
+                padding: 0;
+              }
+              
+              .receipt-container {
+                box-shadow: none;
+                border: none;
+                max-width: 100%;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="receipt-container">
+            <!-- Header Section -->
+            <div class="receipt-header">
+              <div class="company-name">ASHFORD ENTERPRISE</div>
+              <div class="company-tagline">Premium Poultry Equipment & Supplies</div>
+              <div class="receipt-title">SALES RECEIPT</div>
+            </div>
+            
+            <!-- Body Section -->
+            <div class="receipt-body">
+              <!-- Receipt Information -->
+              <div class="receipt-info">
+                <div class="info-item">
+                  <div class="info-label">Receipt No.</div>
+                  <div class="info-value">${receiptNumber}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Date</div>
+                  <div class="info-value">${currentDate.toLocaleDateString(
+                    "en-US",
+                    {
+                      weekday: "short",
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    }
+                  )}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Time</div>
+                  <div class="info-value">${currentDate.toLocaleTimeString(
+                    "en-US",
+                    {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      second: "2-digit",
+                    }
+                  )}</div>
+                </div>
+                <div class="info-item">
+                  <div class="info-label">Cashier</div>
+                  <div class="info-value">POS Terminal</div>
+                </div>
+              </div>
+              
+              <!-- Customer Information -->
+              ${
+                customerInfo.name || customerInfo.phone
+                  ? `
+              <div class="customer-section">
+                <div class="customer-title">Customer Information</div>
+                <div class="customer-info">
+                  <div class="info-item">
+                    <div class="info-label">Name</div>
+                    <div class="info-value">${
+                      customerInfo.name || "Walk-in Customer"
+                    }</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">Phone</div>
+                    <div class="info-value">${customerInfo.phone || "N/A"}</div>
+                  </div>
+                </div>
+              </div>
+              `
+                  : ""
+              }
+              
+              <!-- Items Section -->
+              <div class="items-section">
+                <div class="items-title">Items Purchased</div>
+                ${items
+                  .map(
+                    (item) => `
+                  <div class="item-row">
+                    <div class="item-details">
+                      <div class="item-name">${item.name}</div>
+                      <div class="item-meta">${
+                        item.cartQuantity || 1
+                      } × GHS ${parseFloat(item.price).toFixed(2)}</div>
+                    </div>
+                    <div class="item-total">GHS ${(
+                      parseFloat(item.price) * (item.cartQuantity || 1)
+                    ).toFixed(2)}</div>
+                  </div>
+                `
+                  )
+                  .join("")}
+              </div>
+              
+              <!-- Totals Section -->
+              <div class="totals-section">
+                <div class="total-row">
+                  <div class="total-label">Subtotal</div>
+                  <div class="total-value">GHS ${subtotal.toFixed(2)}</div>
+                </div>
+                <div class="total-row">
+                  <div class="total-label">VAT (12.5%)</div>
+                  <div class="total-value">GHS ${tax.toFixed(2)}</div>
+                </div>
+                <div class="grand-total">
+                  Total Amount: GHS ${total.toFixed(2)}
+                </div>
+              </div>
+              
+              <!-- Payment Information -->
+              <div class="payment-section">
+                <div class="payment-title">Payment Details</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                  <div class="info-item">
+                    <div class="info-label">Method</div>
+                    <div class="info-value">${
+                      paymentMethod === "cash" ? "Cash Payment" : "Mobile Money"
+                    }</div>
+                  </div>
+                  ${
+                    paymentMethod === "cash"
+                      ? `
+                  <div class="info-item">
+                    <div class="info-label">Amount Paid</div>
+                    <div class="info-value">GHS ${parseFloat(
+                      cashAmount || 0
+                    ).toFixed(2)}</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">Change</div>
+                    <div class="info-value">GHS ${Math.max(0, balance).toFixed(
+                      2
+                    )}</div>
+                  </div>
+                  `
+                      : ""
+                  }
+                  <div class="info-item">
+                    <div class="info-label">Status</div>
+                    <div class="info-value" style="color: #059669; font-weight: 600;">✓ PAID</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Footer -->
+              <div class="receipt-footer">
+                <div class="footer-message">Thank you for choosing Ashford Enterprise!</div>
+                <div class="footer-contact">
+                  Visit us again for all your poultry equipment needs<br>
+                  Contact: info@ashfordenterprise.com | +233 XXX XXX XXX
+                </div>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
     `;
 
     const printWindow = window.open("", "_blank");
-    printWindow.document.write(`
-      <html>
-        <head><title>Receipt</title></head>
-        <body style="font-family: monospace; white-space: pre-line; padding: 20px;">
-          ${receiptContent}
-        </body>
-      </html>
-    `);
+    printWindow.document.write(receiptHTML);
     printWindow.document.close();
     printWindow.print();
 
-    success("Receipt sent to printer!");
+    success("Professional receipt sent to printer!");
   };
 
   return (
