@@ -6,6 +6,8 @@ import {
   BanknotesIcon,
   PrinterIcon,
   CheckCircleIcon,
+  PlusIcon,
+  MinusIcon,
 } from "@heroicons/react/24/outline";
 import { useToast } from "./ToastContext";
 import { orderService } from "../../services/orderService";
@@ -17,6 +19,9 @@ const CheckoutSidePanel = ({
   onClose,
   onRemoveItem,
   onClearCart,
+  onIncreaseQuantity,
+  onDecreaseQuantity,
+  onOrderComplete,
 }) => {
   const [paymentMethod, setPaymentMethod] = useState(""); // "cash" or "mobile_money"
   const [cashAmount, setCashAmount] = useState("");
@@ -32,7 +37,8 @@ const CheckoutSidePanel = ({
 
   // Calculate totals
   const subtotal = items.reduce(
-    (sum, item) => sum + (parseFloat(item.price) || 0),
+    (sum, item) =>
+      sum + (parseFloat(item.price) || 0) * (item.cartQuantity || 1),
     0
   );
   const taxRate = 0.125; // 12.5% VAT
@@ -63,9 +69,9 @@ const CheckoutSidePanel = ({
         payment_status: paymentStatus,
         items: items.map((item) => ({
           product_id: item.id,
-          quantity: item.quantity || 1,
+          quantity: item.cartQuantity || 1,
           unit_price: item.price,
-          total_price: item.price * (item.quantity || 1),
+          total_price: item.price * (item.cartQuantity || 1),
         })),
       };
 
@@ -193,6 +199,13 @@ const CheckoutSidePanel = ({
 
       setOrderCompleted(true);
       success("Order completed successfully!");
+
+      // Call the order completion handler to clear cart without restoring inventory
+      if (onOrderComplete) {
+        setTimeout(() => {
+          onOrderComplete();
+        }, 2000); // Give time for user to see the success message
+      }
     } catch (error) {
       showError("Failed to complete order. Please try again.");
     } finally {
@@ -352,16 +365,61 @@ const CheckoutSidePanel = ({
                           {item.name}
                         </p>
                         <p className="text-sm text-gray-600 font-medium">
-                          GHS {parseFloat(item.price).toFixed(2)}
+                          GHS {parseFloat(item.price).toFixed(2)} each
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Subtotal: GHS{" "}
+                          {(
+                            parseFloat(item.price) * (item.cartQuantity || 1)
+                          ).toFixed(2)}
                         </p>
                       </div>
+
                       {!orderCompleted && (
-                        <button
-                          onClick={() => onRemoveItem(item.id)}
-                          className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded transition-colors"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
+                        <div className="flex items-center gap-2">
+                          {/* Quantity Controls */}
+                          <div className="flex items-center gap-1 border rounded">
+                            <button
+                              onClick={() => onDecreaseQuantity?.(item.id)}
+                              className="p-1 hover:bg-red-500 bg-red-400 rounded-l transition-colors"
+                              disabled={!onDecreaseQuantity}
+                            >
+                              <MinusIcon className="h-3 w-3" />
+                            </button>
+                            <span className="px-2 py-1 text-blue-700 text-sm font-medium min-w-8 text-center">
+                              {item.cartQuantity || 1}
+                            </span>
+                            <button
+                              onClick={() => onIncreaseQuantity?.(item.id)}
+                              className="p-1 hover:bg-green-500 bg-green-400 rounded-r transition-colors"
+                              disabled={!onIncreaseQuantity}
+                            >
+                              <PlusIcon className="h-3 w-3" />
+                            </button>
+                          </div>
+
+                          {/* Remove Button */}
+                          <button
+                            onClick={() => onRemoveItem(item.id)}
+                            className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded transition-colors"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )}
+
+                      {orderCompleted && (
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-gray-900">
+                            Qty: {item.cartQuantity || 1}
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            GHS{" "}
+                            {(
+                              parseFloat(item.price) * (item.cartQuantity || 1)
+                            ).toFixed(2)}
+                          </p>
+                        </div>
                       )}
                     </div>
                   ))}
