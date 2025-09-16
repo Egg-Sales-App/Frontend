@@ -198,10 +198,12 @@ const CheckoutSidePanel = ({
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       setOrderCompleted(true);
-      success("Payment completed successfully! Inventory has been updated.");
+      success(
+        "Payment completed successfully! You can now print your receipt."
+      );
 
-      // Note: Inventory is already reduced from cart actions
-      // When user closes after payment, inventory changes become permanent
+      // Note: Inventory quantities are permanently reduced after payment
+      // Cart will remain visible for receipt printing until user closes
     } catch (error) {
       showError("Failed to complete order. Please try again.");
     } finally {
@@ -691,17 +693,21 @@ const CheckoutSidePanel = ({
             <h2 className="text-xl font-bold">Checkout</h2>
             <button
               onClick={() => {
-                // Handle closing without completing payment
+                // Handle closing the checkout panel
                 if (!orderCompleted) {
-                  // Payment not completed - restore inventory
+                  // Payment not completed - restore inventory and show cancellation message
                   onClearCart(true); // Restore inventory
                   onClose();
                   if (onOrderComplete) {
                     onOrderComplete(true, false); // Pass false to indicate cleanup without payment
                   }
                 } else {
-                  // Payment completed - just close
+                  // Payment completed - don't restore inventory, quantities are permanently reduced
+                  onClearCart(false); // Don't restore inventory
                   onClose();
+                  if (onOrderComplete) {
+                    onOrderComplete(true, true); // Pass true to indicate cleanup with payment completed
+                  }
                 }
               }}
               className="p-1 hover:bg-gray-800 rounded transition-colors"

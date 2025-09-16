@@ -146,11 +146,9 @@ const Inventory = () => {
           )
         );
       });
-      info("Cart cleared");
-    } else {
-      // Don't restore inventory (for completed orders)
-      info("Cart cleared");
+      // Don't show inventory restoration message - just clear the cart
     }
+    // For completed orders, don't restore inventory and don't show messages
 
     setCartItems([]);
   };
@@ -216,8 +214,12 @@ const Inventory = () => {
       setCartItems([]);
       setShowCheckout(false);
 
-      if (!paymentCompleted) {
-        info("Checkout cancelled. Inventory restored.");
+      if (paymentCompleted) {
+        // Payment completed - quantities are permanently reduced
+        success("Order completed successfully!");
+      } else {
+        // Payment not completed - quantities restored automatically
+        warning("Order cancelled");
       }
     }
     // If shouldClearAndClose is false, do nothing - keep cart visible for receipt
