@@ -16,6 +16,7 @@ const Sales = () => {
     totalRevenue: 0,
     totalQuantity: 0,
     topProducts: [],
+    topEmployees: [],
     stats: {
       totalSales: 0,
       totalReceived: 0,
@@ -50,14 +51,28 @@ const Sales = () => {
         let totalRevenue = 0;
         let totalQuantity = 0;
         const productSales = {};
+        const employeeSales = {};
 
         orders.forEach((order) => {
+          // Track employee sales
+          const employeeUsername = order.created_by?.username || "Unknown";
+          if (!employeeSales[employeeUsername]) {
+            employeeSales[employeeUsername] = {
+              username: employeeUsername,
+              email: order.created_by?.email || "",
+              totalOrders: 0,
+              totalRevenue: 0,
+            };
+          }
+
+          let orderTotal = 0;
           order.items.forEach((item) => {
             // Calculate totals
             const itemTotal =
               parseFloat(item.price_at_purchase) * item.quantity;
             totalRevenue += itemTotal;
             totalQuantity += item.quantity;
+            orderTotal += itemTotal;
 
             // Track product sales
             const productName = item.product.name;
@@ -68,16 +83,45 @@ const Sales = () => {
                 totalQuantity: 0,
                 totalRevenue: 0,
                 sku: item.product.sku,
+                soldBy: [], // Track which employees sold this product
               };
             }
             productSales[productName].totalQuantity += item.quantity;
             productSales[productName].totalRevenue += itemTotal;
+
+            // Add employee to soldBy if not already present
+            if (
+              !productSales[productName].soldBy.some(
+                (emp) => emp.username === employeeUsername
+              )
+            ) {
+              productSales[productName].soldBy.push({
+                username: employeeUsername,
+                quantity: item.quantity,
+              });
+            } else {
+              // Update existing employee quantity
+              const empIndex = productSales[productName].soldBy.findIndex(
+                (emp) => emp.username === employeeUsername
+              );
+              productSales[productName].soldBy[empIndex].quantity +=
+                item.quantity;
+            }
           });
+
+          // Update employee totals
+          employeeSales[employeeUsername].totalOrders++;
+          employeeSales[employeeUsername].totalRevenue += orderTotal;
         });
 
         // Get top 5 products by quantity sold
         const topProducts = Object.values(productSales)
           .sort((a, b) => b.totalQuantity - a.totalQuantity)
+          .slice(0, 5);
+
+        // Get top 5 employees by total revenue
+        const topEmployees = Object.values(employeeSales)
+          .sort((a, b) => b.totalRevenue - a.totalRevenue)
           .slice(0, 5);
 
         setSalesData({
@@ -86,6 +130,7 @@ const Sales = () => {
           totalRevenue,
           totalQuantity,
           topProducts,
+          topEmployees,
           stats: {
             totalSales: orders.length,
             totalReceived: orders.filter((order) => order.is_paid).length,
@@ -182,14 +227,16 @@ const Sales = () => {
                   Top Selling Product
                 </h3>
                 {salesData.topProducts.length > 0 ? (
-                  <div className="text-gray-700 font-semibold">
-                    <div>{salesData.topProducts[0].name}</div>
-                    <div className="text-sm text-gray-700 mt-1">
+                  <div className="text-gray-800 font-semibold">
+                    <div className="text-gray-900 font-bold">
+                      {salesData.topProducts[0].name}
+                    </div>
+                    <div className="text-sm text-gray-600 mt-1">
                       {salesData.topProducts[0].totalQuantity} units sold
                     </div>
                   </div>
                 ) : (
-                  <div className="text-gray-700 text-sm">No sales data</div>
+                  <div className="text-gray-600 text-sm">No sales data</div>
                 )}
               </div>
             </div>
@@ -211,6 +258,7 @@ const Sales = () => {
                     <th>SKU</th>
                     <th>Quantity Sold</th>
                     <th>Revenue</th>
+                    <th>Top Seller</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -236,6 +284,13 @@ const Sales = () => {
                           maximumFractionDigits: 2,
                         })}
                       </td>
+                      <td className="text-sm text-blue-600">
+                        {product.soldBy && product.soldBy.length > 0
+                          ? product.soldBy.sort(
+                              (a, b) => b.quantity - a.quantity
+                            )[0].username
+                          : "N/A"}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -244,6 +299,68 @@ const Sales = () => {
               {salesData.topProducts.length === 0 && (
                 <div className="text-center py-8 text-gray-700">
                   No sales data available
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Top Employees Section */}
+          <section className="w-full p-3 mb-5 bg-white rounded-lg shadow-md">
+            <h2 className="text-xl font-medium text-gray-800 mb-4">
+              Top Performing Employees
+            </h2>
+
+            <div className="overflow-x-auto">
+              <table className="table w-full">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Employee</th>
+                    <th>Email</th>
+                    <th>Total Orders</th>
+                    <th>Total Revenue</th>
+                    <th>Avg Order Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {salesData.topEmployees.map((employee, index) => (
+                    <tr key={employee.username}>
+                      <td>
+                        <span className="badge badge-secondary">
+                          {index + 1}
+                        </span>
+                      </td>
+                      <td className="font-semibold text-blue-600">
+                        {employee.username}
+                      </td>
+                      <td className="text-sm text-gray-600">
+                        {employee.email}
+                      </td>
+                      <td className="font-medium">{employee.totalOrders}</td>
+                      <td className="font-medium text-green-600">
+                        GHS{" "}
+                        {employee.totalRevenue.toLocaleString("en-US", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </td>
+                      <td className="text-sm text-gray-700">
+                        GHS{" "}
+                        {(
+                          employee.totalRevenue / employee.totalOrders
+                        ).toLocaleString("en-US", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {salesData.topEmployees.length === 0 && (
+                <div className="text-center py-8 text-gray-700">
+                  No employee sales data available
                 </div>
               )}
             </div>

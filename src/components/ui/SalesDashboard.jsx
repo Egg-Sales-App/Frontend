@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import LoadingSpinner from "./LoadingSpinner";
 import { config } from "../../config/environment";
 
-const SalesDashboard = () => {
+const SalesDashboard = ({ userFilter = null }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -34,8 +34,18 @@ const SalesDashboard = () => {
       const orderItems = await response.json();
       console.log("📊 SalesDashboard - Order items fetched:", orderItems);
 
+      // Filter orders by user if userFilter is provided
+      const filteredOrders = userFilter
+        ? orderItems.filter(
+            (order) => order.created_by?.username === userFilter
+          )
+        : orderItems;
+
+      console.log("📊 SalesDashboard - Filtered orders:", filteredOrders);
+      console.log("📊 SalesDashboard - User filter:", userFilter);
+
       // Transform the API data to match our table format
-      const transformedOrders = orderItems.map((order) => {
+      const transformedOrders = filteredOrders.map((order) => {
         const orderDate = new Date(order.order_date);
         const today = new Date();
         const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -68,6 +78,8 @@ const SalesDashboard = () => {
           status: order.is_paid ? "Completed" : "Pending",
           period: orderDate >= weekAgo ? "weekly" : "daily",
           rawDate: orderDate,
+          employee: order.created_by?.username || "Unknown",
+          employeeEmail: order.created_by?.email || "",
           orderDetails: order, // Keep full order for reference
         };
       });
@@ -175,6 +187,11 @@ const SalesDashboard = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
                     Date
                   </th>
+                  {!userFilter && (
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
+                      Employee
+                    </th>
+                  )}
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
                     Payment
                   </th>
@@ -203,6 +220,18 @@ const SalesDashboard = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                       {order.date}
                     </td>
+                    {!userFilter && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                        <div className="flex flex-col">
+                          <span className="font-medium text-blue-600">
+                            {order.employee}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {order.employeeEmail}
+                          </span>
+                        </div>
+                      </td>
+                    )}
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-900">
                         {order.payment}
