@@ -131,23 +131,28 @@ const Inventory = () => {
     info("Item removed from cart");
   };
 
-  const handleClearCart = () => {
-    // Restore all quantities to inventory
-    cartItems.forEach((cartItem) => {
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === cartItem.id
-            ? {
-                ...p,
-                stock: p.stock + cartItem.cartQuantity,
-              }
-            : p
-        )
-      );
-    });
+  const handleClearCart = (restoreInventory = true) => {
+    if (restoreInventory) {
+      // Restore all quantities to inventory (for cancelled orders)
+      cartItems.forEach((cartItem) => {
+        setProducts((prev) =>
+          prev.map((p) =>
+            p.id === cartItem.id
+              ? {
+                  ...p,
+                  stock: p.stock + cartItem.cartQuantity,
+                }
+              : p
+          )
+        );
+      });
+      info("Cart cleared - inventory restored");
+    } else {
+      // Don't restore inventory (for completed orders)
+      info("Cart cleared - inventory changes are permanent");
+    }
 
     setCartItems([]);
-    info("Cart cleared");
   };
 
   // New functions for quantity management in cart
@@ -202,11 +207,20 @@ const Inventory = () => {
   };
 
   // Handle successful order completion
-  const handleOrderComplete = (shouldClearAndClose = false) => {
+  const handleOrderComplete = (
+    shouldClearAndClose = false,
+    paymentCompleted = false
+  ) => {
     if (shouldClearAndClose) {
-      // Only clear cart when user explicitly clicks "Close & Finish"
+      // Clear cart and close panel
       setCartItems([]);
       setShowCheckout(false);
+
+      if (paymentCompleted) {
+        success("Order completed! Inventory has been permanently updated.");
+      } else {
+        info("Checkout cancelled. Inventory restored.");
+      }
     }
     // If shouldClearAndClose is false, do nothing - keep cart visible for receipt
   };

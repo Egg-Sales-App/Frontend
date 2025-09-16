@@ -198,10 +198,10 @@ const CheckoutSidePanel = ({
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       setOrderCompleted(true);
-      success("Order completed successfully!");
+      success("Payment completed successfully! Inventory has been updated.");
 
-      // Don't clear cart or close panel - let user print receipt first
-      // Cart will be cleared only when user clicks "Close & Finish"
+      // Note: Inventory is already reduced from cart actions
+      // When user closes after payment, inventory changes become permanent
     } catch (error) {
       showError("Failed to complete order. Please try again.");
     } finally {
@@ -690,7 +690,20 @@ const CheckoutSidePanel = ({
           <div className="flex items-center justify-between p-4 border-b bg-blue-600 text-white">
             <h2 className="text-xl font-bold">Checkout</h2>
             <button
-              onClick={onClose}
+              onClick={() => {
+                // Handle closing without completing payment
+                if (!orderCompleted) {
+                  // Payment not completed - restore inventory
+                  onClearCart(true); // Restore inventory
+                  onClose();
+                  if (onOrderComplete) {
+                    onOrderComplete(true, false); // Pass false to indicate cleanup without payment
+                  }
+                } else {
+                  // Payment completed - just close
+                  onClose();
+                }
+              }}
               className="p-1 hover:bg-gray-800 rounded transition-colors"
             >
               <XMarkIcon className="h-6 w-6" />
@@ -1019,11 +1032,22 @@ const CheckoutSidePanel = ({
 
                   <button
                     onClick={() => {
-                      // Clear the cart and close panel
-                      onClearCart();
-                      onClose();
-                      if (onOrderComplete) {
-                        onOrderComplete(true); // Pass true to indicate final cleanup
+                      // After payment completion, just clear cart and close panel
+                      // Don't restore inventory since payment was successful
+                      if (orderCompleted) {
+                        // Payment was completed - keep inventory changes permanent
+                        onClearCart(false); // Don't restore inventory
+                        onClose();
+                        if (onOrderComplete) {
+                          onOrderComplete(true, true); // Pass true to indicate final cleanup with payment completed
+                        }
+                      } else {
+                        // Payment not completed - restore inventory
+                        onClearCart(true); // Restore inventory
+                        onClose();
+                        if (onOrderComplete) {
+                          onOrderComplete(true, false); // Pass false to indicate cleanup without payment
+                        }
                       }
                     }}
                     className="bg-gray-600 text-white py-3 px-4 rounded-md hover:bg-gray-700 flex items-center justify-center gap-2 font-medium transition-colors"
