@@ -235,87 +235,69 @@ const CheckoutSidePanel = ({
             
             body {
               font-family: 'Arial', sans-serif;
-              background: #f8fafc;
-              padding: 20px;
+              background: white;
+              padding: 10px;
               color: #333;
+              font-size: 12px;
+              line-height: 1.3;
             }
             
             .receipt-container {
-              max-width: 400px;
+              max-width: 350px;
               margin: 0 auto;
               background: white;
-              border-radius: 12px;
-              overflow: hidden;
-              box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-              border: 1px solid #e2e8f0;
+              border: 1px solid #ddd;
+              height: auto;
+              min-height: 100vh;
+              page-break-inside: avoid;
             }
             
             .receipt-header {
               background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
               color: white;
-              padding: 30px 20px;
+              padding: 15px 10px;
               text-align: center;
               position: relative;
-              overflow: hidden;
-            }
-            
-            .receipt-header::before {
-              content: '';
-              position: absolute;
-              top: -50%;
-              left: -50%;
-              width: 200%;
-              height: 200%;
-              background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-              animation: shimmer 3s infinite;
-            }
-            
-            @keyframes shimmer {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
+              -webkit-print-color-adjust: exact;
+              color-adjust: exact;
+              print-color-adjust: exact;
             }
             
             .company-name {
-              font-size: 28px;
+              font-size: 18px;
               font-weight: bold;
-              margin-bottom: 8px;
-              text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-              position: relative;
-              z-index: 1;
+              margin-bottom: 3px;
+              text-shadow: 0 1px 2px rgba(0,0,0,0.3);
             }
             
             .company-tagline {
-              font-size: 14px;
+              font-size: 10px;
               opacity: 0.9;
-              margin-bottom: 15px;
-              position: relative;
-              z-index: 1;
+              margin-bottom: 8px;
             }
             
             .receipt-title {
-              font-size: 16px;
+              font-size: 12px;
               font-weight: 600;
               background: rgba(255,255,255,0.2);
-              padding: 8px 20px;
-              border-radius: 20px;
+              padding: 4px 12px;
+              border-radius: 10px;
               display: inline-block;
-              position: relative;
-              z-index: 1;
             }
             
             .receipt-body {
-              padding: 25px;
+              padding: 12px;
             }
             
             .receipt-info {
               display: grid;
               grid-template-columns: 1fr 1fr;
-              gap: 15px;
-              margin-bottom: 25px;
-              padding: 15px;
+              gap: 8px;
+              margin-bottom: 12px;
+              padding: 8px;
               background: #f8fafc;
-              border-radius: 8px;
-              border-left: 4px solid #3b82f6;
+              border-radius: 4px;
+              border-left: 3px solid #3b82f6;
             }
             
             .info-item {
@@ -324,61 +306,61 @@ const CheckoutSidePanel = ({
             }
             
             .info-label {
-              font-size: 12px;
+              font-size: 9px;
               color: #64748b;
               font-weight: 600;
               text-transform: uppercase;
-              letter-spacing: 0.5px;
-              margin-bottom: 4px;
+              letter-spacing: 0.3px;
+              margin-bottom: 2px;
             }
             
             .info-value {
-              font-size: 14px;
+              font-size: 11px;
               color: #1e293b;
               font-weight: 500;
             }
             
             .customer-section {
-              margin-bottom: 25px;
-              padding: 15px;
+              margin-bottom: 12px;
+              padding: 8px;
               background: #eff6ff;
-              border-radius: 8px;
+              border-radius: 4px;
               border: 1px solid #bfdbfe;
             }
             
             .customer-title {
-              font-size: 14px;
+              font-size: 10px;
               font-weight: 600;
               color: #1e40af;
-              margin-bottom: 10px;
+              margin-bottom: 6px;
               text-transform: uppercase;
-              letter-spacing: 0.5px;
+              letter-spacing: 0.3px;
             }
             
             .customer-info {
               display: grid;
               grid-template-columns: 1fr 1fr;
-              gap: 10px;
+              gap: 6px;
             }
             
             .items-section {
-              margin-bottom: 25px;
+              margin-bottom: 12px;
             }
             
             .items-title {
-              font-size: 16px;
+              font-size: 12px;
               font-weight: 600;
               color: #1e293b;
-              margin-bottom: 15px;
-              padding-bottom: 8px;
-              border-bottom: 2px solid #3b82f6;
+              margin-bottom: 8px;
+              padding-bottom: 4px;
+              border-bottom: 1px solid #3b82f6;
             }
             
             .item-row {
               display: flex;
               justify-content: space-between;
               align-items: center;
-              padding: 12px 0;
+              padding: 6px 0;
               border-bottom: 1px solid #e2e8f0;
             }
             
@@ -393,98 +375,135 @@ const CheckoutSidePanel = ({
             .item-name {
               font-weight: 600;
               color: #1e293b;
-              margin-bottom: 2px;
+              margin-bottom: 1px;
+              font-size: 11px;
             }
             
             .item-meta {
-              font-size: 12px;
+              font-size: 9px;
               color: #64748b;
             }
             
             .item-total {
               font-weight: 600;
               color: #059669;
+              font-size: 11px;
             }
             
             .totals-section {
-              border-top: 2px solid #e2e8f0;
-              padding-top: 20px;
-              margin-top: 20px;
+              border-top: 1px solid #e2e8f0;
+              padding-top: 10px;
+              margin-top: 10px;
             }
             
             .total-row {
               display: flex;
               justify-content: space-between;
               align-items: center;
-              padding: 8px 0;
+              padding: 3px 0;
             }
             
             .total-label {
               font-weight: 500;
               color: #475569;
+              font-size: 11px;
             }
             
             .total-value {
               font-weight: 600;
               color: #1e293b;
+              font-size: 11px;
             }
             
             .grand-total {
               background: #3b82f6;
               color: white;
-              padding: 15px;
-              border-radius: 8px;
-              margin-top: 15px;
-              font-size: 18px;
+              padding: 8px;
+              border-radius: 4px;
+              margin-top: 8px;
+              font-size: 14px;
               font-weight: bold;
               text-align: center;
+              -webkit-print-color-adjust: exact;
+              color-adjust: exact;
+              print-color-adjust: exact;
             }
             
             .payment-section {
-              margin-top: 20px;
-              padding: 15px;
+              margin-top: 10px;
+              padding: 8px;
               background: #f0fdf4;
-              border-radius: 8px;
+              border-radius: 4px;
               border: 1px solid #bbf7d0;
             }
             
             .payment-title {
-              font-size: 14px;
+              font-size: 10px;
               font-weight: 600;
               color: #166534;
-              margin-bottom: 10px;
+              margin-bottom: 6px;
               text-transform: uppercase;
-              letter-spacing: 0.5px;
+              letter-spacing: 0.3px;
+            }
+            
+            .payment-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 6px;
             }
             
             .receipt-footer {
               text-align: center;
-              margin-top: 30px;
-              padding-top: 20px;
+              margin-top: 15px;
+              padding-top: 10px;
               border-top: 1px dashed #cbd5e1;
             }
             
             .footer-message {
-              font-size: 14px;
+              font-size: 11px;
               color: #64748b;
-              margin-bottom: 10px;
+              margin-bottom: 6px;
             }
             
             .footer-contact {
-              font-size: 12px;
+              font-size: 9px;
               color: #94a3b8;
+              line-height: 1.2;
             }
             
             @media print {
+              @page {
+                size: A4;
+                margin: 0.5in;
+              }
+              
               body {
                 background: white;
                 padding: 0;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+                print-color-adjust: exact;
               }
               
               .receipt-container {
-                box-shadow: none;
                 border: none;
                 max-width: 100%;
+                box-shadow: none;
+                page-break-inside: avoid;
+              }
+              
+              .receipt-header {
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+                print-color-adjust: exact;
+                background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
+              }
+              
+              .grand-total {
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+                print-color-adjust: exact;
+                background: #3b82f6 !important;
               }
             }
           </style>
@@ -511,10 +530,9 @@ const CheckoutSidePanel = ({
                   <div class="info-value">${currentDate.toLocaleDateString(
                     "en-US",
                     {
-                      weekday: "short",
-                      year: "numeric",
                       month: "short",
                       day: "numeric",
+                      year: "numeric",
                     }
                   )}</div>
                 </div>
@@ -525,7 +543,6 @@ const CheckoutSidePanel = ({
                     {
                       hour: "2-digit",
                       minute: "2-digit",
-                      second: "2-digit",
                     }
                   )}</div>
                 </div>
@@ -598,12 +615,16 @@ const CheckoutSidePanel = ({
               <!-- Payment Information -->
               <div class="payment-section">
                 <div class="payment-title">Payment Details</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="payment-grid">
                   <div class="info-item">
                     <div class="info-label">Method</div>
                     <div class="info-value">${
                       paymentMethod === "cash" ? "Cash Payment" : "Mobile Money"
                     }</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">Status</div>
+                    <div class="info-value" style="color: #059669; font-weight: 600;">✓ PAID</div>
                   </div>
                   ${
                     paymentMethod === "cash"
@@ -623,10 +644,6 @@ const CheckoutSidePanel = ({
                   `
                       : ""
                   }
-                  <div class="info-item">
-                    <div class="info-label">Status</div>
-                    <div class="info-value" style="color: #059669; font-weight: 600;">✓ PAID</div>
-                  </div>
                 </div>
               </div>
               
