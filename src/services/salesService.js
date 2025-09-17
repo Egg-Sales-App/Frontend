@@ -156,4 +156,76 @@ export const salesService = {
       throw new Error("Failed to update payment status");
     }
   },
+
+  // Get sales chart data for visualization
+  async getSalesChartData(period = "12m") {
+    try {
+      // Get all orders for chart analysis
+      const response = await apiService.get("/orders/", {
+        page_size: 1000, // Get all orders
+        ordering: "-order_date",
+      });
+
+      const orders = response.results || [];
+
+      // Process orders into monthly data for chart
+      const monthlyData = this.processOrdersForChart(orders, period);
+
+      return monthlyData;
+    } catch (error) {
+      throw new Error("Failed to fetch sales chart data");
+    }
+  },
+
+  // Helper method to process orders into chart-friendly format
+  processOrdersForChart(orders, period) {
+    const now = new Date();
+    const months = [];
+
+    // Generate last 12 months
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthKey = date.toISOString().slice(0, 7); // YYYY-MM format
+      const monthName = date.toLocaleDateString("en-US", {
+        month: "short",
+        year: "numeric",
+      });
+
+      months.push({
+        month: monthName,
+        monthKey: monthKey,
+        ordered: 0,
+        delivered: 0,
+        revenue: 0,
+      });
+    }
+
+    // Process orders and group by month
+    orders.forEach((order) => {
+      const orderDate = new Date(order.order_date);
+      const orderMonthKey = orderDate.toISOString().slice(0, 7);
+
+      // Find the corresponding month in our data
+      const monthData = months.find((m) => m.monthKey === orderMonthKey);
+
+      if (monthData) {
+        monthData.ordered += 1;
+
+        // Count as delivered if paid (assuming paid = delivered for now)
+        if (order.is_paid) {
+          monthData.delivered += 1;
+        }
+
+        // Calculate revenue from order items
+        if (order.items && order.items.length > 0) {
+          const orderRevenue = order.items.reduce((sum, item) => {
+            return sum + parseFloat(item.price_at_purchase) * item.quantity;
+          }, 0);
+          monthData.revenue += orderRevenue;
+        }
+      }
+    });
+
+    return months;
+  },
 };
