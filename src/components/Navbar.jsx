@@ -120,26 +120,7 @@ const Navbar = () => {
                 </li>
               )}
 
-              {/* Profile Link */}
-              <li>
-                <a className="justify-between">
-                  <div className="flex items-center gap-2">
-                    <User size={16} />
-                    Profile
-                  </div>
-                  <span className="badge">New</span>
-                </a>
-              </li>
-
-              {/* Settings Link */}
-              <li>
-                <a>
-                  <div className="flex items-center gap-2">
-                    <Settings size={16} />
-                    Settings
-                  </div>
-                </a>
-              </li>
+          
 
               <div className="divider my-1"></div>
 
