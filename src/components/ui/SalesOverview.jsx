@@ -172,7 +172,7 @@ const SalesOverview = () => {
         <div className="flex items-center gap-2 mb-4 sm:mb-0">
           <BadgeCent className="h-5 w-5 text-blue-600" />
           <h2 className="text-lg font-semibold text-gray-900">
-            Sales Overview
+            Orders Overview
           </h2>
         </div>
 
