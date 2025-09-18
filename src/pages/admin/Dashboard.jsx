@@ -2,11 +2,9 @@ import React, { useMemo, useEffect, useState } from "react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import MetricCard from "../../components/ui/MetricCard";
 import StockCard from "../../components/ui/StockCard";
-import SalesSummary from "../../components/SalesSummary";
 import SalesOverview from "../../components/ui/SalesOverview";
 import { useApi } from "../../hooks/useApi";
 import { inventoryService } from "../../services/inventoryService";
-import { salesService } from "../../services/salesService";
 import { reportsService } from "../../services/reportsService";
 import { dashboardService } from "../../services/dashboardService";
 import { useToast } from "../../components/ui/ToastContext";
@@ -207,9 +205,6 @@ const Dashboard = () => {
             <SalesOverview />
           </section>
 
-          {/* Sales Summary */}
-          <SalesSummary />
-
           {/* top selling stock */}
           <section className="w-full bg-white rounded-lg shadow-md p-4">
             <div className="flex justify-between items-center mb-4">
@@ -317,7 +312,7 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col items-center justify-center text-center mr-17">
+              <div className="flex flex-col items-center justify-center text-center">
                 <div className="w-8 h-8 bg-red-100 rounded-md flex items-center justify-center">
                   <Warehouse size={18} className="text-red-500" />
                 </div>
@@ -328,37 +323,16 @@ const Dashboard = () => {
                   <div className="text-sm text-gray-500">Low Stock Items</div>
                 </div>
               </div>
-            </div>
-          </section>
 
-          {/*  Product Summary */}
-          <section className="w-full h-[145px] bg-white rounded-lg p-4 shadow relative">
-            <h2 className="text-[20px] font-medium text-gray-800 mb-4">
-              {" "}
-              Product Summary
-            </h2>
-            <div className="flex justify-between items-start flex-wrap">
               <div className="flex flex-col items-center justify-center text-center">
-                <div className="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center">
-                  <Users size={18} className="text-blue-500" />
+                <div className="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center">
+                  <TrendingUp size={18} className="text-green-500" />
                 </div>
                 <div>
                   <div className="text-[16px] font-semibold text-gray-600">
-                    {dashboardData?.summary?.total_customers || 0}
+                    {dashboardData?.summary?.total_suppliers || 0}
                   </div>
-                  <div className="text-sm text-gray-500">Number of users</div>
-                </div>
-              </div>
-
-              <div className="flex flex-col items-center justify-center text-center mr-12">
-                <div className="w-8 h-8 bg-yellow-100 rounded-md flex items-center justify-center">
-                  <ClipboardList size={18} className="text-yellow-500" />
-                </div>
-                <div>
-                  <div className="text-[16px] font-semibold text-gray-600">
-                    {dashboardData?.summary?.total_orders || 0}
-                  </div>
-                  <div className="text-sm text-gray-500">Total orders</div>
+                  <div className="text-sm text-gray-500">Total Suppliers</div>
                 </div>
               </div>
             </div>

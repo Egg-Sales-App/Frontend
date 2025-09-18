@@ -9,6 +9,7 @@ import {
   Clock,
 } from "lucide-react";
 import { dashboardService } from "../../services/dashboardService";
+import { orderService } from "../../services/orderService";
 
 const SalesOverview = () => {
   const [salesData, setSalesData] = useState({
@@ -33,9 +34,10 @@ const SalesOverview = () => {
       const dashboardData = await dashboardService.getDashboardSummary();
 
       // Get orders for the selected date to calculate daily total
-      const ordersResponse = await dashboardService.apiService.get("/orders/", {
-        page_size: 1000,
-        order_date__date: selectedDate,
+      const ordersResponse = await orderService.getOrders({
+        limit: 1000,
+        dateFrom: selectedDate,
+        dateTo: selectedDate,
       });
 
       const todayOrders = ordersResponse.results || [];
@@ -43,55 +45,52 @@ const SalesOverview = () => {
       // Calculate daily order count for selected date
       const todayOrderCount = todayOrders.length;
 
+      // Get all users to map employee names efficiently
+      const usersResponse = await dashboardService.apiService.get("/users/", {
+        page_size: 1000,
+        is_active: true, // Only get active users
+      });
+      const users = usersResponse.results || [];
+
+      // Create user lookup map
+      const userMap = {};
+      users.forEach((user) => {
+        userMap[user.id] =
+          `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
+          user.username ||
+          `User ${user.id}`;
+      });
+
       // Group sales by employee for selected date
       const employeeSalesMap = {};
 
       for (const order of todayOrders) {
-        const employeeId = order.created_by || "Unknown";
+        const employeeId = order.created_by;
 
-        if (!employeeSalesMap[employeeId]) {
-          employeeSalesMap[employeeId] = {
-            employeeId,
-            employeeName: "Loading...",
-            totalSales: 0,
-            orderCount: 0,
-            orders: [],
-          };
+        if (employeeId) {
+          // Only count orders with valid employee ID
+          if (!employeeSalesMap[employeeId]) {
+            employeeSalesMap[employeeId] = {
+              employeeId,
+              employeeName: userMap[employeeId] || `Employee ${employeeId}`,
+              totalSales: 0,
+              orderCount: 0,
+              orders: [],
+            };
+          }
+
+          employeeSalesMap[employeeId].totalSales += parseFloat(
+            order.total_amount || 0
+          );
+          employeeSalesMap[employeeId].orderCount += 1;
+          employeeSalesMap[employeeId].orders.push(order);
         }
-
-        employeeSalesMap[employeeId].totalSales += parseFloat(
-          order.total_amount || 0
-        );
-        employeeSalesMap[employeeId].orderCount += 1;
-        employeeSalesMap[employeeId].orders.push(order);
       }
 
-      // Get employee names for those who made sales
-      const employeeSales = await Promise.all(
-        Object.values(employeeSalesMap).map(async (employeeData) => {
-          try {
-            if (employeeData.employeeId !== "Unknown") {
-              const userResponse = await dashboardService.apiService.get(
-                `/users/${employeeData.employeeId}/`
-              );
-              employeeData.employeeName =
-                `${userResponse.first_name || ""} ${
-                  userResponse.last_name || ""
-                }`.trim() ||
-                userResponse.email ||
-                "Unknown";
-            } else {
-              employeeData.employeeName = "Unknown Employee";
-            }
-          } catch (error) {
-            employeeData.employeeName = `Employee ID: ${employeeData.employeeId}`;
-          }
-          return employeeData;
-        })
+      // Convert to array and sort by order count (since we focus on orders now)
+      const employeeSales = Object.values(employeeSalesMap).sort(
+        (a, b) => b.orderCount - a.orderCount
       );
-
-      // Sort by total sales descending
-      employeeSales.sort((a, b) => b.totalSales - a.totalSales);
 
       setSalesData({
         todayOrderCount,
