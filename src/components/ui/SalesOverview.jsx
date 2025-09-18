@@ -45,43 +45,39 @@ const SalesOverview = () => {
       // Calculate daily order count for selected date
       const todayOrderCount = todayOrders.length;
 
-      // Get all users to map employee names efficiently
-      const usersResponse = await dashboardService.apiService.get("/users/", {
-        page_size: 1000,
-        is_active: true, // Only get active users
-      });
-      const users = usersResponse.results || [];
-
-      // Create user lookup map
-      const userMap = {};
-      users.forEach((user) => {
-        userMap[user.id] =
-          `${user.first_name || ""} ${user.last_name || ""}`.trim() ||
-          user.username ||
-          `User ${user.id}`;
-      });
-
       // Group sales by employee for selected date
       const employeeSalesMap = {};
 
       for (const order of todayOrders) {
-        const employeeId = order.created_by;
+        const employee = order.created_by;
 
-        if (employeeId) {
-          // Only count orders with valid employee ID
+        if (employee) {
+          // Only count orders with valid employee data
+          const employeeId = employee.id;
+          const employeeName =
+            employee.username || employee.email || `Employee ${employeeId}`;
+
           if (!employeeSalesMap[employeeId]) {
             employeeSalesMap[employeeId] = {
               employeeId,
-              employeeName: userMap[employeeId] || `Employee ${employeeId}`,
+              employeeName,
               totalSales: 0,
               orderCount: 0,
               orders: [],
             };
           }
 
-          employeeSalesMap[employeeId].totalSales += parseFloat(
-            order.total_amount || 0
-          );
+          // Calculate order total from items
+          const orderTotal =
+            order.items?.reduce((sum, item) => {
+              return (
+                sum +
+                parseFloat(item.price_at_purchase || 0) *
+                  parseInt(item.quantity || 0)
+              );
+            }, 0) || 0;
+
+          employeeSalesMap[employeeId].totalSales += orderTotal;
           employeeSalesMap[employeeId].orderCount += 1;
           employeeSalesMap[employeeId].orders.push(order);
         }
