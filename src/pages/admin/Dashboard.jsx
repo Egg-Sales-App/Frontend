@@ -3,6 +3,7 @@ import AdminLayout from "../../components/layout/AdminLayout";
 import MetricCard from "../../components/ui/MetricCard";
 import StockCard from "../../components/ui/StockCard";
 import SalesOverview from "../../components/ui/SalesOverview";
+import SalesTrendsChart from "../../components/ui/SalesTrendsChart";
 import { useApi } from "../../hooks/useApi";
 import { inventoryService } from "../../services/inventoryService";
 import { reportsService } from "../../services/reportsService";
@@ -205,90 +206,12 @@ const Dashboard = () => {
             <SalesOverview />
           </section>
 
-          {/* top selling stock */}
-          <section className="w-full bg-white rounded-lg shadow-md p-4">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-800">
-                Top Selling Stock
-              </h2>
-              <button className="btn bg-white text-blue-500">see all</button>
-            </div>
-
-            {/* Top Selling Products - Enhanced Implementation */}
-            {dashboardData?.topSelling &&
-            dashboardData.topSelling.length > 0 ? (
-              <div className="space-y-3">
-                {dashboardData.topSelling.slice(0, 3).map((product, index) => (
-                  <div key={index} className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="bg-white p-2 rounded-full">
-                          <PackageSearch className="h-4 w-4 text-gray-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            {product.product__name}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            #{index + 1} Best Seller
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-lg text-gray-900">
-                          {product.total_quantity} sold
-                        </p>
-                        <p className="text-sm text-gray-500">Total Quantity</p>
-                      </div>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="mt-3">
-                      <div className="bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                          style={{
-                            width: `${Math.max(
-                              10,
-                              (product.total_quantity /
-                                Math.max(
-                                  ...dashboardData.topSelling.map(
-                                    (p) => p.total_quantity
-                                  )
-                                )) *
-                                100
-                            )}%`,
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-
-                    {/* Additional Info */}
-                    <div className="mt-3 pt-3 border-t border-gray-200">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-500">Sales Performance</span>
-                        <span className="font-medium text-green-600">
-                          {(
-                            (product.total_quantity /
-                              dashboardData.topSelling.reduce(
-                                (sum, p) => sum + p.total_quantity,
-                                0
-                              )) *
-                            100
-                          ).toFixed(1)}
-                          % of total sales
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <PackageSearch className="h-12 w-12 mx-auto mb-2 text-gray-300" />
-                <p>No top selling products data available</p>
-              </div>
-            )}
+          {/* Sales Trend */}
+          <section className="bg-white rounded-lg shadow-sm p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Sales Trend
+            </h2>
+            <SalesTrendsChart />
           </section>
         </div>
 
@@ -390,6 +313,92 @@ const Dashboard = () => {
             ) : (
               <div className="text-center py-8 text-gray-500">
                 <p>No low stock items currently</p>
+              </div>
+            )}
+          </section>
+
+          {/* top selling stock */}
+          <section className="w-full bg-white rounded-lg shadow-md p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-800">
+                Top Selling Stock
+              </h2>
+              <button className="btn bg-white text-blue-500">see all</button>
+            </div>
+
+            {/* Top Selling Products - Enhanced Implementation */}
+            {dashboardData?.topSelling &&
+            dashboardData.topSelling.length > 0 ? (
+              <div className="space-y-3">
+                {dashboardData.topSelling.slice(0, 3).map((product, index) => (
+                  <div key={index} className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-white p-2 rounded-full">
+                          <PackageSearch className="h-4 w-4 text-gray-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {product.product__name}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            #{index + 1} Best Seller
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-lg text-gray-900">
+                          {product.total_quantity} sold
+                        </p>
+                        <p className="text-sm text-gray-500">Total Quantity</p>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="mt-3">
+                      <div className="bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                          style={{
+                            width: `${Math.max(
+                              10,
+                              (product.total_quantity /
+                                Math.max(
+                                  ...dashboardData.topSelling.map(
+                                    (p) => p.total_quantity
+                                  )
+                                )) *
+                                100
+                            )}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    {/* Additional Info */}
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-500">Sales Performance</span>
+                        <span className="font-medium text-green-600">
+                          {(
+                            (product.total_quantity /
+                              dashboardData.topSelling.reduce(
+                                (sum, p) => sum + p.total_quantity,
+                                0
+                              )) *
+                            100
+                          ).toFixed(1)}
+                          % of total sales
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <PackageSearch className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                <p>No top selling products data available</p>
               </div>
             )}
           </section>
