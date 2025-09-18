@@ -32,7 +32,23 @@ const Employee = () => {
     try {
       setLoading(true);
       const newEmployee = await employeeService.createEmployee(newEmployeeData);
-      setEmployees([...employees, newEmployee]);
+
+      // Try to fetch complete employee data, fallback to refreshing the list
+      try {
+        const completeEmployeeData = await employeeService.getEmployee(
+          newEmployee.id
+        );
+        setEmployees([...employees, completeEmployeeData]);
+      } catch (fetchError) {
+        console.warn(
+          "Could not fetch complete employee data, refreshing list:",
+          fetchError
+        );
+        // Fallback: refresh the entire employees list
+        const refreshedEmployees = await employeeService.getEmployees();
+        setEmployees(refreshedEmployees);
+      }
+
       setShowForm(false);
       showSuccess("Employee added successfully");
     } catch (err) {
@@ -60,11 +76,27 @@ const Employee = () => {
         editingEmployee.id,
         updatedEmployeeData
       );
-      setEmployees(
-        employees.map((emp) =>
-          emp.id === editingEmployee.id ? updatedEmployee : emp
-        )
-      );
+
+      // Try to fetch complete employee data, fallback to refreshing the list
+      try {
+        const completeEmployeeData = await employeeService.getEmployee(
+          editingEmployee.id
+        );
+        setEmployees(
+          employees.map((emp) =>
+            emp.id === editingEmployee.id ? completeEmployeeData : emp
+          )
+        );
+      } catch (fetchError) {
+        console.warn(
+          "Could not fetch complete employee data, refreshing list:",
+          fetchError
+        );
+        // Fallback: refresh the entire employees list
+        const refreshedEmployees = await employeeService.getEmployees();
+        setEmployees(refreshedEmployees);
+      }
+
       setShowForm(false);
       setEditingEmployee(null);
       showSuccess("Employee updated successfully");
