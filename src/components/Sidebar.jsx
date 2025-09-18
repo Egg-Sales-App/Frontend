@@ -1,6 +1,8 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useSidebar } from "../context/SidebarContext"; // Custom hook for sidebar state/context
+import { useAuth } from "../hooks/useAuth"; // Authentication hook
+import { useToast } from "../hooks/useToast"; // Toast notifications
 import {
   LayoutDashboard,
   Boxes,
@@ -19,8 +21,33 @@ const Sidebar = () => {
   // Get sidebar state and toggle function from context
   const { isCollapsed, isMobile, toggleSidebar } = useSidebar();
 
+  // Get authentication functions from useAuth hook
+  const { logout } = useAuth();
+
+  // Navigation and toast hooks
+  const navigate = useNavigate();
+  const { addToast } = useToast();
+
   // Icon size (can later be dynamic if needed)
   const iconSize = isCollapsed ? 20 : 20;
+
+  // Handle user logout with feedback and redirection
+  const handleLogout = async () => {
+    try {
+      // Call logout service through useAuth hook
+      const result = await logout();
+
+      // Show success message
+      addToast("Logged out successfully", "success");
+
+      // Redirect user to login page after logout
+      navigate("/login", { replace: true });
+    } catch (error) {
+      // Show error toast if logout fails
+      console.error("❌ Logout failed:", error);
+      addToast(error.message || "Logout failed. Please try again.", "error");
+    }
+  };
 
   // Main navigation items
   const menuItems = [
@@ -68,7 +95,11 @@ const Sidebar = () => {
     //   label: "Settings",
     //   path: "/admin/settings",
     // },
-    { icon: <LogOut size={iconSize} />, label: "Logout", path: "/login" },
+    {
+      icon: <LogOut size={iconSize} color="white" />,
+      label: "Logout",
+      onClick: handleLogout, // Use click handler instead of path
+    },
   ];
 
   // Function to dynamically style active vs inactive links
@@ -143,17 +174,34 @@ const Sidebar = () => {
 
         {/* -------- Footer Menu -------- */}
         <div className="p-4">
-          <ul className="space-y-2 text-sm font-medium bg-red-300 rounded-md">
+          <ul className="space-y-2 text-sm font-medium bg-red-600 rounded-md">
             {footerItems.map((item, idx) => (
               <li key={idx}>
-                <NavLink
-                  to={item.path}
-                  className={getLinkClasses}
-                  title={isCollapsed ? item.label : ""}
-                >
-                  {item.icon}
-                  {!isCollapsed && <span>{item.label}</span>}
-                </NavLink>
+                {item.onClick ? (
+                  // Handle logout with click handler
+                  <button
+                    onClick={item.onClick}
+                    className={`flex items-center gap-3 px-1 py-2 rounded-lg transition-all duration-200 text-white hover:bg-red-700 w-full ${
+                      isCollapsed ? "justify-center" : ""
+                    }`}
+                    title={isCollapsed ? item.label : ""}
+                  >
+                    {item.icon}
+                    {!isCollapsed && <span>{item.label}</span>}
+                  </button>
+                ) : (
+                  // Handle navigation with NavLink
+                  <NavLink
+                    to={item.path}
+                    className={`flex items-center gap-3 px-1 py-2 rounded-lg transition-all duration-200 text-white hover:bg-red-700 ${
+                      isCollapsed ? "justify-center" : ""
+                    }`}
+                    title={isCollapsed ? item.label : ""}
+                  >
+                    {item.icon}
+                    {!isCollapsed && <span>{item.label}</span>}
+                  </NavLink>
+                )}
               </li>
             ))}
           </ul>
