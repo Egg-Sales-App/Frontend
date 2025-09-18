@@ -7,6 +7,7 @@ import {
   Eye,
   ShoppingCart,
   Clock,
+  BadgeCent,
 } from "lucide-react";
 import { dashboardService } from "../../services/dashboardService";
 import { orderService } from "../../services/orderService";
@@ -18,9 +19,14 @@ const SalesOverview = () => {
     employeeSales: [],
     loading: true,
   });
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+
+  // Get today's date in YYYY-MM-DD format
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  };
+
+  const [selectedDate, setSelectedDate] = useState(getTodayDate());
 
   useEffect(() => {
     loadSalesData();
@@ -34,13 +40,33 @@ const SalesOverview = () => {
       const dashboardData = await dashboardService.getDashboardSummary();
 
       // Get orders for the selected date to calculate daily total
+      console.log("Selected date:", selectedDate);
+
       const ordersResponse = await orderService.getOrders({
         limit: 1000,
         dateFrom: selectedDate,
         dateTo: selectedDate,
       });
 
-      const todayOrders = ordersResponse.results || [];
+      console.log("Orders response:", ordersResponse);
+      console.log("Response structure:", Object.keys(ordersResponse));
+
+      // The API returns the orders array directly, not wrapped in results
+      const allOrders = Array.isArray(ordersResponse)
+        ? ordersResponse
+        : ordersResponse.results || ordersResponse.data || [];
+      console.log("All orders count:", allOrders.length);
+      console.log("First order sample:", allOrders[0]);
+
+      // Filter orders by the selected date (client-side filtering as backup)
+      const todayOrders = allOrders.filter((order) => {
+        const orderDate = new Date(order.order_date)
+          .toISOString()
+          .split("T")[0];
+        return orderDate === selectedDate;
+      });
+
+      console.log("Filtered orders for", selectedDate, ":", todayOrders.length);
 
       // Calculate daily order count for selected date
       const todayOrderCount = todayOrders.length;
@@ -62,30 +88,34 @@ const SalesOverview = () => {
               employeeId,
               employeeName,
               totalSales: 0,
+              totalProductsSold: 0,
               orderCount: 0,
               orders: [],
             };
           }
 
-          // Calculate order total from items
-          const orderTotal =
-            order.items?.reduce((sum, item) => {
-              return (
-                sum +
-                parseFloat(item.price_at_purchase || 0) *
-                  parseInt(item.quantity || 0)
-              );
-            }, 0) || 0;
+          // Calculate order total and total products from items
+          let orderTotal = 0;
+          let productsInOrder = 0;
+
+          order.items?.forEach((item) => {
+            const itemTotal =
+              parseFloat(item.price_at_purchase || 0) *
+              parseInt(item.quantity || 0);
+            orderTotal += itemTotal;
+            productsInOrder += parseInt(item.quantity || 0);
+          });
 
           employeeSalesMap[employeeId].totalSales += orderTotal;
+          employeeSalesMap[employeeId].totalProductsSold += productsInOrder;
           employeeSalesMap[employeeId].orderCount += 1;
           employeeSalesMap[employeeId].orders.push(order);
         }
       }
 
-      // Convert to array and sort by order count (since we focus on orders now)
+      // Convert to array and sort by total products sold
       const employeeSales = Object.values(employeeSalesMap).sort(
-        (a, b) => b.orderCount - a.orderCount
+        (a, b) => b.totalProductsSold - a.totalProductsSold
       );
 
       setSalesData({
@@ -106,9 +136,9 @@ const SalesOverview = () => {
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-NG", {
+    return new Intl.NumberFormat("en-GH", {
       style: "currency",
-      currency: "NGN",
+      currency: "GHS",
     }).format(amount);
   };
 
@@ -140,7 +170,7 @@ const SalesOverview = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <div className="flex items-center gap-2 mb-4 sm:mb-0">
-          <Eye className="h-5 w-5 text-blue-600" />
+          <BadgeCent className="h-5 w-5 text-blue-600" />
           <h2 className="text-lg font-semibold text-gray-900">
             Sales Overview
           </h2>
@@ -148,12 +178,19 @@ const SalesOverview = () => {
 
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-gray-500" />
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <div className="relative">
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="px-3 py-2 text-blue-700 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer hover:border-blue-400 transition-colors"
+              style={{
+                colorScheme: "light",
+                WebkitAppearance: "none",
+                MozAppearance: "textfield",
+              }}
+            />
+          </div>
         </div>
       </div>
 
@@ -222,6 +259,8 @@ const SalesOverview = () => {
                           {employee.employeeName}
                         </p>
                         <p className="text-xs text-gray-500">
+                          {employee.totalProductsSold} product
+                          {employee.totalProductsSold !== 1 ? "s" : ""} •{" "}
                           {employee.orderCount} order
                           {employee.orderCount !== 1 ? "s" : ""}
                         </p>
@@ -231,6 +270,7 @@ const SalesOverview = () => {
                       <p className="font-semibold text-sm text-gray-900">
                         {formatCurrency(employee.totalSales)}
                       </p>
+                      <p className="text-xs text-gray-500">Total Sales</p>
                     </div>
                   </div>
                 </div>
