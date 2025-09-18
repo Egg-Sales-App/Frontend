@@ -13,6 +13,13 @@ import { useToast } from "../../components/ui/ToastContext";
 import chickenFeed from "../../assets/chicken_feed.png";
 import broilers from "../../assets/broilers.jpeg";
 import day_old_chicks from "../../assets/day_old_chicks.jpg";
+import dewormer from "../../assets/dewormer.png";
+import feeder from "../../assets/feeder.png";
+import broilerEquipment from "../../assets/broilerequipment.png";
+import equipment from "../../assets/equipment.png";
+import hybridFeed from "../../assets/hybridfeed.png";
+import fullCrateEggs from "../../assets/fullcrateeggs.png";
+import weeksOldChicks from "../../assets/weeksoldchicks.png";
 import {
   BarChart3,
   LineChart,
@@ -26,6 +33,78 @@ import {
   TrendingDown,
   PackageSearch,
 } from "lucide-react";
+
+// Helper function to get appropriate image for product
+const getProductImage = (category, productName) => {
+  const name = productName.toLowerCase();
+  const cat = category?.toLowerCase() || "";
+
+  // Drug/Medicine products
+  if (
+    cat.includes("drug") ||
+    name.includes("dewormer") ||
+    name.includes("medicine")
+  ) {
+    return dewormer;
+  }
+
+  // Equipment products
+  if (
+    cat.includes("equipment") ||
+    name.includes("feeder") ||
+    name.includes("broiler")
+  ) {
+    if (name.includes("feeder")) return feeder;
+    if (name.includes("broiler")) return broilerEquipment;
+    return equipment;
+  }
+
+  // Feed products
+  if (
+    cat.includes("feed") ||
+    cat.includes("nutrition") ||
+    name.includes("feed")
+  ) {
+    if (
+      name.includes("chicken") ||
+      name.includes("starter") ||
+      name.includes("layer")
+    ) {
+      return chickenFeed;
+    }
+    return hybridFeed;
+  }
+
+  // Egg products
+  if (cat.includes("egg") || name.includes("egg")) {
+    return fullCrateEggs;
+  }
+
+  // Chick products
+  if (cat.includes("chick") || name.includes("chick")) {
+    if (name.includes("weeks") || name.includes("old")) {
+      return weeksOldChicks;
+    }
+    return day_old_chicks;
+  }
+
+  // Default fallback based on category
+  switch (cat) {
+    case "drugs":
+      return dewormer;
+    case "equipment":
+      return equipment;
+    case "feed":
+    case "nutrition":
+      return hybridFeed;
+    case "eggs":
+      return fullCrateEggs;
+    case "chicks":
+      return day_old_chicks;
+    default:
+      return hybridFeed; // Default fallback
+  }
+};
 
 const Dashboard = () => {
   const { error: showError } = useToast();
@@ -216,9 +295,9 @@ const Dashboard = () => {
         </div>
 
         {/* Right Column - Adjusts based on screen size */}
-        <div className="flex flex-col gap-6 w-full lg:w-[40%]">
+        <div className="flex flex-col gap-4 w-full lg:w-[40%]">
           {/* Inventory Summary */}
-          <section className="w-full bg-white rounded-lg p-4 shadow relative">
+          <section className="w-full bg-white rounded-lg p-2 shadow relative">
             <h2 className="text-xl font-medium text-gray-800 mb-4">
               Inventory Summary
             </h2>
@@ -262,7 +341,7 @@ const Dashboard = () => {
           </section>
 
           {/* Low Stock Items */}
-          <section className="w-full h-[360px] bg-white rounded-lg shadow-md p-4">
+          <section className="w-full h-[360px] bg-white rounded-lg shadow-md p-2">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">
                 Low Quantity Stock
@@ -275,18 +354,15 @@ const Dashboard = () => {
               dashboardData.lowStock.slice(0, 3).map((product, index) => (
                 <section
                   key={index}
-                  className="w-full h-[75px] bg-white shadow rounded-lg flex items-center gap-3 p-2 mt-6"
+                  className="w-full h-[75px] bg-red-300 shadow rounded-lg flex items-center gap-3 p-2 mt-6"
                 >
-                  {/* Image - Use default image for now */}
+                  {/* Image - Use smart image selection based on category/name */}
                   <div className="w-[60px] h-[70px] rounded-md overflow-hidden flex-shrink-0">
                     <img
-                      src={
-                        index === 0
-                          ? chickenFeed
-                          : index === 1
-                          ? broilers
-                          : day_old_chicks
-                      }
+                      src={getProductImage(
+                        product.category?.name,
+                        product.name
+                      )}
                       alt={product.name}
                       className="w-full h-full object-cover"
                     />
@@ -294,17 +370,17 @@ const Dashboard = () => {
 
                   {/* Text Info */}
                   <div className="flex flex-col justify-center flex-grow">
-                    <span className="text-[16px] font-semibold text-gray-800">
+                    <span className="text-[18px] font-bold text-gray-800">
                       {product.name}
                     </span>
-                    <span className="text-[14px] text-gray-500">
+                    <span className="text-[14px] text-gray-700">
                       Remaining Quantity: {product.quantity_in_stock} units
                     </span>
                   </div>
 
                   {/* Status Tag */}
                   <div className="flex-shrink-0">
-                    <div className="bg-[#FEECEB] text-[#AA3028] text-xs font-medium px-2 py-1 rounded-full">
+                    <div className="bg-[#FEECEB] text-[#AA3028] text-sm font-medium px-2 py-1 rounded-full">
                       Low
                     </div>
                   </div>
