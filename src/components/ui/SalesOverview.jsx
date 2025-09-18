@@ -6,16 +6,14 @@ import {
   TrendingUp,
   Eye,
   ShoppingCart,
-  Package,
   Clock,
 } from "lucide-react";
 import { dashboardService } from "../../services/dashboardService";
 
 const SalesOverview = () => {
   const [salesData, setSalesData] = useState({
-    todayTotal: 0,
+    todayOrderCount: 0,
     recentOrders: [],
-    topProducts: [],
     employeeSales: [],
     loading: true,
   });
@@ -42,11 +40,8 @@ const SalesOverview = () => {
 
       const todayOrders = ordersResponse.results || [];
 
-      // Calculate daily total for selected date
-      const todayTotal = todayOrders.reduce(
-        (sum, order) => sum + parseFloat(order.total_amount || 0),
-        0
-      );
+      // Calculate daily order count for selected date
+      const todayOrderCount = todayOrders.length;
 
       // Group sales by employee for selected date
       const employeeSalesMap = {};
@@ -99,18 +94,16 @@ const SalesOverview = () => {
       employeeSales.sort((a, b) => b.totalSales - a.totalSales);
 
       setSalesData({
-        todayTotal,
+        todayOrderCount,
         recentOrders: dashboardData.recent_orders?.slice(0, 3) || [],
-        topProducts: dashboardData.top_selling_products?.slice(0, 3) || [],
         employeeSales,
         loading: false,
       });
     } catch (error) {
       console.error("Failed to load sales data:", error);
       setSalesData({
-        todayTotal: 0,
+        todayOrderCount: 0,
         recentOrders: [],
-        topProducts: [],
         employeeSales: [],
         loading: false,
       });
@@ -169,13 +162,13 @@ const SalesOverview = () => {
         </div>
       </div>
 
-      {/* Daily Sales Total */}
+      {/* Daily Orders Total */}
       <div className="mb-6">
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-100">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-blue-600 font-medium text-sm mb-1">
-                Total Sales for{" "}
+                Total Orders for{" "}
                 {new Date(selectedDate).toLocaleDateString("en-US", {
                   weekday: "long",
                   year: "numeric",
@@ -184,25 +177,25 @@ const SalesOverview = () => {
                 })}
               </p>
               <p className="text-3xl font-bold text-blue-900">
-                {formatCurrency(salesData.todayTotal)}
+                {salesData.todayOrderCount} orders
               </p>
               <p className="text-blue-600 text-sm mt-1">
                 {salesData.employeeSales.reduce(
                   (sum, emp) => sum + emp.orderCount,
                   0
                 )}{" "}
-                orders completed
+                orders by employees
               </p>
             </div>
             <div className="bg-blue-100 p-3 rounded-full">
-              <DollarSign className="h-8 w-8 text-blue-600" />
+              <ShoppingCart className="h-8 w-8 text-blue-600" />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Three Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Two Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Sales by Employee */}
         <div className="lg:col-span-1">
           <div className="flex items-center gap-2 mb-4">
@@ -291,71 +284,6 @@ const SalesOverview = () => {
                           {order.is_paid ? "Paid" : "Unpaid"}
                         </span>
                       </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Top Selling Products */}
-        <div className="lg:col-span-1">
-          <div className="flex items-center gap-2 mb-4">
-            <Package className="h-4 w-4 text-gray-600" />
-            <h3 className="text-md font-medium text-gray-900">
-              Top Selling Products
-            </h3>
-          </div>
-
-          {salesData.topProducts.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <Package className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-              <p className="text-sm">No product data</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {salesData.topProducts.map((product, index) => (
-                <div key={index} className="bg-gray-50 rounded-lg p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="bg-white p-1.5 rounded-full">
-                        <Package className="h-3 w-3 text-gray-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900 text-sm">
-                          {product.product__name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          #{index + 1} Best Seller
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-sm text-gray-900">
-                        {product.total_quantity} sold
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="mt-2">
-                    <div className="bg-gray-200 rounded-full h-1">
-                      <div
-                        className="bg-blue-500 h-1 rounded-full transition-all duration-300"
-                        style={{
-                          width: `${Math.max(
-                            10,
-                            (product.total_quantity /
-                              Math.max(
-                                ...salesData.topProducts.map(
-                                  (p) => p.total_quantity
-                                )
-                              )) *
-                              100
-                          )}%`,
-                        }}
-                      ></div>
                     </div>
                   </div>
                 </div>
