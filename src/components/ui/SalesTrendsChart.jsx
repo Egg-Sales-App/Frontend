@@ -301,102 +301,117 @@ const SalesTrendsChart = () => {
         </div>
       </div>
 
-      {/* Main Chart */}
-      <div className="mb-6">
-        <div className="h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            {filters.chartType === "line" ? (
-              <LineChart data={chartsData.trendsData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="date"
-                  tickFormatter={formatDate}
-                  fontSize={12}
-                />
-                <YAxis
-                  tickFormatter={(value) => `₵${(value / 1000).toFixed(0)}k`}
-                  fontSize={12}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-                {Array.from(selectedCategories).map((category, index) => (
-                  <Line
-                    key={category}
-                    type="monotone"
-                    dataKey={category}
-                    stroke={
-                      categoryColors[
-                        chartsData.categories.indexOf(category) %
-                          categoryColors.length
-                      ]
-                    }
-                    strokeWidth={2}
-                    dot={{
-                      fill: categoryColors[
-                        chartsData.categories.indexOf(category) %
-                          categoryColors.length
-                      ],
-                      strokeWidth: 2,
-                      r: 4,
-                    }}
-                  />
-                ))}
-              </LineChart>
-            ) : (
-              <BarChart data={chartsData.trendsData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="date"
-                  tickFormatter={formatDate}
-                  fontSize={12}
-                />
-                <YAxis
-                  tickFormatter={(value) => `₵${(value / 1000).toFixed(0)}k`}
-                  fontSize={12}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-                {Array.from(selectedCategories).map((category, index) => (
-                  <Bar
-                    key={category}
-                    dataKey={category}
-                    fill={
-                      categoryColors[
-                        chartsData.categories.indexOf(category) %
-                          categoryColors.length
-                      ]
-                    }
-                  />
-                ))}
-              </BarChart>
-            )}
-          </ResponsiveContainer>
-        </div>
-      </div>
+      {/* Two Column Layout: Chart Left, Summary Right */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Left Column - Main Chart */}
+        <div>
+          <div className="mb-4">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Sales Trends Over Time
+            </h3>
+            <p className="text-sm text-gray-500">
+              Track category performance across selected time period
+            </p>
+          </div>
 
-      {/* Category Performance Summary */}
-      <div>
-        <div className="flex items-center gap-2 mb-4">
-          <PieChartIcon className="h-4 w-4 text-gray-600" />
-          <h3 className="text-md font-medium text-gray-900">
-            Category Performance Summary
-          </h3>
+          <div className="h-96">
+            <ResponsiveContainer width="100%" height="100%">
+              {filters.chartType === "line" ? (
+                <LineChart data={chartsData.trendsData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="date"
+                    tickFormatter={formatDate}
+                    fontSize={12}
+                  />
+                  <YAxis
+                    tickFormatter={(value) => `₵${(value / 1000).toFixed(0)}k`}
+                    fontSize={12}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                  {Array.from(selectedCategories).map((category, index) => (
+                    <Line
+                      key={category}
+                      type="monotone"
+                      dataKey={category}
+                      stroke={
+                        categoryColors[
+                          chartsData.categories.indexOf(category) %
+                            categoryColors.length
+                        ]
+                      }
+                      strokeWidth={2}
+                      dot={{
+                        fill: categoryColors[
+                          chartsData.categories.indexOf(category) %
+                            categoryColors.length
+                        ],
+                        strokeWidth: 2,
+                        r: 4,
+                      }}
+                    />
+                  ))}
+                </LineChart>
+              ) : (
+                <BarChart data={chartsData.trendsData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="date"
+                    tickFormatter={formatDate}
+                    fontSize={12}
+                  />
+                  <YAxis
+                    tickFormatter={(value) => `₵${(value / 1000).toFixed(0)}k`}
+                    fontSize={12}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                  {Array.from(selectedCategories).map((category, index) => (
+                    <Bar
+                      key={category}
+                      dataKey={category}
+                      fill={
+                        categoryColors[
+                          chartsData.categories.indexOf(category) %
+                            categoryColors.length
+                        ]
+                      }
+                    />
+                  ))}
+                </BarChart>
+              )}
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Right Column - Category Performance Summary */}
+        <div>
+          <div className="mb-4">
+            <div className="flex items-center gap-2">
+              <PieChartIcon className="h-5 w-5 text-gray-600" />
+              <h3 className="text-lg font-medium text-gray-900">
+                Category Performance
+              </h3>
+            </div>
+            <p className="text-sm text-gray-500">
+              Breakdown of sales by product category
+            </p>
+          </div>
+
           {/* Performance List */}
-          <div className="space-y-3">
+          <div className="space-y-3 mb-6">
             {chartsData.categoryPerformance
-              .slice(0, 6)
+              .slice(0, 5)
               .map((category, index) => (
                 <div
                   key={category.category}
-                  className="bg-gray-50 rounded-lg p-4"
+                  className="bg-gray-50 rounded-lg p-3"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <div
-                        className="w-4 h-4 rounded-full"
+                        className="w-3 h-3 rounded-full"
                         style={{
                           backgroundColor:
                             categoryColors[index % categoryColors.length],
@@ -417,7 +432,7 @@ const SalesTrendsChart = () => {
                         {formatCurrency(category.totalSales)}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {category.salesPercentage.toFixed(1)}% of total
+                        {category.salesPercentage.toFixed(1)}%
                       </p>
                     </div>
                   </div>
@@ -426,7 +441,7 @@ const SalesTrendsChart = () => {
           </div>
 
           {/* Pie Chart */}
-          <div className="h-56">
+          <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
