@@ -34,11 +34,11 @@ const Sidebar = () => {
       label: "Inventory",
       path: "/admin/inventory",
     },
-    {
-      icon: <FileText size={iconSize} />,
-      label: "Reports",
-      path: "/admin/reports",
-    },
+    // {
+    //   icon: <FileText size={iconSize} />,
+    //   label: "Reports",
+    //   path: "/admin/reports",
+    // },
     {
       icon: <Truck size={iconSize} />,
       label: "Suppliers",
