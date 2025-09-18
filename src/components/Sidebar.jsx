@@ -174,14 +174,14 @@ const Sidebar = () => {
 
         {/* -------- Footer Menu -------- */}
         <div className="p-4">
-          <ul className="space-y-2 text-sm font-medium bg-red-600 rounded-md">
+          <ul className="space-y-2 text-sm font-medium bg-blue-600 rounded-md">
             {footerItems.map((item, idx) => (
               <li key={idx}>
                 {item.onClick ? (
                   // Handle logout with click handler
                   <button
                     onClick={item.onClick}
-                    className={`flex items-center gap-3 px-1 py-2 rounded-lg transition-all duration-200 text-white hover:bg-red-700 w-full ${
+                    className={`flex items-center gap-3 px-1 py-2 rounded-lg transition-all duration-200 text-white hover:bg-blue-700 w-full ${
                       isCollapsed ? "justify-center" : ""
                     }`}
                     title={isCollapsed ? item.label : ""}
