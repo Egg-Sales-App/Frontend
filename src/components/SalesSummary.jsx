@@ -19,7 +19,12 @@ import { useToast } from "./ui/ToastContext";
 // UI components for handling empty states and loading
 import EmptyState from "./ui/EmptyState";
 import LoadingSpinner from "./ui/LoadingSpinner";
-import { Calendar, BarChart3, LineChart as LineChartIcon, TrendingUp } from "lucide-react";
+import {
+  Calendar,
+  BarChart3,
+  LineChart as LineChartIcon,
+  TrendingUp,
+} from "lucide-react";
 
 const SalesSummary = () => {
   // State for holding chart data
@@ -100,9 +105,18 @@ const SalesSummary = () => {
   }
 
   // Calculate summary statistics
-  const totalOrders = salesData.reduce((sum, month) => sum + (month.ordered || 0), 0);
-  const totalDelivered = salesData.reduce((sum, month) => sum + (month.delivered || 0), 0);
-  const totalRevenue = salesData.reduce((sum, month) => sum + (month.revenue || 0), 0);
+  const totalOrders = salesData.reduce(
+    (sum, month) => sum + (month.ordered || 0),
+    0
+  );
+  const totalDelivered = salesData.reduce(
+    (sum, month) => sum + (month.delivered || 0),
+    0
+  );
+  const totalRevenue = salesData.reduce(
+    (sum, month) => sum + (month.revenue || 0),
+    0
+  );
 
   // Custom tooltip for displaying formatted data
   const CustomTooltip = ({ active, payload, label }) => {
@@ -129,7 +143,7 @@ const SalesSummary = () => {
     <section className="w-full h-[450px] bg-white rounded-lg shadow-md p-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
         <h2 className="text-xl font-semibold text-gray-800">Sales Summary</h2>
-        
+
         <div className="flex flex-col sm:flex-row gap-3">
           {/* Time Period Selector */}
           <div className="flex items-center gap-2">
@@ -146,7 +160,7 @@ const SalesSummary = () => {
               ))}
             </select>
           </div>
-          
+
           {/* Chart Type Toggle */}
           <div className="flex gap-2">
             <button
@@ -180,19 +194,25 @@ const SalesSummary = () => {
         <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
           <div className="flex items-center gap-2 mb-1">
             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-            <span className="text-sm font-medium text-blue-700">Total Orders</span>
+            <span className="text-sm font-medium text-blue-700">
+              Total Orders
+            </span>
           </div>
           <span className="text-xl font-bold text-blue-900">{totalOrders}</span>
         </div>
-        
+
         <div className="bg-green-50 rounded-lg p-3 border border-green-200">
           <div className="flex items-center gap-2 mb-1">
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span className="text-sm font-medium text-green-700">Delivered</span>
+            <span className="text-sm font-medium text-green-700">
+              Delivered
+            </span>
           </div>
-          <span className="text-xl font-bold text-green-900">{totalDelivered}</span>
+          <span className="text-xl font-bold text-green-900">
+            {totalDelivered}
+          </span>
         </div>
-        
+
         <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
           <div className="flex items-center gap-2 mb-1">
             <TrendingUp size={16} className="text-purple-500" />
