@@ -3,6 +3,7 @@ import AdminLayout from "../../components/layout/AdminLayout";
 import MetricCard from "../../components/ui/MetricCard";
 import StockCard from "../../components/ui/StockCard";
 import SalesSummary from "../../components/SalesSummary";
+import SalesOverview from "../../components/ui/SalesOverview";
 import { useApi } from "../../hooks/useApi";
 import { inventoryService } from "../../services/inventoryService";
 import { salesService } from "../../services/salesService";
@@ -83,38 +84,42 @@ const Dashboard = () => {
   // Sales metrics with real data
   const salesMetrics = useMemo(() => {
     const summary = dashboardData?.summary;
+    const recentSales = dashboardData?.recentSales || [];
+
     if (!summary) return [];
+
+    // Calculate total from recent orders since total_revenue might be calculated differently
+    const recentOrdersTotal = recentSales.reduce(
+      (sum, order) => sum + parseFloat(order.total_amount || 0),
+      0
+    );
 
     return [
       {
         icon: <BarChart3 />,
-        value: `GHS ${summary.total_revenue || 0}`,
-        label: "Total Sales",
+        value: `₦${recentOrdersTotal.toFixed(2)}`,
+        label: "Recent Sales",
         bgColor: "bg-blue-100",
         iconColor: "text-blue-500",
       },
       {
         icon: <LineChart />,
-        value: `GHS ${summary.total_revenue || 0}`,
-        label: "Revenue",
+        value: summary.total_orders || 0,
+        label: "Total Orders",
         bgColor: "bg-green-100",
         iconColor: "text-green-500",
       },
       {
         icon: <PieChart />,
-        value: `GHS ${(parseFloat(summary.total_revenue || 0) * 0.2).toFixed(
-          2
-        )}`,
-        label: "Profit",
+        value: summary.total_products || 0,
+        label: "Products",
         bgColor: "bg-purple-100",
         iconColor: "text-purple-500",
       },
       {
         icon: <DollarSign />,
-        value: `GHS ${(parseFloat(summary.total_revenue || 0) * 0.8).toFixed(
-          2
-        )}`,
-        label: "Expenses",
+        value: summary.total_customers || 0,
+        label: "Customers",
         bgColor: "bg-orange-100",
         iconColor: "text-orange-500",
       },
@@ -324,173 +329,98 @@ const Dashboard = () => {
             </div>
           </section>
 
-          {/* Sales & Purchase Chart section */}
-          <section className="relative w-full h-[360px] bg-white rounded-[10px] shadow-md p-4 overflow-hidden">
-            <div className="flex justify-between items-center mb-2">
-              <h2 className="text-[20px] text-gray-800 font-medium">
-                Sales & Purchase
-              </h2>
-              <div className="flex gap-2">
-                <button className="btn bg-green-300 px-4 py-1 rounded shadow-sm text-sm text-gray-600">
-                  Weekly
-                </button>
-                <button className="btn bg-green-300 px-4 py-1 rounded shadow-sm text-sm text-gray-600">
-                  Daily
-                </button>
-              </div>
-            </div>
+          {/* Sales Summary */}
+          <SalesSummary />
 
-            {/* Y-axis Labels */}
-            <div className="absolute left-4 top-[74px] flex flex-col justify-between h-[218px] text-xs text-gray-500">
-              {["60,000", "50,000", "40,000", "30,000", "20,000", "10,000"].map(
-                (val, idx) => (
-                  <span key={idx}>{val}</span>
-                )
-              )}
-            </div>
-
-            {/* Chart Grid */}
-            <div className="absolute top-[82px] left-[101px]">
-              {[...Array(6)].map((_, idx) => (
-                <div
-                  key={idx}
-                  className="w-[460px] h-[41px] border-b border-gray-300"
-                ></div>
-              ))}
-            </div>
-
-            {/* Bars */}
-            <div className="absolute top-[89px] left-[120px] flex gap-4 items-end">
-              {[
-                { purchase: 186, sales: 163 },
-                { purchase: 198, sales: 157 },
-                { purchase: 144, sales: 177 },
-                { purchase: 112, sales: 139 },
-                { purchase: 139, sales: 151 },
-                { purchase: 78, sales: 130 },
-                { purchase: 186, sales: 163 },
-                { purchase: 144, sales: 134 },
-                { purchase: 144, sales: 139 },
-                { purchase: 112, sales: 139 },
-              ].map((bar, idx) => (
-                <div key={idx} className="flex flex-col items-center">
-                  <div className="flex gap-1 items-end">
-                    <div
-                      className="w-2.5 rounded-b-[40px]"
-                      style={{
-                        height: `${bar.purchase}px`,
-                        background: "linear-gradient(to top, #817AF3, #74B0FA)",
-                      }}
-                    />
-                    <div
-                      className="w-2.5 rounded-b-[40px]"
-                      style={{
-                        height: `${bar.sales}px`,
-                        background: "linear-gradient(to top, #46A36C, #51CC5D)",
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* X-axis labels */}
-            <div className="absolute left-[122px] top-[293px] flex gap-5 text-[12px] text-gray-400">
-              {[
-                "Jan",
-                "Feb",
-                "Mar",
-                "Apr",
-                "May",
-                "Jun",
-                "Jul",
-                "Aug",
-                "Sep",
-                "Oct",
-              ].map((month, idx) => (
-                <span key={idx}>{month}</span>
-              ))}
-            </div>
-
-            {/* Legends */}
-            <div className="absolute left-[141px] top-[341px] flex items-center gap-2 text-[12px] text-gray-500">
-              <div
-                className="w-4 h-4 rounded-full"
-                style={{
-                  background: "linear-gradient(to top, #817AF3, #74B0FA)",
-                }}
-              ></div>
-              <span>Purchase</span>
-              <div
-                className="ml-6 w-4 h-4 rounded-full"
-                style={{
-                  background: "linear-gradient(to top, #46A36C, #51CC5D)",
-                }}
-              ></div>
-              <span>Sales</span>
-            </div>
+          {/* Sales Overview - Daily sales and employee performance */}
+          <section className="w-full bg-white rounded-lg shadow-md p-0 mb-6">
+            <SalesOverview />
           </section>
 
           {/* top selling stock */}
-
-          <section className="w-full h-[360px] bg-white rounded-lg shadow-md p-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          <section className="w-full bg-white rounded-lg shadow-md p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-800">
                 Top Selling Stock
               </h2>
               <button className="btn bg-white text-blue-500">see all</button>
             </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm text-gray-700 border-separate border-spacing-y-7">
-                <thead>
-                  <tr className="border-b border-gray-200 ">
-                    <th className="py-2 px-4 font-medium text-left text-gray-600">
-                      Name
-                    </th>
-                    <th className="py-2 px-4 font-medium text-left text-gray-600">
-                      Sold Quantity
-                    </th>
-                    <th className="py-2 px-4 font-medium text-left text-gray-600">
-                      Remaining Quantity
-                    </th>
-                    <th className="py-2 px-4 font-medium text-left text-gray-600">
-                      Price
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dashboardData?.topSelling &&
-                  dashboardData.topSelling.length > 0 ? (
-                    dashboardData.topSelling.map((product, index) => (
-                      <tr
-                        key={index}
-                        className="border-b border-gray-100 hover:bg-gray-50"
-                      >
-                        <td className="py-3 px-4">{product.name}</td>
-                        <td className="py-3 px-4">
-                          {product.sold_quantity || 0}
-                        </td>
-                        <td className="py-3 px-4">
-                          {product.quantity_in_stock}
-                        </td>
-                        <td className="py-3 px-4">
-                          GHS {parseFloat(product.price || 0).toFixed(2)}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan="4"
-                        className="py-8 text-center text-gray-500"
-                      >
-                        No top selling products data available
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+
+            {/* Top Selling Products - Enhanced Implementation */}
+            {dashboardData?.topSelling &&
+            dashboardData.topSelling.length > 0 ? (
+              <div className="space-y-3">
+                {dashboardData.topSelling.slice(0, 3).map((product, index) => (
+                  <div key={index} className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-white p-2 rounded-full">
+                          <PackageSearch className="h-4 w-4 text-gray-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {product.product__name}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            #{index + 1} Best Seller
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-lg text-gray-900">
+                          {product.total_quantity} sold
+                        </p>
+                        <p className="text-sm text-gray-500">Total Quantity</p>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="mt-3">
+                      <div className="bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                          style={{
+                            width: `${Math.max(
+                              10,
+                              (product.total_quantity /
+                                Math.max(
+                                  ...dashboardData.topSelling.map(
+                                    (p) => p.total_quantity
+                                  )
+                                )) *
+                                100
+                            )}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    {/* Additional Info */}
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-500">Sales Performance</span>
+                        <span className="font-medium text-green-600">
+                          {(
+                            (product.total_quantity /
+                              dashboardData.topSelling.reduce(
+                                (sum, p) => sum + p.total_quantity,
+                                0
+                              )) *
+                            100
+                          ).toFixed(1)}
+                          % of total sales
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <PackageSearch className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                <p>No top selling products data available</p>
+              </div>
+            )}
           </section>
         </div>
 
@@ -529,7 +459,6 @@ const Dashboard = () => {
           </section>
 
           {/*  Product Summary */}
-
           <section className="w-full h-[145px] bg-white rounded-lg p-4 shadow relative">
             <h2 className="text-[20px] font-medium text-gray-800 mb-4">
               {" "}
@@ -562,12 +491,7 @@ const Dashboard = () => {
             </div>
           </section>
 
-          {/* Sales Summary */}
-
-          <SalesSummary />
-
           {/* Low Stock Items */}
-
           <section className="w-full h-[360px] bg-white rounded-lg shadow-md p-4">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">

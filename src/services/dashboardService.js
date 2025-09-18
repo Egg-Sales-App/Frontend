@@ -95,4 +95,7 @@ export const dashboardService = {
       return { totalEmployees: 0, employees: [] };
     }
   },
+
+  // Expose apiService for direct use in components
+  apiService,
 };
