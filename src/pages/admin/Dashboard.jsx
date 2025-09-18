@@ -19,9 +19,6 @@ import {
   LineChart,
   PieChart,
   DollarSign,
-  CreditCard,
-  SquareX,
-  HandCoins,
   BrickWall,
   Warehouse,
   Users,
@@ -205,137 +202,13 @@ const Dashboard = () => {
       <div className="flex flex-col lg:flex-row gap-6 min-h-screen">
         {/* Left Column - Adjusts based on screen size */}
         <div className="flex flex-col gap-6 w-full lg:w-[60%]">
-          {/* Sales Overview section */}
-          <section className="w-full bg-white rounded-lg p-4 shadow relative">
-            <h2 className="text-xl font-medium text-gray-800 mb-4">
-              Sales Overview
-            </h2>
-            <div className="flex justify-between items-start flex-wrap">
-              <div className="flex items-center gap-3 w-[116px]">
-                <div className="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center">
-                  <BarChart3 size={18} className="text-secondary" />
-                </div>
-                <div>
-                  <div className="text-[16px] font-semibold text-gray-600">
-                    GHS {dashboardData?.recentSales?.total || 0}
-                  </div>
-                  <div className="text-sm text-gray-500">Sales</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 w-[163px]">
-                <div className="w-8 h-8 bg-indigo-100 rounded-md flex items-center justify-center">
-                  <LineChart size={18} className="text-indigo-500" />
-                </div>
-                <div>
-                  <div className="text-[16px] font-semibold text-gray-600">
-                    GHS{" "}
-                    {parseFloat(
-                      dashboardData?.summary?.total_revenue || 0
-                    ).toFixed(2)}
-                  </div>
-                  <div className="text-sm text-gray-500">Revenue</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 w-[117px]">
-                <div className="w-8 h-8 bg-orange-100 rounded-md flex items-center justify-center">
-                  <PieChart size={18} className="text-orange-500" />
-                </div>
-                <div>
-                  <div className="text-[16px] font-semibold text-gray-600">
-                    GHS{" "}
-                    {(
-                      parseFloat(dashboardData?.summary?.total_revenue || 0) *
-                      0.3
-                    ).toFixed(2)}
-                  </div>
-                  <div className="text-sm text-gray-500">Profit</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 w-[131px]">
-                <div className="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center">
-                  <DollarSign size={18} className="text-green-500" />
-                </div>
-                <div>
-                  <div className="text-[16px] font-semibold text-gray-600">
-                    GHS{" "}
-                    {(
-                      parseFloat(dashboardData?.summary?.total_revenue || 0) *
-                      0.7
-                    ).toFixed(2)}
-                  </div>
-                  <div className="text-sm text-gray-500">Cost</div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Purchase Overview section */}
-          <section className="w-full h-[120px] bg-white rounded-lg p-4 shadow relative">
-            <h2 className="text-[20px] font-medium text-gray-800 mb-4">
-              Purchase Overview
-            </h2>
-            <div className="flex justify-between items-start flex-wrap">
-              <div className="flex items-center gap-3 w-[116px]">
-                <div className="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center">
-                  <CreditCard size={18} className="text-blue-500" />
-                </div>
-                <div>
-                  <div className="text-[16px] font-semibold text-gray-600">
-                    GHS{" "}
-                    {parseFloat(
-                      dashboardData?.summary?.total_revenue || 0
-                    ).toFixed(2)}
-                  </div>
-                  <div className="text-sm text-gray-500">Purchase</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 w-[163px]">
-                <div className="w-8 h-8 bg-indigo-100 rounded-md flex items-center justify-center">
-                  <DollarSign size={18} className="text-green-500" />
-                </div>
-                <div>
-                  <div className="text-[16px] font-semibold text-gray-600">
-                    GHS{" "}
-                    {(
-                      parseFloat(dashboardData?.summary?.total_revenue || 0) *
-                      0.8
-                    ).toFixed(2)}
-                  </div>
-                  <div className="text-sm text-gray-500">Cost</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 w-[117px]">
-                <div className="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center">
-                  <SquareX size={18} className="text-orange-500" />
-                </div>
-                <div>
-                  <div className="text-[16px] font-semibold text-gray-600">
-                    GHS {dashboardData?.summary?.total_customers || 0}
-                  </div>
-                  <div className="text-sm text-gray-500">Cancel</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 w-[131px]">
-                <div className="w-8 h-8 bg-green-100 rounded-md flex items-center justify-center">
-                  <HandCoins size={18} className="text-green-500" />
-                </div>
-                <div>
-                  <div className="text-[16px] font-semibold text-gray-600">
-                    GHS {dashboardData?.summary?.total_suppliers || 0}
-                  </div>
-                  <div className="text-sm text-gray-500">Return</div>
-                </div>
-              </div>
-            </div>
+          {/* Sales Overview - Daily orders and employee performance */}
+          <section className="w-full bg-white rounded-lg shadow-md p-0">
+            <SalesOverview />
           </section>
 
           {/* Sales Summary */}
           <SalesSummary />
-
-          {/* Sales Overview - Daily sales and employee performance */}
-          <section className="w-full bg-white rounded-lg shadow-md p-0 mb-6">
-            <SalesOverview />
-          </section>
 
           {/* top selling stock */}
           <section className="w-full bg-white rounded-lg shadow-md p-4">
