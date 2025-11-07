@@ -10,7 +10,7 @@ export const paystackService = {
   async initializePayment({ amount, email, phone, reference, callback_url }) {
     try {
       // Send to your backend API instead of directly to Paystack
-      const response = await apiService.post("/payments/initialize/", {
+      const response = await apiService.post("/paystack/init/", {
         amount: amount, // Amount in kobo (multiply by 100)
         email: email,
         phone: phone,
@@ -18,6 +18,7 @@ export const paystackService = {
         callback_url: callback_url,
         payment_method: "paystack",
         channels: ["mobile_money", "card"],
+        order_id: 1,
         metadata: {
           phone: phone,
           custom_fields: [
@@ -30,16 +31,24 @@ export const paystackService = {
         },
       });
 
-      if (response.status) {
+      // Check if the backend returned a valid authorization_url
+      if (response && response.authorization_url) {
+        // Redirect the user to the Paystack payment page
+        window.location.href = response.authorization_url;
+
+        // Return the data for reference, although redirection will occur
         return {
           status: true,
-          data: response.data,
           authorization_url: response.authorization_url,
           access_code: response.access_code,
           reference: response.reference,
         };
       } else {
-        throw new Error(response.message || "Payment initialization failed");
+        // Handle cases where the URL is not returned
+        throw new Error(
+          response.message ||
+            "Payment initialization failed: No authorization URL returned."
+        );
       }
     } catch (error) {
       console.error("Paystack initialization error:", error);
